@@ -132,3 +132,8 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+#gen-ex-modal {
+  --container-lg: 86rem;
+  --container-6xl: 86rem;
+}

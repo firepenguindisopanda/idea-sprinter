@@ -28,6 +28,47 @@ npm run dev
 
 Open [http://localhost:3001](http://localhost:3001) in your browser to see the web application.
 
+### Quick Start (Web App)
+
+To run only the web application (useful when developing the frontend against a running backend at `http://localhost:5001`):
+
+```bash
+cd apps/web
+npm install
+npm run dev
+```
+
+The frontend reads `NEXT_PUBLIC_API_URL` (defaults to `http://localhost:5001`) to locate the backend API. Create `apps/web/.env.local` or set the env var if your API runs elsewhere:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5001
+```
+
+### Tests & Quality
+
+Unit and integration tests are available for the frontend:
+
+```bash
+# Run unit tests
+cd apps/web
+npm test
+
+# Run unit tests with UI
+npm run test:ui
+
+# Run e2e tests (Playwright)
+npm run test:e2e
+```
+
+Linting and type checks are also available via:
+
+```bash
+npm run lint
+npm run check-types
+```
+
+The UI shows per-agent progress and judge results (Approved / Needs Revision) with inline feedback when available.
+
 
 
 
