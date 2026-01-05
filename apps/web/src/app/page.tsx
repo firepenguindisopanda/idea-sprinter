@@ -35,7 +35,7 @@ export default function Home() {
             </Button>
           )}
           <Button variant="outline" size="lg" asChild>
-            <Link href="https://github.com/your-repo" target="_blank">
+            <Link href="https://github.com/firepenguindisopanda/idea-sprinter" target="_blank">
               View on GitHub
             </Link>
           </Button>
