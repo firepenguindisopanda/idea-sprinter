@@ -4,8 +4,6 @@ import { useState } from "react";
 import { Copy, Check, Download, Save, Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import ReactMarkdown from "react-markdown";
 import type { GenerateResponse, JudgeResult } from "@/types";
 
@@ -19,16 +17,16 @@ interface ResultsDisplayProps {
 }
 
 const AGENT_ROLES = [
-  { key: "product_owner", label: "Product Owner", icon: "📋" },
-  { key: "architect", label: "Architect", icon: "🏗️" },
-  { key: "fullstack_developer", label: "Fullstack Developer", icon: "💻" },
-  { key: "developer", label: "Developer", icon: "🛠️" },
-  { key: "senior_developer", label: "Senior Developer", icon: "🎯" },
-  { key: "designer", label: "Designer", icon: "🎨" },
-  { key: "analyst", label: "Analyst", icon: "📊" },
-  { key: "tech_writer", label: "Tech Writer", icon: "📝" },
-  { key: "tester", label: "Tester", icon: "🧪" },
-  { key: "reviewer", label: "Reviewer", icon: "👁️" },
+  { key: "product_owner", label: "PRODUCT_OWNER", id: "PO-01" },
+  { key: "architect", label: "SYSTEM_ARCHITECT", id: "AR-02" },
+  { key: "fullstack_developer", label: "FULLSTACK_ENGINEER", id: "FE-03" },
+  { key: "developer", label: "DEV_CORE", id: "DC-04" },
+  { key: "senior_developer", label: "SR_ENGINEER", id: "SE-05" },
+  { key: "designer", label: "UI_UX_DESIGNER", id: "UD-06" },
+  { key: "analyst", label: "DATA_ANALYST", id: "DA-07" },
+  { key: "tech_writer", label: "DOC_SPECIALIST", id: "DS-08" },
+  { key: "tester", label: "QA_ENGINEER", id: "QA-09" },
+  { key: "reviewer", label: "CODE_REVIEWER", id: "CR-10" },
 ];
 
 export default function ResultsDisplay({
@@ -38,25 +36,30 @@ export default function ResultsDisplay({
   isSaving = false,
   isDownloading = false,
   hideActions = false,
-}: ResultsDisplayProps) {
+}: Readonly<ResultsDisplayProps>) {
   const [copiedAgent, setCopiedAgent] = useState<string | null>(null);
 
   if (!results) {
     return (
-      <Card className="h-full">
-        <CardHeader>
-          <CardTitle>Results</CardTitle>
-          <CardDescription>
-            Your generated project specifications will appear here
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex items-center justify-center h-96">
-          <div className="text-center text-muted-foreground">
-            <p className="text-lg mb-2">No results yet</p>
-            <p className="text-sm">Fill out the form and click generate to start</p>
+      <div className="h-full border-2 border-primary/20 bg-background/50 flex flex-col">
+        <div className="p-6 border-b border-primary/20 flex items-center justify-between">
+          <div>
+            <h3 className="text-xl font-mono font-bold uppercase">Artifacts</h3>
+            <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
+              System output pending initialization
+            </p>
           </div>
-        </CardContent>
-      </Card>
+          <div className="h-8 w-8 border border-primary/10 flex items-center justify-center">
+             <div className="h-2 w-2 bg-primary/20 animate-pulse" />
+          </div>
+        </div>
+        <div className="flex-1 flex flex-col items-center justify-center p-12 text-center opacity-50">
+          <div className="h-20 w-20 border border-dashed border-primary/30 rounded-full flex items-center justify-center mb-4">
+             <span className="text-2xl font-mono">?</span>
+          </div>
+          <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Waiting for Agent Swarm...</p>
+        </div>
+      </div>
     );
   }
 
@@ -81,185 +84,153 @@ export default function ResultsDisplay({
   };
 
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Generated Specifications</CardTitle>
-            <CardDescription>
-              Review the output from each agent role
-            </CardDescription>
-          </div>
-          {!hideActions && (
-            <div className="flex gap-2">
-              {onSave && (
-                <Button
-                  onClick={onSave}
-                  variant="outline"
-                  size="sm"
-                  disabled={isSaving}
-                >
-                  {isSaving ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      Save Project
-                    </>
-                  )}
-                </Button>
-              )}
-              {onDownloadPdf && (
-                <Button
-                  onClick={onDownloadPdf}
-                  variant="outline"
-                  size="sm"
-                  disabled={isDownloading}
-                >
-                  {isDownloading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Downloading...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="mr-2 h-4 w-4" />
-                      Download PDF
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
-          )}
+    <div className="h-full border-2 border-primary/20 bg-background/80 backdrop-blur-sm flex flex-col shadow-[4px_4px_0px_0px_rgba(var(--primary),0.05)] overflow-hidden">
+      <div className="p-6 border-b-2 border-primary/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h3 className="text-2xl font-mono font-bold uppercase tracking-tighter">Generated <span className="text-primary">Dossier</span></h3>
+          <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-[0.2em]">
+            Multi-Agent output documentation // v1.0
+          </p>
         </div>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue={availableAgents[0]?.key} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5 gap-1">
-            {availableAgents.slice(0, 5).map((agent) => (
-              <TabsTrigger key={agent.key} value={agent.key} className="text-xs">
-                <span className="mr-1">{agent.icon}</span>
-                {agent.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          
-          {availableAgents.length > 5 && (
-            <TabsList className="grid w-full grid-cols-4 gap-1 mt-2">
-              {availableAgents.slice(5).map((agent) => (
-                <TabsTrigger key={agent.key} value={agent.key} className="text-xs">
-                  <span className="mr-1">{agent.icon}</span>
+        {!hideActions && (
+          <div className="flex gap-2">
+            {onSave && (
+              <Button
+                onClick={onSave}
+                variant="outline"
+                size="sm"
+                disabled={isSaving}
+                className="font-mono uppercase text-[10px] tracking-widest rounded-none border-2 border-primary/20"
+              >
+                {isSaving ? (
+                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                ) : (
+                  <Save className="mr-2 h-3 w-3" />
+                )}
+                Commit
+              </Button>
+            )}
+            {onDownloadPdf && (
+              <Button
+                onClick={onDownloadPdf}
+                variant="outline"
+                size="sm"
+                disabled={isDownloading}
+                className="font-mono uppercase text-[10px] tracking-widest rounded-none border-2 border-primary/20"
+              >
+                {isDownloading ? (
+                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                ) : (
+                  <Download className="mr-2 h-3 w-3" />
+                )}
+                Export PDF
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="flex-1 overflow-hidden flex flex-col">
+        <Tabs defaultValue={availableAgents[0]?.key} className="flex-1 flex flex-col overflow-hidden">
+          <div className="border-b border-primary/10 bg-primary/5">
+            <TabsList className="h-auto w-full justify-start rounded-none bg-transparent p-0 flex-wrap">
+              {availableAgents.map((agent) => (
+                <TabsTrigger
+                  key={agent.key}
+                  value={agent.key}
+                  className="rounded-none border-r border-primary/10 px-4 py-3 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-b-primary font-mono text-[9px] uppercase tracking-wider h-auto"
+                >
+                  <span className="opacity-50 mr-1.5">{agent.id}</span>
                   {agent.label}
                 </TabsTrigger>
               ))}
             </TabsList>
-          )}
+          </div>
 
-          {availableAgents.map((agent) => {
-            const content = markdown_outputs[agent.key];
-            const judgeStatus = getJudgeStatus(agent.key);
+          <div className="flex-1 overflow-y-auto">
+            {availableAgents.map((agent) => {
+              const content = markdown_outputs[agent.key];
+              const judgeStatus = getJudgeStatus(agent.key);
 
-            return (
-              <TabsContent key={agent.key} value={agent.key} className="mt-4">
-                <div className="space-y-4">
-                  {/* Agent Header */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-3xl">{agent.icon}</span>
-                      <div>
-                        <h3 className="text-xl font-semibold">{agent.label}</h3>
-                        {judgeStatus && (
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge
-                              variant={judgeStatus.is_approved ? "default" : "destructive"}
-                            >
-                              {judgeStatus.is_approved ? "Approved" : "Needs Revision"}
-                            </Badge>
-                            <span className="text-sm text-muted-foreground">
-                              Score: {judgeStatus.score}/10
-                            </span>
+              return (
+                <TabsContent
+                  key={agent.key}
+                  value={agent.key}
+                  className="m-0 p-0 h-full"
+                >
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-8 border-b border-primary/5 pb-4">
+                      <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 border border-primary/20 flex items-center justify-center font-mono text-primary bg-primary/5">
+                          {agent.id}
+                        </div>
+                        <div>
+                          <h4 className="font-mono font-bold text-sm uppercase tracking-widest">{agent.label} AGENT_LOG</h4>
+                          <div className="flex gap-2 mt-1">
+                            {judgeStatus && (
+                              <div className={`text-[8px] font-mono px-1.5 py-0.5 border ${
+                                judgeStatus.score >= 8 
+                                  ? 'bg-green-500/10 text-green-500 border-green-500/20' 
+                                  : judgeStatus.score >= 5 
+                                    ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' 
+                                    : 'bg-red-500/10 text-red-500 border-red-500/20'
+                              }`}>
+                                QA_SCORE: {judgeStatus.score}/10
+                              </div>
+                            )}
+                            <div className="text-[8px] font-mono px-1.5 py-0.5 border bg-primary/5 text-primary/60 border-primary/10 uppercase">
+                              Encrypted_Transmission
+                            </div>
                           </div>
-                        )}
+                        </div>
                       </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => copyToClipboard(content, agent.key)}
-                    >
-                      {copiedAgent === agent.key ? (
-                        <>
-                          <Check className="mr-2 h-4 w-4" />
-                          Copied!
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="mr-2 h-4 w-4" />
-                          Copy
-                        </>
-                      )}
-                    </Button>
-                  </div>
-
-                  {/* Judge Feedback */}
-                  {judgeStatus && judgeStatus.feedback && (
-                    <Card className="bg-muted/50">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm">Judge Feedback</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm">{judgeStatus.feedback}</p>
-                        {judgeStatus.recommended_action && (
-                          <p className="text-sm text-muted-foreground mt-2">
-                            <strong>Recommendation:</strong> {judgeStatus.recommended_action}
-                          </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyToClipboard(content || "", agent.key)}
+                        className="font-mono text-[9px] uppercase tracking-tighter h-8 rounded-none border border-primary/5 hover:bg-primary/5"
+                      >
+                        {copiedAgent === agent.key ? (
+                          <>
+                            <Check className="mr-1 h-3 w-3 text-green-500" />
+                            Synchronized
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="mr-1 h-3 w-3" />
+                            Clone Buffer
+                          </>
                         )}
-                      </CardContent>
-                    </Card>
-                  )}
+                      </Button>
+                    </div>
 
-                  {/* Markdown Content */}
-                  <div className="prose prose-sm max-w-none dark:prose-invert border rounded-lg p-6 bg-card">
-                    <ReactMarkdown
-                      components={{
-                        h1: ({ children }) => (
-                          <h1 className="text-2xl font-bold mb-4">{children}</h1>
-                        ),
-                        h2: ({ children }) => (
-                          <h2 className="text-xl font-semibold mt-6 mb-3">{children}</h2>
-                        ),
-                        h3: ({ children }) => (
-                          <h3 className="text-lg font-semibold mt-4 mb-2">{children}</h3>
-                        ),
-                        code: ({ children, className }) => {
-                          const isInline = !className;
-                          return isInline ? (
-                            <code className="bg-muted px-1.5 py-0.5 rounded text-sm">
-                              {children}
-                            </code>
-                          ) : (
-                            <code className={className}>{children}</code>
-                          );
-                        },
-                        pre: ({ children }) => (
-                          <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
-                            {children}
-                          </pre>
-                        ),
-                      }}
-                    >
-                      {content}
-                    </ReactMarkdown>
+                    <div className="prose prose-sm dark:prose-invert max-w-none font-sans leading-relaxed text-muted-foreground/90
+                      prose-headings:font-mono prose-headings:uppercase prose-headings:tracking-tighter prose-headings:border-l-4 prose-headings:border-primary/20 prose-headings:pl-3
+                      prose-th:font-mono prose-th:text-[10px] prose-th:uppercase prose-th:bg-primary/5 prose-th:p-2
+                      prose-td:p-2 prose-td:border-b prose-td:border-primary/5">
+                      <ReactMarkdown>{content || ""}</ReactMarkdown>
+                    </div>
+                    
+                    {judgeStatus?.feedback && (
+                        <div className="mt-8 border-t border-primary/10 pt-4">
+                             <div className="text-[10px] font-mono text-primary uppercase mb-2">Internal_Agent_Feedback:</div>
+                            <p className="text-xs font-mono italic text-muted-foreground opacity-80 mb-2">
+                                "{judgeStatus.feedback}"
+                            </p>
+                            {judgeStatus.recommended_action && (
+                                <p className="text-[10px] font-mono text-muted-foreground">
+                                    <span className="text-primary font-bold">REC_ACTION:</span> {judgeStatus.recommended_action}
+                                </p>
+                            )}
+                        </div>
+                    )}
                   </div>
-                </div>
-              </TabsContent>
-            );
-          })}
+                </TabsContent>
+              );
+            })}
+          </div>
         </Tabs>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -18,13 +18,11 @@ import {
   BACKEND_OPTIONS,
   DATABASE_OPTIONS,
   AUTH_SERVICE_OPTIONS,
-  PAYMENT_GATEWAY_OPTIONS,
   PACKAGE_MANAGER_OPTIONS,
   PACKAGE_MANAGER_OPTIONS_NODE,
   PACKAGE_MANAGER_OPTIONS_PYTHON,
   PACKAGE_MANAGER_OPTIONS_JAVA,
   PACKAGE_MANAGER_OPTIONS_GO,
-  PACKAGE_MANAGER_OPTIONS_DOTNET,
   ORM_OPTIONS,
   RUNTIME_OPTIONS,
   type TechOption,
@@ -189,59 +187,70 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-12">
 
       {/* Project Description */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="description" className="text-base font-semibold">
-            Project Description *
-          </Label>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between border-b border-primary/10 pb-2">
+          <div className="flex items-center gap-2">
+            <div className="h-1.5 w-1.5 bg-primary rounded-full animate-pulse" />
+            <Label htmlFor="description" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">
+              Project_Definition_Protocol *
+            </Label>
+          </div>
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={handleLoadExample}
-            className="h-8 text-xs"
+            className="h-7 text-[10px] font-mono uppercase tracking-widest text-primary/40 hover:text-primary transition-colors"
           >
             {isExampleLoaded ? (
               <>
-                <Check className="mr-1 h-3 w-3" />
-                Loaded!
+                <Check className="mr-1.5 h-3 w-3" />
+                Data_Injected
               </>
             ) : (
               <>
-                <Lightbulb className="mr-1 h-3 w-3" />
-                Load Example
+                <Lightbulb className="mr-1.5 h-3 w-3" />
+                Inject_Example_Data
               </>
             )}
           </Button>
         </div>
         <Textarea
           id="description"
-          placeholder="Describe your project idea in detail. What does it do? Who is it for? What are the main features?"
+          placeholder="Describe your project here... (e.g. 'Build a high-performance e-commerce engine with real-time inventory tracking')"
           value={formData.description}
           onChange={(e) => updateField("description", e.target.value)}
           rows={10}
-          className={`${errors.description ? "border-red-500" : ""} min-h-[220px]`}
+          className={`${errors.description ? "border-destructive" : "border-primary/20"} min-h-[260px] rounded-none bg-background/50 font-mono text-sm focus-visible:ring-primary/30 p-6 leading-relaxed`}
           disabled={isLoading}
         />
-        <div className="flex justify-between text-xs text-muted-foreground">
-          {errors.description && (
-            <p className="text-red-500">{errors.description}</p>
+        <div className="flex justify-between items-center text-[10px] font-mono text-muted-foreground uppercase tracking-tighter">
+          {errors.description ? (
+            <p className="text-destructive font-bold">{errors.description}</p>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="h-1 w-1 bg-muted-foreground rounded-full" />
+              <span>Input_Validation_Active</span>
+            </div>
           )}
-          <span className="ml-auto">{formData.description.length} characters</span>
+          <span className="bg-primary/5 px-2 py-0.5 border border-primary/10 tabular-nums">BYTE_COUNT: {formData.description.length}</span>
         </div>
       </div>
 
       {/* Tech Stack Selection */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Tech Stack (Optional)</h3>
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary pr-2">Module_01: Stack_Architecture</h3>
+          <div className="h-px bg-primary/20 flex-1" />
+        </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Frontend Framework */}
           <div className="space-y-2">
-            <Label htmlFor="frontend">Frontend Framework</Label>
+            <Label htmlFor="frontend" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Frontend_Unit</Label>
             <Select
               value={formData.frontend_framework || ""}
               onValueChange={(value) =>
@@ -249,12 +258,12 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
               }
               disabled={isLoading}
             >
-              <SelectTrigger id="frontend">
-                <SelectValue placeholder="Select framework" />
+              <SelectTrigger id="frontend" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
+                <SelectValue placeholder="Select Option" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-none border-primary/20">
                 {FRONTEND_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
                     {option.label}
                   </SelectItem>
                 ))}
@@ -264,7 +273,7 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
 
           {/* Backend Framework */}
           <div className="space-y-2">
-            <Label htmlFor="backend">Backend Framework</Label>
+            <Label htmlFor="backend" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Logic_Engine</Label>
             <Select
               value={formData.backend_framework || ""}
               onValueChange={(value) =>
@@ -272,12 +281,12 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
               }
               disabled={isLoading}
             >
-              <SelectTrigger id="backend">
-                <SelectValue placeholder="Select framework" />
+              <SelectTrigger id="backend" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
+                <SelectValue placeholder="Select Option" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-none border-primary/20">
                 {BACKEND_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
                     {option.label}
                   </SelectItem>
                 ))}
@@ -287,18 +296,18 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
 
           {/* Database */}
           <div className="space-y-2">
-            <Label htmlFor="database">Database</Label>
+            <Label htmlFor="database" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Persistence_Layer</Label>
             <Select
               value={formData.database || ""}
               onValueChange={(value) => updateField("database", value || null)}
               disabled={isLoading}
             >
-              <SelectTrigger id="database">
-                <SelectValue placeholder="Select database" />
+              <SelectTrigger id="database" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
+                <SelectValue placeholder="Select Option" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-none border-primary/20">
                 {DATABASE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
                     {option.label}
                   </SelectItem>
                 ))}
@@ -308,7 +317,7 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
 
           {/* Auth Service */}
           <div className="space-y-2">
-            <Label htmlFor="auth">Authentication</Label>
+            <Label htmlFor="auth" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Access_Control</Label>
             <Select
               value={formData.auth_service || ""}
               onValueChange={(value) =>
@@ -316,79 +325,12 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
               }
               disabled={isLoading}
             >
-              <SelectTrigger id="auth">
-                <SelectValue placeholder="Select auth service" />
+              <SelectTrigger id="auth" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
+                <SelectValue placeholder="Select Option" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-none border-primary/20">
                 {AUTH_SERVICE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Payment Gateway */}
-          <div className="space-y-2">
-            <Label htmlFor="payment">Payment Gateway</Label>
-            <Select
-              value={formData.payment_gateway || ""}
-              onValueChange={(value) =>
-                updateField("payment_gateway", value || null)
-              }
-              disabled={isLoading}
-            >
-              <SelectTrigger id="payment">
-                <SelectValue placeholder="Select payment gateway" />
-              </SelectTrigger>
-              <SelectContent>
-                {PAYMENT_GATEWAY_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Package Manager */}
-          <div className="space-y-2">
-            <Label htmlFor="package-manager">Package Manager</Label>
-            <Select
-              value={formData.package_manager || ""}
-              onValueChange={(value) =>
-                updateField("package_manager", value || null)
-              }
-              disabled={isLoading}
-            >
-              <SelectTrigger id="package-manager">
-                <SelectValue placeholder="Select package manager" />
-              </SelectTrigger>
-              <SelectContent>
-                {availablePackageManagers.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* ORM */}
-          <div className="space-y-2">
-            <Label htmlFor="orm">ORM/Database Library</Label>
-            <Select
-              value={formData.orm || ""}
-              onValueChange={(value) => updateField("orm", value || null)}
-              disabled={isLoading}
-            >
-              <SelectTrigger id="orm">
-                <SelectValue placeholder="Select ORM" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableOrms.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
                     {option.label}
                   </SelectItem>
                 ))}
@@ -398,18 +340,41 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
 
           {/* Runtime */}
           <div className="space-y-2">
-            <Label htmlFor="runtime">Runtime</Label>
+            <Label htmlFor="runtime" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Execution_Env</Label>
             <Select
               value={formData.runtime || ""}
               onValueChange={(value) => updateField("runtime", value || null)}
               disabled={isLoading}
             >
-              <SelectTrigger id="runtime">
-                <SelectValue placeholder="Select runtime" />
+              <SelectTrigger id="runtime" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
+                <SelectValue placeholder="Select Option" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-none border-primary/20">
                 {availableRuntimes.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Package Manager */}
+          <div className="space-y-2">
+            <Label htmlFor="package-manager" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Dep_Registry</Label>
+            <Select
+              value={formData.package_manager || ""}
+              onValueChange={(value) =>
+                updateField("package_manager", value || null)
+              }
+              disabled={isLoading}
+            >
+              <SelectTrigger id="package-manager" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
+                <SelectValue placeholder="Select Option" />
+              </SelectTrigger>
+              <SelectContent className="rounded-none border-primary/20">
+                {availablePackageManagers.map((option) => (
+                  <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
                     {option.label}
                   </SelectItem>
                 ))}
@@ -420,54 +385,63 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
       </div>
 
       {/* Additional Options */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Additional Options</h3>
-        
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="docker" className="text-base">Include Docker</Label>
-            <p className="text-sm text-muted-foreground">
-              Add Dockerfile and docker-compose configuration
-            </p>
-          </div>
-          <Switch
-            id="docker"
-            checked={formData.include_docker}
-            onCheckedChange={(checked) => updateField("include_docker", checked)}
-            disabled={isLoading}
-          />
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary pr-2">Module_02: Infrastructure</h3>
+          <div className="h-px bg-primary/20 flex-1" />
         </div>
-
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="cicd" className="text-base">Include CI/CD</Label>
-            <p className="text-sm text-muted-foreground">
-              Add GitHub Actions workflow configuration
-            </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="flex items-center justify-between p-4 border border-primary/10 bg-primary/5">
+            <div className="space-y-1">
+              <Label htmlFor="docker" className="text-[11px] font-mono uppercase tracking-widest font-bold">Encapsulation: Docker</Label>
+              <p className="text-[10px] text-muted-foreground font-mono uppercase">
+                Initialize_Container_Blueprints
+              </p>
+            </div>
+            <Switch
+              id="docker"
+              checked={formData.include_docker}
+              onCheckedChange={(checked) => updateField("include_docker", checked)}
+              disabled={isLoading}
+              className="data-[state=checked]:bg-primary"
+            />
           </div>
-          <Switch
-            id="cicd"
-            checked={formData.include_cicd}
-            onCheckedChange={(checked) => updateField("include_cicd", checked)}
-            disabled={isLoading}
-          />
+
+          <div className="flex items-center justify-between p-4 border border-primary/10 bg-primary/5">
+            <div className="space-y-1">
+              <Label htmlFor="cicd" className="text-[11px] font-mono uppercase tracking-widest font-bold">Pipeline: CI/CD</Label>
+              <p className="text-[10px] text-muted-foreground font-mono uppercase">
+                Inject_Automation_Workflows
+              </p>
+            </div>
+            <Switch
+              id="cicd"
+              checked={formData.include_cicd}
+              onCheckedChange={(checked) => updateField("include_cicd", checked)}
+              disabled={isLoading}
+              className="data-[state=checked]:bg-primary"
+            />
+          </div>
         </div>
       </div>
 
       {/* Submit Button */}
       <Button
         type="submit"
-        className="w-full"
-        size="lg"
+        className="w-full rounded-none py-10 font-mono uppercase text-lg tracking-[0.2em] border-2 border-primary/50 group bg-primary text-primary-foreground hover:bg-primary/90"
         disabled={isLoading}
       >
         {isLoading ? (
           <>
-            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            Generating Project...
+            <Loader2 className="mr-3 h-6 w-6 animate-spin" />
+            Compiling_Specifications...
           </>
         ) : (
-          "Generate Project Specification"
+          <div className="flex items-center gap-4">
+            <span>Commit_Architectural_Draft</span>
+            <span className="opacity-40 group-hover:translate-x-2 transition-transform">{">>>"}</span>
+          </div>
         )}
       </Button>
     </form>

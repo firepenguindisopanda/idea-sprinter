@@ -11,20 +11,20 @@ interface EmptyStateProps {
 
 export default function EmptyState({ title, description }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-      <div className="rounded-full bg-muted p-6 mb-4">
-        <FileQuestion className="h-12 w-12 text-muted-foreground" />
+    <div className="flex flex-col items-center justify-center py-24 px-4 text-center border-2 border-dashed border-primary/20 bg-primary/[0.02]">
+      <div className="border border-primary/20 p-6 mb-6 rotate-45 group hover:rotate-90 transition-transform duration-500">
+        <FileQuestion className="h-10 w-10 text-primary/40 -rotate-45 group-hover:-rotate-90 transition-transform duration-500" />
       </div>
       
-      <h3 className="text-2xl font-semibold mb-2">{title}</h3>
-      <p className="text-muted-foreground mb-6 max-w-md">
+      <h3 className="text-xl font-mono font-bold uppercase mb-2 tracking-tight">{title}</h3>
+      <p className="text-muted-foreground mb-10 max-w-md text-sm font-sans italic">
         {description}
       </p>
       
       <Link href="/generator">
-        <Button size="lg">
+        <Button size="xl" className="font-mono uppercase tracking-widest rounded-none border-2 border-primary/40 bg-background text-foreground hover:bg-primary hover:text-primary-foreground transition-all">
           <Plus className="mr-2 h-5 w-5" />
-          Create Your First Project
+          Initialize First Entity
         </Button>
       </Link>
     </div>

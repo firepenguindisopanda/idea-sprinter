@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
 	return {
-		name: "srs-doc-sprinter",
-		short_name: "srs-doc-sprinter",
-		description: "my pwa app",
+		name: "specs before code",
+		short_name: "specs before code",
+		description: "AI-powered multi-agent system for generating software specifications before you code.",
 		start_url: "/new",
 		display: "standalone",
 		background_color: "#ffffff",

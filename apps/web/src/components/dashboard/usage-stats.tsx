@@ -1,14 +1,12 @@
 "use client";
 
 import { TrendingUp, Zap, DollarSign, Activity } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 
 interface UsageStats {
-  readonly ideasprinter_tokens_used_monthly?: number;
-  readonly ideasprinter_budget_remaining?: number;
-  readonly ideasprinter_cost_estimate_total?: number;
-  readonly ideasprinter_requests_total?: number;
+  readonly specsbeforecode_tokens_used_monthly?: number;
+  readonly specsbeforecode_budget_remaining?: number;
+  readonly specsbeforecode_cost_estimate_total?: number;
+  readonly specsbeforecode_requests_total?: number;
   // Legacy format support
   readonly monthly_tokens_used?: number;
   readonly budget_remaining?: number;
@@ -24,18 +22,11 @@ interface UsageStatsProps {
 export default function UsageStats({ stats, isLoading = false }: UsageStatsProps) {
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Usage Statistics</CardTitle>
-          <CardDescription>Loading your usage data...</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-muted rounded w-3/4"></div>
-            <div className="h-4 bg-muted rounded w-1/2"></div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-24 bg-primary/5 animate-pulse border-2 border-primary/10" />
+        ))}
+      </div>
     );
   }
 
@@ -44,10 +35,10 @@ export default function UsageStats({ stats, isLoading = false }: UsageStatsProps
   }
 
   // Support both API formats
-  const requestsTotal = stats.ideasprinter_requests_total ?? stats.requests_total ?? 0;
-  const tokensUsed = stats.ideasprinter_tokens_used_monthly ?? stats.monthly_tokens_used ?? 0;
-  const costEstimate = stats.ideasprinter_cost_estimate_total ?? stats.total_cost_estimate ?? 0;
-  const budgetRemaining = stats.ideasprinter_budget_remaining ?? stats.budget_remaining ?? 0;
+  const requestsTotal = stats.specsbeforecode_requests_total ?? stats.requests_total ?? 0;
+  const tokensUsed = stats.specsbeforecode_tokens_used_monthly ?? stats.monthly_tokens_used ?? 0;
+  const costEstimate = stats.specsbeforecode_cost_estimate_total ?? stats.total_cost_estimate ?? 0;
+  const budgetRemaining = stats.specsbeforecode_budget_remaining ?? stats.budget_remaining ?? 0;
 
   const budgetUsedPercentage = budgetRemaining > 0
     ? ((1000000 - budgetRemaining) / 1000000) * 100
@@ -55,58 +46,45 @@ export default function UsageStats({ stats, isLoading = false }: UsageStatsProps
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
-          <Activity className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{requestsTotal.toLocaleString()}</div>
-          <p className="text-xs text-muted-foreground">
-            API calls this month
-          </p>
-        </CardContent>
-      </Card>
+      <div className="border-2 border-primary/20 bg-background/50 p-4 relative group hover:border-primary/40 transition-colors">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary/60">SYS_TICKS</span>
+          <Activity className="h-3 w-3 text-primary/40" />
+        </div>
+        <div className="text-2xl font-mono font-bold">{requestsTotal.toLocaleString()}</div>
+        <div className="mt-1 text-[9px] font-mono text-muted-foreground uppercase">TOTAL_REQUEST_LOAD</div>
+      </div>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Tokens Used</CardTitle>
-          <Zap className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{tokensUsed.toLocaleString()}</div>
-          <p className="text-xs text-muted-foreground">
-            This month
-          </p>
-        </CardContent>
-      </Card>
+      <div className="border-2 border-primary/20 bg-background/50 p-4 relative group hover:border-primary/40 transition-colors">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary/60">DATA_VOL</span>
+          <Zap className="h-3 w-3 text-primary/40" />
+        </div>
+        <div className="text-2xl font-mono font-bold">{tokensUsed.toLocaleString()}</div>
+        <div className="mt-1 text-[9px] font-mono text-muted-foreground uppercase">TOKEN_EXCHANGE_VOL</div>
+      </div>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Estimated Cost</CardTitle>
-          <DollarSign className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">${costEstimate.toFixed(2)}</div>
-          <p className="text-xs text-muted-foreground">
-            Total spend
-          </p>
-        </CardContent>
-      </Card>
+      <div className="border-2 border-primary/20 bg-background/50 p-4 relative group hover:border-primary/40 transition-colors">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary/60">RES_ALLOC</span>
+          <DollarSign className="h-3 w-3 text-primary/40" />
+        </div>
+        <div className="text-2xl font-mono font-bold">${costEstimate.toFixed(2)}</div>
+        <div className="mt-1 text-[9px] font-mono text-muted-foreground uppercase">CREDIT_EXPENDITURE</div>
+      </div>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Budget Status</CardTitle>
-          <TrendingUp className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{budgetUsedPercentage.toFixed(1)}%</div>
-          <Progress value={budgetUsedPercentage} className="mt-2" />
-          <p className="text-xs text-muted-foreground mt-2">
-            {budgetRemaining.toLocaleString()} tokens remaining
-          </p>
-        </CardContent>
-      </Card>
+      <div className="border-2 border-primary/20 bg-background/50 p-4 relative group hover:border-primary/40 transition-colors">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary/60">CAP_RESERVE</span>
+          <TrendingUp className="h-3 w-3 text-primary/40" />
+        </div>
+        <div className="space-y-2">
+          <div className="text-lg font-mono font-bold">{budgetUsedPercentage.toFixed(1)}% <span className="text-[10px] text-muted-foreground uppercase font-normal">CAPACITY</span></div>
+          <div className="w-full h-1 bg-primary/10 rounded-none overflow-hidden">
+            <div className="h-full bg-primary" style={{ width: `${budgetUsedPercentage}%` }} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

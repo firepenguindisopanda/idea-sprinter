@@ -1,4 +1,9 @@
-# srs-doc-sprinter
+
+# specs before code - srs-doc-sprinter (Frontend)
+
+This is the frontend for the **specs before code** product, an AI-powered multi-agent system for generating software specifications before you code.
+
+This project, together with the multi-agent-system backend, forms the complete specs before code product.
 
 This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines Next.js, and more.
 

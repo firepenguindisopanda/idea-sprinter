@@ -63,10 +63,10 @@ export interface ProjectCreate {
 }
 
 export interface UsageMetrics {
-  ideasprinter_tokens_used_monthly?: number;
-  ideasprinter_budget_remaining?: number;
-  ideasprinter_cost_estimate_total?: number;
-  ideasprinter_requests_total?: number;
+  specsbeforecode_tokens_used_monthly?: number;
+  specsbeforecode_budget_remaining?: number;
+  specsbeforecode_cost_estimate_total?: number;
+  specsbeforecode_requests_total?: number;
   // Also support unprefixed format
   monthly_tokens_used?: number;
   budget_remaining?: number;

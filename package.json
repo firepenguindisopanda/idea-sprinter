@@ -1,5 +1,5 @@
 {
-  "name": "srs-doc-sprinter",
+  "name": "specs-before-code",
   "private": true,
   "type": "module",
   "workspaces": [

@@ -81,53 +81,67 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto p-6 max-w-7xl">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">My Projects</h1>
-            <p className="text-muted-foreground">
-              View and manage your saved project specifications
+      <div className="container mx-auto p-6 max-w-7xl space-y-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-primary/20 pb-8 gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <div className="h-1.5 w-1.5 bg-primary rounded-full animate-pulse" />
+              <span className="text-[10px] font-mono text-primary/60 uppercase tracking-widest">Archive Active</span>
+            </div>
+            <h1 className="text-4xl font-mono font-bold uppercase tracking-tighter">Project <span className="text-primary">Database</span></h1>
+            <p className="text-muted-foreground font-sans text-sm max-w-xl">
+              Access previously initialized system specifications and architectural blueprints.
             </p>
           </div>
           
           <Link href="/generator">
-            <Button size="lg">
+            <Button size="xl" className="font-mono uppercase tracking-widest rounded-none border-2 border-primary/20 shadow-[4px_4px_0px_0px_rgba(var(--primary),0.1)]">
               <Plus className="mr-2 h-5 w-5" />
-              New Project
+              Init New System
             </Button>
           </Link>
         </div>
 
         {/* Usage Statistics */}
-        <div className="mb-8">
+        <div className="relative">
+          <div className="absolute top-0 right-0 p-2 text-[10px] font-mono text-primary/20 select-none uppercase">Metric Logs</div>
           <UsageStats stats={metrics} isLoading={isLoadingMetrics} />
         </div>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <div className="space-y-6">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="font-mono text-xs font-bold uppercase text-primary/70">Stored Artifacts:</span>
+            <div className="h-px flex-1 bg-primary/10" />
+            <span className="font-mono text-xs text-muted-foreground">{projects.length} RECORDS</span>
           </div>
-        ) : (
-          <>
-            {projects.length === 0 ? (
-              <EmptyState
-                title="No projects yet"
-                description="Start by creating your first project specification using our AI-powered multi-agent system."
-              />
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {projects.map((project) => (
-                  <ProjectCard
-                    key={project.id}
-                    project={project}
-                    onDelete={handleDelete}
-                    onDownloadPdf={handleDownloadPdf}
-                  />
-                ))}
-              </div>
-            )}
-          </>
-        )}
+          
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-32 space-y-4">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+              <span className="font-mono text-[10px] uppercase animate-pulse">Scanning Archive...</span>
+            </div>
+          ) : (
+            <>
+              {projects.length === 0 ? (
+                <EmptyState
+                  title="No entities detected"
+                  description="System memory is currently empty. Initialize a new project to populate the database."
+                />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {projects.map((project) => (
+                    <ProjectCard
+                      key={project.id}
+                      project={project}
+                      onDelete={handleDelete}
+                      onDownloadPdf={handleDownloadPdf}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </ProtectedRoute>
   );
