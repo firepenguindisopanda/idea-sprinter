@@ -15,6 +15,22 @@ interface AuthStore {
   initAuth: () => Promise<void>;
 }
 
+// Helper to redirect to login page
+function redirectToLogin() {
+  if (typeof globalThis.window !== 'undefined') {
+    globalThis.window.location.href = '/auth/login';
+  }
+}
+
+// Set up the API client's auth error handler
+api.onAuthError = () => {
+  // Remove token, clear user, and redirect
+  Cookies.remove('auth_token');
+  api.setToken(null);
+  // We can't call set() here directly, but the store will be reset on next usage
+  redirectToLogin();
+};
+
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({

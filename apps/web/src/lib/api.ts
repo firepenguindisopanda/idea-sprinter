@@ -3,6 +3,8 @@ import type { User, ProjectRequest, GenerateResponse, Project, ProjectCreate, Us
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
 
 class ApiClient {
+    // Optional callback to handle auth errors (e.g., logout and redirect)
+    onAuthError?: () => void;
   private token: string | null = null;
 
   setToken(token: string | null) {
@@ -26,8 +28,14 @@ class ApiClient {
     });
 
     if (!response.ok) {
+      // If unauthorized or forbidden, trigger auth error handler if set
+      if (response.status === 401 || response.status === 403) {
+        if (this.onAuthError) {
+          this.onAuthError();
+        }
+      }
       const error = await response.json().catch(() => ({}));
-      throw new Error(error.detail || 'API request failed');
+      throw new Error(error.detail || error.message || 'API request failed');
     }
 
     return response.json();
