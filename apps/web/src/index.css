@@ -25,31 +25,31 @@ body {
   --card-foreground: oklch(0.129 0.042 264.695);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.704 0.191 231.548); /* Blueprint Cyan */
+  --primary: oklch(0.58 0.233 277.117); /* Royal Deep Blue */
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0.01 231.548); /* Light Cyan Wash */
+  --secondary: oklch(0.95 0.02 277.117); /* Light Royal Wash */
   --secondary-foreground: oklch(0.129 0.042 264.695);
-  --muted: oklch(0.97 0.01 231.548);
-  --muted-foreground: oklch(0.556 0.042 264.695);
-  --accent: oklch(0.92 0.04 231.548);
+  --muted: oklch(0.95 0.02 277.117);
+  --muted-foreground: oklch(0.5 0.042 264.695); /* Darker muted text */
+  --accent: oklch(0.92 0.04 277.117);
   --accent-foreground: oklch(0.129 0.042 264.695);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0.04 231.548);
-  --input: oklch(0.922 0.04 231.548);
-  --ring: oklch(0.704 0.191 231.548);
+  --border: oklch(0.85 0.05 277.117); /* Darker border */
+  --input: oklch(0.85 0.05 277.117);
+  --ring: oklch(0.58 0.233 277.117);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.99 0.01 231.548);
+  --sidebar: oklch(0.98 0.01 277.117);
   --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.704 0.191 231.548);
+  --sidebar-primary: oklch(0.58 0.233 277.117);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.97 0.01 231.548);
+  --sidebar-accent: oklch(0.95 0.02 277.117);
   --sidebar-accent-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-border: oklch(0.922 0.04 231.548);
-  --sidebar-ring: oklch(0.704 0.191 231.548);
+  --sidebar-border: oklch(0.85 0.05 277.117);
+  --sidebar-ring: oklch(0.58 0.233 277.117);
 }
 
 .dark {
@@ -59,7 +59,7 @@ body {
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.22 0.04 257.417);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.704 0.191 231.548); /* Blueprint Cyan #0EA5E9 */
+  --primary: oklch(0.704 0.191 231.548); /* Blueprint Cyan #0EA5E9 (Keep for dark mode) */
   --primary-foreground: oklch(0.182 0.04 257.417);
   --secondary: oklch(0.28 0.04 257.417);
   --secondary-foreground: oklch(0.985 0 0);

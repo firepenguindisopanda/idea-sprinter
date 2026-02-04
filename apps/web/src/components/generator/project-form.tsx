@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Lightbulb, Check } from "lucide-react";
+import { Loader2, Lightbulb, Check, Settings2, ChevronDown, ChevronUp, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -54,6 +54,7 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
 
   const [errors, setErrors] = useState<{ description?: string }>({});
   const [isExampleLoaded, setIsExampleLoaded] = useState(false);
+  const [isAdvancedMode, setIsAdvancedMode] = useState(false);
 
   // Dynamic Options State
   const [availableRuntimes, setAvailableRuntimes] = useState<TechOption[]>(RUNTIME_OPTIONS);
@@ -240,191 +241,228 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
         </div>
       </div>
 
-      {/* Tech Stack Selection */}
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary pr-2">Module_01: Stack_Architecture</h3>
-          <div className="h-px bg-primary/20 flex-1" />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Frontend Framework */}
-          <div className="space-y-2">
-            <Label htmlFor="frontend" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Frontend_Unit</Label>
-            <Select
-              value={formData.frontend_framework || ""}
-              onValueChange={(value) =>
-                updateField("frontend_framework", value || null)
-              }
-              disabled={isLoading}
-            >
-              <SelectTrigger id="frontend" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
-                <SelectValue placeholder="Select Option" />
-              </SelectTrigger>
-              <SelectContent className="rounded-none border-primary/20">
-                {FRONTEND_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      {/* Advanced Configuration Toggle */}
+      <div className="border-t border-b border-primary/10 py-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className={`p-2 rounded-full ${!isAdvancedMode ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+              <Bot className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-mono font-bold uppercase tracking-widest">
+                {!isAdvancedMode ? "AI_Architect_Mode: Active" : "Manual_Configuration: Active"}
+              </h3>
+              <p className="text-[10px] text-muted-foreground font-mono mt-1 max-w-[500px]">
+                {!isAdvancedMode 
+                  ? "Our AI agents will analyze your requirements and autonomously select the optimal technology stack and infrastructure for your project." 
+                  : "You have taken control. Manually specify your preferred frameworks, databases, and infrastructure components."}
+              </p>
+            </div>
           </div>
-
-          {/* Backend Framework */}
-          <div className="space-y-2">
-            <Label htmlFor="backend" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Logic_Engine</Label>
-            <Select
-              value={formData.backend_framework || ""}
-              onValueChange={(value) =>
-                updateField("backend_framework", value || null)
-              }
-              disabled={isLoading}
-            >
-              <SelectTrigger id="backend" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
-                <SelectValue placeholder="Select Option" />
-              </SelectTrigger>
-              <SelectContent className="rounded-none border-primary/20">
-                {BACKEND_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Database */}
-          <div className="space-y-2">
-            <Label htmlFor="database" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Persistence_Layer</Label>
-            <Select
-              value={formData.database || ""}
-              onValueChange={(value) => updateField("database", value || null)}
-              disabled={isLoading}
-            >
-              <SelectTrigger id="database" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
-                <SelectValue placeholder="Select Option" />
-              </SelectTrigger>
-              <SelectContent className="rounded-none border-primary/20">
-                {DATABASE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Auth Service */}
-          <div className="space-y-2">
-            <Label htmlFor="auth" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Access_Control</Label>
-            <Select
-              value={formData.auth_service || ""}
-              onValueChange={(value) =>
-                updateField("auth_service", value || null)
-              }
-              disabled={isLoading}
-            >
-              <SelectTrigger id="auth" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
-                <SelectValue placeholder="Select Option" />
-              </SelectTrigger>
-              <SelectContent className="rounded-none border-primary/20">
-                {AUTH_SERVICE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Runtime */}
-          <div className="space-y-2">
-            <Label htmlFor="runtime" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Execution_Env</Label>
-            <Select
-              value={formData.runtime || ""}
-              onValueChange={(value) => updateField("runtime", value || null)}
-              disabled={isLoading}
-            >
-              <SelectTrigger id="runtime" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
-                <SelectValue placeholder="Select Option" />
-              </SelectTrigger>
-              <SelectContent className="rounded-none border-primary/20">
-                {availableRuntimes.map((option) => (
-                  <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Package Manager */}
-          <div className="space-y-2">
-            <Label htmlFor="package-manager" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Dep_Registry</Label>
-            <Select
-              value={formData.package_manager || ""}
-              onValueChange={(value) =>
-                updateField("package_manager", value || null)
-              }
-              disabled={isLoading}
-            >
-              <SelectTrigger id="package-manager" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
-                <SelectValue placeholder="Select Option" />
-              </SelectTrigger>
-              <SelectContent className="rounded-none border-primary/20">
-                {availablePackageManagers.map((option) => (
-                  <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsAdvancedMode(!isAdvancedMode)}
+            className={`font-mono text-[10px] uppercase tracking-wider border-primary/20 hover:bg-primary/5 ${isAdvancedMode ? 'bg-primary/5 text-primary' : 'text-muted-foreground'}`}
+          >
+            <Settings2 className="mr-2 h-3 w-3" />
+            {isAdvancedMode ? "Hide_Advanced_Config" : "Configure_Stack_Manually"}
+            {isAdvancedMode ? <ChevronUp className="ml-2 h-3 w-3" /> : <ChevronDown className="ml-2 h-3 w-3" />}
+          </Button>
         </div>
       </div>
 
-      {/* Additional Options */}
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary pr-2">Module_02: Infrastructure</h3>
-          <div className="h-px bg-primary/20 flex-1" />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="flex items-center justify-between p-4 border border-primary/10 bg-primary/5">
-            <div className="space-y-1">
-              <Label htmlFor="docker" className="text-[11px] font-mono uppercase tracking-widest font-bold">Encapsulation: Docker</Label>
-              <p className="text-[10px] text-muted-foreground font-mono uppercase">
-                Initialize_Container_Blueprints
-              </p>
+      {/* Tech Stack Selection - Conditional Render */}
+      {isAdvancedMode && (
+        <div className="space-y-12 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary pr-2">Module_01: Stack_Architecture</h3>
+              <div className="h-px bg-primary/20 flex-1" />
             </div>
-            <Switch
-              id="docker"
-              checked={formData.include_docker}
-              onCheckedChange={(checked) => updateField("include_docker", checked)}
-              disabled={isLoading}
-              className="data-[state=checked]:bg-primary"
-            />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Frontend Framework */}
+              <div className="space-y-2">
+                <Label htmlFor="frontend" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Frontend_Unit</Label>
+                <Select
+                  value={formData.frontend_framework || ""}
+                  onValueChange={(value) =>
+                    updateField("frontend_framework", value || null)
+                  }
+                  disabled={isLoading}
+                >
+                  <SelectTrigger id="frontend" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
+                    <SelectValue placeholder="Auto-Detect" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-none border-primary/20">
+                    {FRONTEND_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Backend Framework */}
+              <div className="space-y-2">
+                <Label htmlFor="backend" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Logic_Engine</Label>
+                <Select
+                  value={formData.backend_framework || ""}
+                  onValueChange={(value) =>
+                    updateField("backend_framework", value || null)
+                  }
+                  disabled={isLoading}
+                >
+                  <SelectTrigger id="backend" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
+                    <SelectValue placeholder="Auto-Detect" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-none border-primary/20">
+                    {BACKEND_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Database */}
+              <div className="space-y-2">
+                <Label htmlFor="database" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Persistence_Layer</Label>
+                <Select
+                  value={formData.database || ""}
+                  onValueChange={(value) => updateField("database", value || null)}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger id="database" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
+                    <SelectValue placeholder="Auto-Detect" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-none border-primary/20">
+                    {DATABASE_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Auth Service */}
+              <div className="space-y-2">
+                <Label htmlFor="auth" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Access_Control</Label>
+                <Select
+                  value={formData.auth_service || ""}
+                  onValueChange={(value) =>
+                    updateField("auth_service", value || null)
+                  }
+                  disabled={isLoading}
+                >
+                  <SelectTrigger id="auth" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
+                    <SelectValue placeholder="Auto-Detect" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-none border-primary/20">
+                    {AUTH_SERVICE_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Runtime */}
+              <div className="space-y-2">
+                <Label htmlFor="runtime" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Execution_Env</Label>
+                <Select
+                  value={formData.runtime || ""}
+                  onValueChange={(value) => updateField("runtime", value || null)}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger id="runtime" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
+                    <SelectValue placeholder="Auto-Detect" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-none border-primary/20">
+                    {availableRuntimes.map((option) => (
+                      <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Package Manager */}
+              <div className="space-y-2">
+                <Label htmlFor="package-manager" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Dep_Registry</Label>
+                <Select
+                  value={formData.package_manager || ""}
+                  onValueChange={(value) =>
+                    updateField("package_manager", value || null)
+                  }
+                  disabled={isLoading}
+                >
+                  <SelectTrigger id="package-manager" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
+                    <SelectValue placeholder="Auto-Detect" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-none border-primary/20">
+                    {availablePackageManagers.map((option) => (
+                      <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
 
-          <div className="flex items-center justify-between p-4 border border-primary/10 bg-primary/5">
-            <div className="space-y-1">
-              <Label htmlFor="cicd" className="text-[11px] font-mono uppercase tracking-widest font-bold">Pipeline: CI/CD</Label>
-              <p className="text-[10px] text-muted-foreground font-mono uppercase">
-                Inject_Automation_Workflows
-              </p>
+          {/* Additional Options */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary pr-2">Module_02: Infrastructure</h3>
+              <div className="h-px bg-primary/20 flex-1" />
             </div>
-            <Switch
-              id="cicd"
-              checked={formData.include_cicd}
-              onCheckedChange={(checked) => updateField("include_cicd", checked)}
-              disabled={isLoading}
-              className="data-[state=checked]:bg-primary"
-            />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="flex items-center justify-between p-4 border border-primary/10 bg-primary/5">
+                <div className="space-y-1">
+                  <Label htmlFor="docker" className="text-[11px] font-mono uppercase tracking-widest font-bold">Encapsulation: Docker</Label>
+                  <p className="text-[10px] text-muted-foreground font-mono uppercase">
+                    Initialize_Container_Blueprints
+                  </p>
+                </div>
+                <Switch
+                  id="docker"
+                  checked={formData.include_docker}
+                  onCheckedChange={(checked) => updateField("include_docker", checked)}
+                  disabled={isLoading}
+                  className="data-[state=checked]:bg-primary"
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 border border-primary/10 bg-primary/5">
+                <div className="space-y-1">
+                  <Label htmlFor="cicd" className="text-[11px] font-mono uppercase tracking-widest font-bold">Pipeline: CI/CD</Label>
+                  <p className="text-[10px] text-muted-foreground font-mono uppercase">
+                    Inject_Automation_Workflows
+                  </p>
+                </div>
+                <Switch
+                  id="cicd"
+                  checked={formData.include_cicd}
+                  onCheckedChange={(checked) => updateField("include_cicd", checked)}
+                  disabled={isLoading}
+                  className="data-[state=checked]:bg-primary"
+                />
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Submit Button */}
       <Button
@@ -439,7 +477,9 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
           </>
         ) : (
           <div className="flex items-center gap-4">
-            <span>Commit_Architectural_Draft</span>
+            <span>
+              {!isAdvancedMode ? "Architect_&_Generate_Specs" : "Commit_Custom_Architecture"}
+            </span>
             <span className="opacity-40 group-hover:translate-x-2 transition-transform">{">>>"}</span>
           </div>
         )}

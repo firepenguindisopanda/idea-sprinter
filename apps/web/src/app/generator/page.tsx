@@ -127,7 +127,7 @@ export default function GeneratorPage() {
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto p-6 max-w-7xl space-y-12">
+      <div className="w-full px-6 max-w-[96vw] mx-auto space-y-12">
         <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-primary/20 pb-6 gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">

@@ -73,6 +73,13 @@ class ApiClient {
     });
   }
 
+  async updateProject(id: number, data: Partial<ProjectCreate>): Promise<Project> {
+    return this.request(`/projects/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
   async deleteProject(id: number): Promise<void> {
     await this.request(`/projects/${id}`, { method: 'DELETE' });
   }

@@ -89,6 +89,37 @@ export default function ProjectDetailPage() {
     }
   };
 
+  const handleArtifactUpdate = async (agentKey: string, newContent: string) => {
+    if (!project) return;
+
+    try {
+      // Create a deep copy of artifacts
+      const updatedArtifacts = { ...project.artifacts, [agentKey]: newContent };
+      
+      // Optimistic update
+      const previousProject = { ...project };
+      setProject({ ...project, artifacts: updatedArtifacts });
+
+      // API Call
+      await api.updateProject(project.id, {
+        title: project.title, // Backend might require title? Schema says it's optional in ProjectUpdate but good to check. 
+                              // Actually schemas.py says ProjectCreate(ProjectBase) and ProjectBase requires title/artifacts.
+                              // Wait, checking schemas.py again.
+        artifacts: updatedArtifacts
+      });
+
+      toast.success("Artifact Updated", {
+        description: "Changes have been committed to the project memory.",
+      });
+    } catch (error) {
+      // Revert on error
+      loadProject(); // Reload from server to be safe
+      toast.error("Update Failed", {
+        description: error instanceof Error ? error.message : "Failed to update artifact",
+      });
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -188,6 +219,7 @@ export default function ProjectDetailPage() {
             }}
             onSave={undefined}
             onDownloadPdf={handleDownloadPdf}
+            onArtifactUpdate={handleArtifactUpdate}
             isSaving={false}
             isDownloading={isDownloading}
             hideActions
