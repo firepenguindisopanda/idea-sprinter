@@ -11,33 +11,33 @@ describe('PreGenerationForm', () => {
         value={{
           title: '',
           audience: '',
+          problemStatement: '',
+          domain: '',
+          mustHaveFeatures: [],
           techStack: '',
-          scopeSeeds: [],
           exampleCount: 3,
           constraints: '',
           desiredTone: '',
-          timeBudget: '',
-          nonGoals: '',
         }}
         onChange={onChange}
         onSubmit={onSubmit}
       />
     );
 
-    const generateButton = screen.getByRole('button', { name: /Generate examples/i });
+    const generateButton = screen.getByRole('button', { name: /Initialize_Concepts/i });
     expect(generateButton).toBeDisabled();
 
     // fill required fields
-    const title = screen.getByPlaceholderText(/Short project title/i);
-    const audience = screen.getByPlaceholderText(/e.g. Small businesses, Students, Enterprise/i);
-    const tech = screen.getByPlaceholderText(/React \+ Next\.js, Postgres/i);
-    const mvpCheckbox = screen.getByText('MVP').closest('label')?.querySelector('input');
+    const title = screen.getByPlaceholderText(/PDF Insight Hub/i);
+    const audience = screen.getByPlaceholderText(/Compliance analysts/i);
+    const problem = screen.getByPlaceholderText(/Teams need a fast way to extract/i);
+    const tech = screen.getByPlaceholderText(/React, PostgreSQL/i);
 
     // Controlled component: onChange should be called when user types/clicks.
     fireEvent.change(title, { target: { value: 'Test Project' } });
     fireEvent.change(audience, { target: { value: 'Small businesses' } });
+    fireEvent.change(problem, { target: { value: 'Users need instant summaries from PDFs.' } });
     fireEvent.change(tech, { target: { value: 'React + Next.js, Postgres' } });
-    if (mvpCheckbox) fireEvent.click(mvpCheckbox);
 
     expect(onChange).toHaveBeenCalled();
     // Note: button enabling logic depends on parent updating `value`.
@@ -51,20 +51,20 @@ describe('PreGenerationForm', () => {
         value={{
           title: 'My App',
           audience: 'Small businesses',
+          problemStatement: 'Teams need to automate intake.',
+          domain: 'Legal',
+          mustHaveFeatures: ['Upload PDFs', 'Extract text'],
           techStack: 'React + Next.js, Postgres',
-          scopeSeeds: ['MVP'],
           exampleCount: 3,
           constraints: '',
           desiredTone: '',
-          timeBudget: '',
-          nonGoals: '',
         }}
         onChange={onChange}
         onSubmit={onSubmit}
       />
     );
 
-    const generateButton = screen.getByRole('button', { name: /Generate examples/i });
+    const generateButton = screen.getByRole('button', { name: /Initialize_Concepts/i });
     expect(generateButton).toBeEnabled();
     fireEvent.click(generateButton);
     expect(onSubmit).toHaveBeenCalled();
@@ -78,20 +78,20 @@ describe('PreGenerationForm', () => {
         value={{
           title: 'My App',
           audience: 'Small businesses',
+          problemStatement: 'Teams need to automate intake.',
+          domain: '',
+          mustHaveFeatures: [],
           techStack: '',
-          scopeSeeds: ['MVP'],
           exampleCount: 3,
           constraints: '',
           desiredTone: '',
-          timeBudget: '',
-          nonGoals: '',
         }}
         onChange={onChange}
         onSubmit={onSubmit}
       />
     );
 
-    const generateButton = screen.getByRole('button', { name: /Generate examples/i });
+    const generateButton = screen.getByRole('button', { name: /Initialize_Concepts/i });
     expect(generateButton).toBeEnabled();
     fireEvent.click(generateButton);
     expect(onSubmit).toHaveBeenCalled();

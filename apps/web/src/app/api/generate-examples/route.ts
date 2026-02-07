@@ -12,6 +12,11 @@ type ExampleItem = {
   tags?: string[];
 };
 
+type StreamHandlers = {
+  onChunk: (text: string) => void;
+  onDone: () => void;
+};
+
 function tryParseExamplesFromContent(content: string): ExampleItem[] | null {
   const fenced = content.match(/```json\s*([\s\S]*?)```/i) ?? content.match(/```\s*([\s\S]*?)```/i);
   const jsonText = fenced ? fenced[1] : content;
@@ -34,7 +39,7 @@ function tryExtractExamplesFromChoicePayload(payload: any): ExampleItem[] | null
 }
 
 function buildMockExamples(req: PreGenerationRequest): ExampleItem[] {
-  const seeds = req.scopeSeeds?.length ? req.scopeSeeds : ["MVP", "Intermediate", "Full"];
+  const seeds = ["MVP", "Medium", "Ambitious"];
   const count = Math.max(1, Math.min(req.exampleCount ?? 3, 5));
   const items: ExampleItem[] = [];
 
@@ -44,7 +49,10 @@ function buildMockExamples(req: PreGenerationRequest): ExampleItem[] {
     const techDisplay = req.techStack ? ` using ${req.techStack}` : "";
     const oneLine = `${req.title}: ${complexity} ${req.audience} focused solution${techDisplay}`;
     const bullets = [`${complexity} scope item 1`, `${complexity} scope item 2`, `${complexity} scope item 3`];
-    const constraints = [req.constraints, req.timeBudget, req.nonGoals].filter(Boolean).join(" | ");
+    const constraints = [req.constraints].filter(Boolean).join(" | ");
+    const mustHave = (req.mustHaveFeatures ?? []).slice(0, 3).map((item) => `- ${item}`).join("\n");
+    const domain = req.domain ? `Domain: ${req.domain}\n` : "";
+    const problem = req.problemStatement ? `Problem: ${req.problemStatement}\n\n` : "";
 
     items.push({
       id: `${i}`,
@@ -53,7 +61,10 @@ function buildMockExamples(req: PreGenerationRequest): ExampleItem[] {
       full_text:
         `# ${req.title} (${complexity})\n\n` +
         `${oneLine}\n\n` +
+        `${domain}` +
+        `${problem}` +
         `Scope:\n- ${bullets[0]}\n- ${bullets[1]}\n- ${bullets[2]}\n\n` +
+        `Must-have:\n${mustHave || "(none specified)"}\n\n` +
         `Tone: ${req.desiredTone || "(not specified)"}\n` +
         `Constraints: ${constraints || "(none)"}\n`,
       scope_bullets: bullets,
@@ -67,8 +78,61 @@ function buildMockExamples(req: PreGenerationRequest): ExampleItem[] {
 function validateBody(body: any): asserts body is PreGenerationRequest {
   if (!body || typeof body !== "object") throw new Error("Invalid body");
   if (!body.title || !body.audience) throw new Error("Missing required fields");
-  if (!Array.isArray(body.scopeSeeds) || body.scopeSeeds.length === 0) throw new Error("scopeSeeds required");
+  if (!body.problemStatement) throw new Error("Missing required fields");
   if (typeof body.exampleCount !== "number") body.exampleCount = 3;
+}
+
+function splitSseBuffer(buffer: string) {
+  const parts = buffer.split(/\r?\n\r?\n/);
+  const rest = parts.pop() ?? "";
+  return { parts, rest };
+}
+
+function parseSseDataLines(part: string): string[] {
+  return part
+    .split(/\r?\n/)
+    .filter((line) => line.startsWith("data:"))
+    .map((line) => line.slice("data:".length).trim());
+}
+
+async function consumeUpstreamSse(res: Response, handlers: StreamHandlers) {
+  if (!res.body) throw new Error("Streaming response missing body");
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const { parts, rest } = splitSseBuffer(buffer);
+    buffer = rest;
+
+    for (const part of parts) {
+      const dataLines = parseSseDataLines(part);
+      for (const data of dataLines) {
+        if (!data) continue;
+        if (data === "[DONE]") {
+          handlers.onDone();
+          return;
+        }
+
+        try {
+          const payload = JSON.parse(data);
+          const delta = payload?.choices?.[0]?.delta?.content;
+          if (typeof delta === "string" && delta.length > 0) {
+            handlers.onChunk(delta);
+          }
+        } catch (err) {
+          // Ignore malformed JSON chunks and keep streaming
+        }
+      }
+    }
+  }
+
+  handlers.onDone();
 }
 
 export async function POST(req: NextRequest) {
@@ -107,10 +171,39 @@ export async function POST(req: NextRequest) {
 
       // If upstream is streaming, just pipe the body to the client
       if (stream && upstream.body) {
-        // preserve SSE headers
-        return new Response(upstream.body, {
+        const encoder = new TextEncoder();
+        const streamText = new TransformStream<Uint8Array, Uint8Array>();
+        const writer = streamText.writable.getWriter();
+        const send = (event: string, data: string) => {
+          const escaped = data.replaceAll("\n", String.raw`\n`);
+          writer.write(encoder.encode(`event: ${event}\ndata: ${escaped}\n\n`));
+        };
+
+        let fullText = "";
+        consumeUpstreamSse(upstream, {
+          onChunk: (text) => {
+            fullText += text;
+            send("chunk", text);
+          },
+          onDone: () => {
+            const parsed = tryParseExamplesFromContent(fullText);
+            if (parsed) {
+              send("done", JSON.stringify({ examples: parsed, vendor: "nvidia" }));
+            } else {
+              const fallback = buildMockExamples(body);
+              send("done", JSON.stringify({ examples: fallback, mock: true, vendor: "nvidia", parseError: true }));
+            }
+            writer.close();
+          },
+        }).catch(() => {
+          const fallback = buildMockExamples(body);
+          send("done", JSON.stringify({ examples: fallback, mock: true, vendor: "nvidia", parseError: true }));
+          writer.close();
+        });
+
+        return new Response(streamText.readable, {
           headers: {
-            "Content-Type": upstream.headers.get("content-type") || "text/event-stream",
+            "Content-Type": "text/event-stream",
             "Cache-Control": "no-cache",
             Connection: "keep-alive",
           },
@@ -203,7 +296,7 @@ export async function POST(req: NextRequest) {
 
 function buildNvidiaPayload(req: PreGenerationRequest, stream: boolean) {
   const prompt = `Generate ${req.exampleCount ?? 3} distinct project descriptions for a project titled: "${req.title}".
-For each example, include: a 1-line summary, 3 short bullet scope points, constraints, suggested timeline, and one-sentence acceptance criteria. Vary complexity across examples: one MVP, one medium, one ambitious. Return JSON array with fields: id, one_line, full_text, scope_bullets, constraints, timeline, acceptance_criteria, tags. Use the following context:\n\nTitle: ${req.title}\nAudience: ${req.audience}\nTech Stack: ${req.techStack || "(unspecified)"}\nScope Seeds: ${req.scopeSeeds.join(", ")}\nTime/Budget: ${req.timeBudget || "(none)"}\nConstraints: ${req.constraints || "(none)"}\nNon-goals: ${req.nonGoals || "(none)"}`;
+For each example, include: a 1-line summary, 3 short bullet scope points, constraints, suggested timeline, and one-sentence acceptance criteria. Vary complexity across examples: one MVP, one medium, one ambitious. Return JSON array with fields: id, one_line, full_text, scope_bullets, constraints, timeline, acceptance_criteria, tags. Use the following context:\n\nTitle: ${req.title}\nAudience: ${req.audience}\nProblem: ${req.problemStatement}\nDomain: ${req.domain || "(unspecified)"}\nMust-have features: ${(req.mustHaveFeatures ?? []).join(", ") || "(none)"}\nTech Stack: ${req.techStack || "(unspecified)"}\nTone: ${req.desiredTone || "(not specified)"}\nConstraints: ${req.constraints || "(none)"}`;
 
   const messages = [
     { role: "system", content: "You are a helpful assistant that returns structured JSON output." },

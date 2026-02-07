@@ -8,15 +8,22 @@ export interface User {
 // add the pre-generation fields (title, audience, techStack, scope seeds, exampleCount) and a disabled `Generate examples` button that validates required fields.
 
 export interface PreGenerationRequest {
-  title: string;
-  audience: string;
+  title?: string;
+  audience?: string;
+  problemStatement: string;
+  domain?: string;
+  mustHaveFeatures?: string[];
   techStack?: string;
-  scopeSeeds: string[];
   exampleCount: number;
   constraints?: string;
   desiredTone?: string;
-  timeBudget?: string;
-  nonGoals?: string;
+}
+
+export interface IdeationInput {
+  rawDescription: string;
+  title?: string;
+  audience?: string;
+  problemStatement?: string;
 }
 
 export interface ProjectRequest {

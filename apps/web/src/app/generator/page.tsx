@@ -27,13 +27,13 @@ export default function GeneratorPage() {
   const [preGenDraft, setPreGenDraft] = useState<PreGenerationRequest>({
     title: "",
     audience: "",
+    problemStatement: "",
+    domain: "",
+    mustHaveFeatures: [],
     techStack: "",
-    scopeSeeds: [],
     exampleCount: 3,
     constraints: "",
     desiredTone: "",
-    timeBudget: "",
-    nonGoals: "",
   });
   const [isExamplesModalOpen, setIsExamplesModalOpen] = useState(false);
   const [preGenRequest, setPreGenRequest] = useState<PreGenerationRequest | null>(null);

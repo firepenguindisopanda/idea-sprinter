@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Copy, Check, Download, Save, Loader2, Edit, X } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Copy, Check, Download, Save, Loader2, Edit, X, ChevronRight, List, ChevronDown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +16,12 @@ interface ResultsDisplayProps {
   isSaving?: boolean;
   isDownloading?: boolean;
   hideActions?: boolean;
+}
+
+interface Section {
+  id: string;
+  level: number;
+  text: string;
 }
 
 const AGENT_ROLES = [
@@ -33,6 +39,203 @@ const AGENT_ROLES = [
   { key: "spec_coordinator", label: "SPEC_COORDINATOR", id: "SC-12" },
 ];
 
+function parseSections(content: string): Section[] {
+  const sections: Section[] = [];
+  const lines = content.split('\n');
+  let currentSection = '';
+
+  for (const line of lines) {
+    const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
+    if (headingMatch) {
+      if (currentSection) {
+        sections.push({
+          id: currentSection.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+          level: currentSection.match(/^#{1,6}/)?.[0].length || 2,
+          text: currentSection.replace(/^#{1,6}\s+/, '').trim()
+        });
+      }
+      currentSection = line;
+    }
+  }
+
+  if (currentSection) {
+    sections.push({
+      id: currentSection.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+      level: currentSection.match(/^#{1,6}/)?.[0].length || 2,
+      text: currentSection.replace(/^#{1,6}\s+/, '').trim()
+    });
+  }
+
+  return sections;
+}
+
+function MarkdownViewer({ content, agentKey }: { content: string; agentKey: string }) {
+  const [sections, setSections] = useState<Section[]>([]);
+  const [activeSectionId, setActiveSectionId] = useState<string>('');
+  const [copiedSection, setCopiedSection] = useState<string | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setSections(parseSections(content));
+  }, [content]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const id = entry.target.id;
+            if (id) setActiveSectionId(id);
+          }
+        });
+      },
+      { rootMargin: '-20% 0px -60% 0px' }
+    );
+
+    const headingElements = contentRef.current?.querySelectorAll('h1, h2, h3, h4');
+    headingElements?.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, [sections]);
+
+  const scrollToSection = useCallback((id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, []);
+
+  const copySection = useCallback(async (section: Section, event: React.SyntheticEvent) => {
+    event.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(`## ${section.text}\n\n${getSectionContent(content, section.id)}`);
+      setCopiedSection(section.id);
+      setTimeout(() => setCopiedSection(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy section:', err);
+    }
+  }, [content]);
+
+  return (
+    <div className="flex gap-4">
+      {sections.length > 0 && (
+        <div className="hidden lg:block w-48 shrink-0">
+          <div className="sticky top-0 max-h-[calc(100vh-200px)] overflow-y-auto">
+            <div className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1">
+              <List className="h-3 w-3" />
+              Contents
+            </div>
+            <nav className="space-y-1">
+              {sections.map((section, idx) => (
+                <button
+                  key={`${section.id}-${idx}`}
+                  onClick={() => scrollToSection(section.id)}
+                  className={`
+                    w-full text-left text-xs font-mono px-2 py-1 rounded transition-colors
+                    flex items-center gap-1 hover:bg-primary/5
+                    ${activeSectionId === section.id ? 'text-primary bg-primary/10' : 'text-muted-foreground'}
+                    ${section.level === 1 ? 'font-bold' : section.level === 2 ? 'pl-3' : 'pl-5'}
+                  `}
+                >
+                  <ChevronRight className="h-2.5 w-2.5 shrink-0" />
+                  <span className="truncate">{section.text}</span>
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => { e.stopPropagation(); copySection(section, e); }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.stopPropagation();
+                        copySection(section, e);
+                      }
+                    }}
+                    className="ml-auto opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
+                    title="Copy section"
+                    aria-label="Copy section"
+                  >
+                    {copiedSection === section.id ? (
+                      <Check className="h-2.5 w-2.5 text-green-500" />
+                    ) : (
+                      <Copy className="h-2.5 w-2.5" />
+                    )}
+                  </span>
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
+      )}
+      <div ref={contentRef} className="flex-1 min-w-0">
+        <div
+          className="prose prose-sm dark:prose-invert max-w-none font-sans leading-relaxed text-muted-foreground/90
+            prose-headings:font-mono prose-headings:uppercase prose-headings:tracking-tighter
+            prose-headings:border-l-4 prose-headings:border-primary/20 prose-headings:pl-3
+            prose-headings:scroll-mt-20
+            prose-th:font-mono prose-th:text-[10px] prose-th:uppercase prose-th:bg-primary/5 prose-th:p-2
+            prose-td:p-2 prose-td:border-b prose-td:border-primary/5
+            prose-code:text-primary prose-code:bg-primary/5 prose-code:px-1 prose-code:rounded
+            prose-pre:bg-primary/5 prose-pre:border prose-pre:border-primary/10"
+        >
+          <ReactMarkdown
+            components={{
+              h1: ({ children }) => {
+                const text = String(children);
+                const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                return <h1 id={id} className="text-xl font-bold mt-8 mb-4">{children}</h1>;
+              },
+              h2: ({ children }) => {
+                const text = String(children);
+                const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                return <h2 id={id} className="text-lg font-semibold mt-6 mb-3">{children}</h2>;
+              },
+              h3: ({ children }) => {
+                const text = String(children);
+                const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                return <h3 id={id} className="text-base font-medium mt-4 mb-2">{children}</h3>;
+              },
+              h4: ({ children }) => {
+                const text = String(children);
+                const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                return <h4 id={id} className="text-sm font-medium mt-3 mb-2">{children}</h4>;
+              },
+            }}
+          >
+            {content || ''}
+          </ReactMarkdown>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function getSectionContent(content: string, sectionId: string): string {
+  const lines = content.split('\n');
+  let inSection = false;
+  let sectionContent: string[] = [];
+  let currentLevel = 0;
+
+  for (const line of lines) {
+    const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
+    if (headingMatch) {
+      const headingLevel = headingMatch[1].length;
+      const headingText = headingMatch[2];
+      const id = headingText.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+      if (id === sectionId) {
+        inSection = true;
+        currentLevel = headingLevel;
+        sectionContent = [line];
+      } else if (inSection && headingLevel <= currentLevel) {
+        break;
+      }
+    } else if (inSection) {
+      sectionContent.push(line);
+    }
+  }
+
+  return sectionContent.join('\n').trim();
+}
+
 export default function ResultsDisplay({
   results,
   onSave,
@@ -46,6 +249,7 @@ export default function ResultsDisplay({
   const [editingAgentKey, setEditingAgentKey] = useState<string | null>(null);
   const [editedContent, setEditedContent] = useState<string>("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showSections, setShowSections] = useState(true);
 
   if (!results) {
     return (
@@ -165,28 +369,48 @@ export default function ResultsDisplay({
       <div className="flex-1 overflow-hidden flex flex-col">
         <Tabs defaultValue={availableAgents[0]?.key} className="flex-1 flex flex-col overflow-hidden">
           <div className="border-b border-primary/10 bg-primary/5">
-            <TabsList className="h-auto w-full justify-start rounded-none bg-transparent p-0 flex-wrap">
-              {availableAgents.map((agent) => (
-                <TabsTrigger
-                  key={agent.key}
-                  value={agent.key}
-                  className="rounded-none border-r border-primary/10 px-4 py-3 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-b-primary font-mono text-[9px] uppercase tracking-wider h-auto"
-                >
-                  <span className="opacity-50 mr-1.5">{agent.id}</span>
-                  {agent.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+            <div className="flex items-center justify-between">
+              <TabsList className="h-auto w-full justify-start rounded-none bg-transparent p-0 flex-wrap border-none">
+                {availableAgents.map((agent, idx) => (
+                  <TabsTrigger
+                    key={`${agent.key}-${idx}`}
+                    value={agent.key}
+                    className="rounded-none border-r border-primary/10 px-4 py-3 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-b-primary font-mono text-[9px] uppercase tracking-wider h-auto data-[state=active]:shadow-none"
+                  >
+                    <span className="opacity-50 mr-1.5">{agent.id}</span>
+                    {agent.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSections(!showSections)}
+                className="mr-2 rounded-none font-mono text-[10px] uppercase"
+              >
+                {showSections ? (
+                  <>
+                    <ChevronDown className="h-3 w-3 mr-1" />
+                    Hide TOC
+                  </>
+                ) : (
+                  <>
+                    <List className="h-3 w-3 mr-1" />
+                    Show TOC
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            {availableAgents.map((agent) => {
+            {availableAgents.map((agent, idx) => {
               const content = markdown_outputs[agent.key];
               const judgeStatus = getJudgeStatus(agent.key);
 
               return (
                 <TabsContent
-                  key={agent.key}
+                  key={`${agent.key}-${idx}`}
                   value={agent.key}
                   className="m-0 p-0 h-full"
                 >
@@ -294,14 +518,9 @@ export default function ResultsDisplay({
                         </div>
                       </div>
                     ) : (
-                      <div className="prose prose-sm dark:prose-invert max-w-none font-sans leading-relaxed text-muted-foreground/90
-                        prose-headings:font-mono prose-headings:uppercase prose-headings:tracking-tighter prose-headings:border-l-4 prose-headings:border-primary/20 prose-headings:pl-3
-                        prose-th:font-mono prose-th:text-[10px] prose-th:uppercase prose-th:bg-primary/5 prose-th:p-2
-                        prose-td:p-2 prose-td:border-b prose-td:border-primary/5">
-                        <ReactMarkdown>{content || ""}</ReactMarkdown>
-                      </div>
+                      <MarkdownViewer content={content || ""} agentKey={agent.key} />
                     )}
-                    
+                   
                     {judgeStatus?.feedback && (
                         <div className="mt-8 border-t border-primary/10 pt-4">
                              <div className="text-[10px] font-mono text-primary uppercase mb-2">Internal_Agent_Feedback:</div>

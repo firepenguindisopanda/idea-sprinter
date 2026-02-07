@@ -29,17 +29,12 @@ interface PreGenerationFormProps {
 
 export default function PreGenerationForm({ value, onChange, onSubmit, isLoading = false }: Readonly<PreGenerationFormProps>) {
   const requiredValid = !!(
-    value.title.trim() &&
-    value.audience.trim() &&
-    value.scopeSeeds.length > 0
+    (value.title?.trim() || "") &&
+    (value.audience?.trim() || "") &&
+    value.problemStatement.trim()
   );
 
-  const toggleScopeSeed = (seed: string) => {
-    const next = value.scopeSeeds.includes(seed)
-      ? value.scopeSeeds.filter((s) => s !== seed)
-      : [...value.scopeSeeds, seed];
-    onChange({ ...value, scopeSeeds: next });
-  };
+  const mustHaveText = (value.mustHaveFeatures ?? []).join("\n");
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -47,13 +42,16 @@ export default function PreGenerationForm({ value, onChange, onSubmit, isLoading
 
     onSubmit({
       ...value,
-      title: value.title.trim(),
-      audience: value.audience.trim(),
+      title: value.title?.trim() || undefined,
+      audience: value.audience?.trim() || undefined,
+      problemStatement: value.problemStatement.trim(),
+      domain: value.domain?.trim() || undefined,
+      mustHaveFeatures: (value.mustHaveFeatures ?? [])
+        .map((item) => item.trim())
+        .filter(Boolean),
       techStack: value.techStack?.trim() || undefined,
       constraints: value.constraints?.trim() || undefined,
       desiredTone: value.desiredTone?.trim() || undefined,
-      timeBudget: value.timeBudget?.trim() || undefined,
-      nonGoals: value.nonGoals?.trim() || undefined,
     });
   };
 
@@ -66,7 +64,7 @@ export default function PreGenerationForm({ value, onChange, onSubmit, isLoading
             id="pre-title"
             value={value.title}
             onChange={(e) => onChange({ ...value, title: e.target.value })}
-            placeholder="e.g. My SaaS Dashboard"
+            placeholder="e.g. PDF Insight Hub"
             disabled={isLoading}
             className="rounded-none border-primary/20 bg-background/50 font-mono text-sm focus-visible:ring-primary/30"
           />
@@ -78,7 +76,7 @@ export default function PreGenerationForm({ value, onChange, onSubmit, isLoading
             id="pre-audience"
             value={value.audience}
             onChange={(e) => onChange({ ...value, audience: e.target.value })}
-            placeholder="e.g. Technical Administrators"
+            placeholder="e.g. Compliance analysts"
             disabled={isLoading}
             className="rounded-none border-primary/20 bg-background/50 font-mono text-sm focus-visible:ring-primary/30"
           />
@@ -98,24 +96,17 @@ export default function PreGenerationForm({ value, onChange, onSubmit, isLoading
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="space-y-2">
-          <Label className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Scope_Seeds *</Label>
-          <div className="flex gap-4 pt-1">
-            {["MVP", "Intermediate", "Full"].map((seed) => (
-              <label key={seed} className="flex items-center gap-2 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={value.scopeSeeds.includes(seed)}
-                  onChange={() => toggleScopeSeed(seed)}
-                  disabled={isLoading}
-                  className="appearance-none h-4 w-4 border-2 border-primary/30 checked:bg-primary checked:border-primary transition-all rounded-none cursor-pointer"
-                />
-                <span className="text-[10px] font-mono uppercase tracking-tighter group-hover:text-primary transition-colors">
-                  {seed}
-                </span>
-              </label>
-            ))}
-          </div>
+        <div className="md:col-span-2 space-y-2">
+          <Label htmlFor="pre-problem" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Problem_Statement *</Label>
+          <Textarea
+            id="pre-problem"
+            value={value.problemStatement}
+            onChange={(e) => onChange({ ...value, problemStatement: e.target.value })}
+            placeholder="e.g. Teams need a fast way to extract and summarize insights from PDF contracts."
+            rows={2}
+            disabled={isLoading}
+            className="rounded-none border-primary/20 bg-background/50 font-mono text-sm focus-visible:ring-primary/30 min-h-[80px]"
+          />
         </div>
 
         <div className="space-y-2">
@@ -137,6 +128,20 @@ export default function PreGenerationForm({ value, onChange, onSubmit, isLoading
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="pre-domain" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Domain_Industry</Label>
+          <Input
+            id="pre-domain"
+            value={value.domain ?? ""}
+            onChange={(e) => onChange({ ...value, domain: e.target.value })}
+            placeholder="e.g. Legal, HR, Fintech"
+            disabled={isLoading}
+            className="rounded-none border-primary/20 bg-background/50 font-mono text-sm focus-visible:ring-primary/30"
+          />
+        </div>
 
         <div className="space-y-2">
           <Label htmlFor="pre-tone" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Tone_Profile</Label>
@@ -144,7 +149,7 @@ export default function PreGenerationForm({ value, onChange, onSubmit, isLoading
             id="pre-tone"
             value={value.desiredTone ?? ""}
             onChange={(e) => onChange({ ...value, desiredTone: e.target.value })}
-            placeholder="e.g. Professional & Detailed"
+            placeholder="e.g. Crisp & Technical"
             disabled={isLoading}
             className="rounded-none border-primary/20 bg-background/50 font-mono text-sm focus-visible:ring-primary/30"
           />
@@ -153,27 +158,36 @@ export default function PreGenerationForm({ value, onChange, onSubmit, isLoading
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="space-y-2">
+          <Label htmlFor="pre-musthave" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Must_Have_Features</Label>
+          <Textarea
+            id="pre-musthave"
+            value={mustHaveText}
+            onChange={(e) =>
+              onChange({
+                ...value,
+                mustHaveFeatures: e.target.value
+                  .split("\n")
+                  .map((item) => item.trim())
+                  .filter(Boolean),
+              })
+            }
+            placeholder="One per line\nUpload PDFs\nExtract text\nCopy results"
+            rows={3}
+            disabled={isLoading}
+            className="rounded-none border-primary/20 bg-background/50 font-mono text-sm focus-visible:ring-primary/30 min-h-[96px]"
+          />
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="pre-constraints" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Operational_Constraints</Label>
           <Textarea
             id="pre-constraints"
             value={value.constraints ?? ""}
             onChange={(e) => onChange({ ...value, constraints: e.target.value })}
             placeholder="e.g. Must support offline usage, sub-100ms latency"
-            rows={2}
+            rows={3}
             disabled={isLoading}
-            className="rounded-none border-primary/20 bg-background/50 font-mono text-sm focus-visible:ring-primary/30 min-h-[80px]"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="pre-timebudget" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Resource_Allocation</Label>
-          <Input
-            id="pre-timebudget"
-            value={value.timeBudget ?? ""}
-            onChange={(e) => onChange({ ...value, timeBudget: e.target.value })}
-            placeholder="e.g. 3-month development cycle"
-            disabled={isLoading}
-            className="rounded-none border-primary/20 bg-background/50 font-mono text-sm focus-visible:ring-primary/30"
+            className="rounded-none border-primary/20 bg-background/50 font-mono text-sm focus-visible:ring-primary/30 min-h-[96px]"
           />
         </div>
       </div>

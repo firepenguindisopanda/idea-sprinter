@@ -21,21 +21,22 @@ describe('GeneratorPage integration', () => {
 
     render(<GeneratorPage />);
 
-    // Fill the pre-gen fields
-    const preTitle = screen.getByPlaceholderText(/Short project title/i);
-    const preAudience = screen.getByPlaceholderText(/e.g. Small businesses, Students, Enterprise/i);
-    const mvpCheckbox = screen.getByText('MVP').closest('label')?.querySelector('input');
+    // Fill the pre-gen fields - need to fill ALL required fields (title, audience, problemStatement)
+    const preTitle = screen.getByPlaceholderText(/e.g. PDF Insight Hub/i);
+    const preAudience = screen.getByPlaceholderText(/e.g. Compliance analysts/i);
+    const preProblem = screen.getByPlaceholderText(/Teams need a fast way to extract/i);
+    
     fireEvent.change(preTitle, { target: { value: 'My App' } });
     fireEvent.change(preAudience, { target: { value: 'Small businesses' } });
-    if (mvpCheckbox) fireEvent.click(mvpCheckbox);
+    fireEvent.change(preProblem, { target: { value: 'Users need to automate their workflow' } });
 
     // Click generate in pre-gen section
-    const generate = screen.getByRole('button', { name: /Generate examples/i });
+    const generate = screen.getByRole('button', { name: /Initialize_Concepts/i });
     expect(generate).toBeEnabled();
     fireEvent.click(generate);
 
     // Wait for modal open and examples to appear
-    const header = await screen.findByText(/Generated Examples/i);
+    const header = await screen.findByText(/Generated_Mockups/i);
     expect(header).toBeInTheDocument();
     await waitFor(() => expect(screen.getByText(/One line/i)).toBeInTheDocument());
   });

@@ -13,8 +13,8 @@
     "dev:native": "turbo -F native dev",
     "dev:web": "turbo -F web dev"
   },
-  "dependencies": {},
   "devDependencies": {
+    "baseline-browser-mapping": "^2.9.19",
     "turbo": "^2.5.4"
   },
   "packageManager": "npm@10.9.2"

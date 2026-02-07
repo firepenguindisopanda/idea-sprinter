@@ -27,7 +27,7 @@ describe("ExamplesModal", () => {
     );
 
     expect(screen.getByText("Example 1")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /select/i }));
+    fireEvent.click(screen.getByText("Initialize_Node"));
 
     const expectedText = [
       "Example 1",
@@ -43,11 +43,13 @@ describe("ExamplesModal", () => {
   it('shows the stream switch and toggles', () => {
     const onOpenChange = vi.fn();
     const onSelect = vi.fn();
+    
     render(
       <ExamplesModal open={true} onOpenChange={onOpenChange} request={null} items={[]} onSelect={onSelect} />
     );
 
-    const streamSwitch = screen.getByRole('switch', { name: /stream/i });
+    // The switch is actually a button with role="switch" and aria-label="Stream"
+    const streamSwitch = screen.getByRole('switch', { name: /Stream/i });
     expect(streamSwitch).toBeInTheDocument();
     expect(streamSwitch).toHaveAttribute('aria-checked', 'false');
     fireEvent.click(streamSwitch);
@@ -75,7 +77,9 @@ describe("ExamplesModal", () => {
       />
     );
 
+    // Check that the title and one_line are rendered (one_line is in CardDescription)
     expect(screen.getByText("Example without bullets")).toBeInTheDocument();
-    expect(screen.getByText("One line")).toBeInTheDocument();
+    // The one_line is rendered as "Ref: {one_line}" in CardDescription
+    expect(screen.getByText(/Ref: One line/i)).toBeInTheDocument();
   });
 });

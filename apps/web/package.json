@@ -25,6 +25,8 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@tanstack/react-form": "^1.12.3",
     "@tanstack/react-query": "^5.85.5",
+    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/ui": "^4.0.18",
     "babel-plugin-react-compiler": "^1.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
