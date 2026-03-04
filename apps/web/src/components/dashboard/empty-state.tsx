@@ -21,10 +21,10 @@ export default function EmptyState({ title, description }: EmptyStateProps) {
         {description}
       </p>
       
-      <Link href="/generator">
+      <Link href="/generate">
         <Button size="xl" className="font-mono uppercase tracking-widest rounded-none border-2 border-primary/40 bg-background text-foreground hover:bg-primary hover:text-primary-foreground transition-all">
           <Plus className="mr-2 h-5 w-5" />
-          Initialize First Entity
+          Create Your First Project
         </Button>
       </Link>
     </div>

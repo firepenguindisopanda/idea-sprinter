@@ -63,14 +63,14 @@ export default function ProjectCard({ project, onDelete, onDownloadPdf }: Projec
           
           <div className="space-y-4">
             {project.description && (
-              <p className="text-sm text-muted-foreground line-clamp-3 font-sans italic leading-relaxed">
-                "{project.description}"
+<p className="text-sm text-muted-foreground line-clamp-3 font-sans italic leading-relaxed">
+                &quot;{project.description}&quot;
               </p>
             )}
             
             <div className="flex items-center text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
               <Calendar className="mr-1.5 h-3 w-3 text-primary/50" />
-              T-Minus: {formatDate(project.created_at)}
+              Created: {formatDate(project.created_at)}
             </div>
 
             <div className="flex flex-wrap gap-2 pt-2 border-t border-primary/10">
@@ -94,7 +94,7 @@ export default function ProjectCard({ project, onDelete, onDownloadPdf }: Projec
             className="flex-1 flex items-center justify-center gap-2 py-3 font-mono text-xs uppercase tracking-widest hover:bg-primary/10 transition-colors border-r border-primary/20"
           >
             <Eye className="h-4 w-4" />
-            Inspect
+            View
           </button>
           <button
             onClick={() => onDownloadPdf(project)}
@@ -106,7 +106,7 @@ export default function ProjectCard({ project, onDelete, onDownloadPdf }: Projec
           <button
             onClick={() => setIsDeleteDialogOpen(true)}
             className="flex items-center justify-center p-3 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-            title="Purge"
+            title="Delete"
           >
             <Trash2 className="h-4 w-4" />
           </button>

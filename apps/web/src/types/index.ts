@@ -5,7 +5,6 @@ export interface User {
   profile_picture: string | null;
   created_at: string;
 }
-// add the pre-generation fields (title, audience, techStack, scope seeds, exampleCount) and a disabled `Generate examples` button that validates required fields.
 
 export interface PreGenerationRequest {
   title?: string;
@@ -17,13 +16,6 @@ export interface PreGenerationRequest {
   exampleCount: number;
   constraints?: string;
   desiredTone?: string;
-}
-
-export interface IdeationInput {
-  rawDescription: string;
-  title?: string;
-  audience?: string;
-  problemStatement?: string;
 }
 
 export interface ProjectRequest {
@@ -41,6 +33,7 @@ export interface ProjectRequest {
 }
 
 export interface GenerateResponse {
+  srs_document?: string;
   markdown_outputs: Record<string, string>;
   judge_results: Record<string, JudgeResult>;
 }
@@ -81,4 +74,43 @@ export interface UsageMetrics {
   requests_total?: number;
   // Additional operation metrics
   [key: string]: number | undefined;
+}
+
+// ---------------------- PRD types ----------------------
+export interface PRDStartRequest {
+  description: string;
+  user_id?: number | null;
+}
+
+export interface PRDStartResponse {
+  session_id: string;
+  message: string;
+}
+
+export interface PRDChatResponse {
+  agent_response: string;
+  needs_more: boolean;
+  phase: string;
+  missing_requirements: Record<string, boolean>;
+  questions: string[];
+  generated_prd?: string | null;
+  judge_feedback?: string | null;
+}
+
+export interface PRDStatusResponse {
+  session_id: string;
+  phase: string;
+  requirements_status: Record<string, boolean>;
+  collected_info: Record<string, string>;
+  missing_sections: string[];
+  follow_up_count: number;
+  judge_approved?: boolean | null;
+  judge_score?: number | null;
+  judge_feedback?: string | null;
+}
+
+export interface PRDDocumentResponse {
+  session_id: string;
+  generated_prd: string;
+  requirements_status: Record<string, boolean>;
 }

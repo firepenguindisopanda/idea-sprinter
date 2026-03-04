@@ -17,7 +17,7 @@ function AuthSuccessContent() {
       const init = async () => {
         setToken(token);
         await fetchUser();
-        router.push("/generator");
+        router.push("/generate");
       };
       init();
     } else {
@@ -29,8 +29,8 @@ function AuthSuccessContent() {
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-background blueprint-grid">
       <Loader2 className="h-10 w-10 animate-spin text-primary" />
       <div className="space-y-1 text-center">
-        <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-primary/60">Finalizing_Handshake</p>
-        <p className="text-xl font-mono font-bold uppercase tracking-tight">Syncing_Credentials...</p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-primary/60">Almost there</p>
+        <p className="text-xl font-mono font-bold uppercase tracking-tight">Signing you in...</p>
       </div>
     </div>
   );
@@ -41,7 +41,7 @@ export default function AuthSuccessPage() {
     <Suspense fallback={
       <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-background blueprint-grid">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-primary/60">Loading_System_Runtime</p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-primary/60">Loading...</p>
       </div>
     }>
       <AuthSuccessContent />

@@ -58,6 +58,7 @@ interface DraftStore {
   // Generation draft actions
   startGeneration: (projectRequest: ProjectRequest) => string;
   updateGenerationPhase: (phase: number, completedAgent?: string) => void;
+  updateGenerationPartialResults: (partial: Partial<GenerateResponse>) => void;
   setGenerationResults: (results: GenerateResponse) => void;
   setGenerationError: (error: string) => void;
   clearGenerationDraft: () => void;
@@ -173,15 +174,46 @@ export const useDraftStore = create<DraftStore>()(
       updateGenerationPhase: (phase, completedAgent) => {
         const current = get().generationDraft;
         if (!current) return;
-        
+        const nextCompletedAgents = completedAgent
+          ? (current.completedAgents.includes(completedAgent)
+            ? current.completedAgents
+            : [...current.completedAgents, completedAgent])
+          : current.completedAgents;
+
         set({
           generationDraft: {
             ...current,
             updatedAt: Date.now(),
             currentPhase: phase,
-            completedAgents: completedAgent 
-              ? [...current.completedAgents, completedAgent]
-              : current.completedAgents,
+            completedAgents: nextCompletedAgents,
+          },
+        });
+      },
+
+      updateGenerationPartialResults: (partial) => {
+        const current = get().generationDraft;
+        if (!current) return;
+
+        const existing = current.partialResults ?? {
+          markdown_outputs: {},
+          judge_results: {},
+        };
+
+        set({
+          generationDraft: {
+            ...current,
+            updatedAt: Date.now(),
+            partialResults: {
+              srs_document: partial.srs_document ?? existing.srs_document,
+              markdown_outputs: {
+                ...existing.markdown_outputs,
+                ...(partial.markdown_outputs ?? {}),
+              },
+              judge_results: {
+                ...existing.judge_results,
+                ...(partial.judge_results ?? {}),
+              },
+            },
           },
         });
       },

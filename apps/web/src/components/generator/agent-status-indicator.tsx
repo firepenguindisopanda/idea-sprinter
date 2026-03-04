@@ -14,10 +14,10 @@ export interface AgentStatusIndicatorProps {
 }
 
 export function AgentStatusIndicator({
-  agent,
+  agent: _agent,
   label,
   status,
-  isActive = false,
+  isActive: _isActive = false,
   retryCount = 0,
   startTime,
   className,
@@ -25,15 +25,15 @@ export function AgentStatusIndicator({
   const getStatusIcon = () => {
     switch (status) {
       case 'completed':
-        return <CheckCircle2 className="h-3 w-3 text-green-500" />;
+        return <CheckCircle2 className="h-3 w-3 text-green-500" aria-hidden="true" />;
       case 'active':
-        return <Loader2 className="h-3 w-3 text-primary animate-spin" />;
+        return <Loader2 className="h-3 w-3 text-primary animate-spin" aria-hidden="true" />;
       case 'failed':
-        return <AlertTriangle className="h-3 w-3 text-destructive" />;
+        return <AlertTriangle className="h-3 w-3 text-destructive" aria-hidden="true" />;
       case 'skipped':
-        return <Circle className="h-3 w-3 text-muted-foreground/50" />;
+        return <Circle className="h-3 w-3 text-muted-foreground/50" aria-hidden="true" />;
       default:
-        return <Circle className="h-3 w-3 text-muted-foreground/30" />;
+        return <Circle className="h-3 w-3 text-muted-foreground/30" aria-hidden="true" />;
     }
   };
 
@@ -80,6 +80,8 @@ export function AgentStatusIndicator({
         status === 'failed' && "opacity-80",
         className
       )}
+      aria-label={`${label}: ${status}`}
+      role="status"
     >
       {/* Status Icon */}
       <div className="flex-shrink-0">

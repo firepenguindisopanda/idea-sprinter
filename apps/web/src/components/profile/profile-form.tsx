@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Save, Key, Cpu, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,9 +80,11 @@ export default function ProfileForm() {
         <div className="h-24 w-24 overflow-hidden bg-muted border-2 border-primary/30 rounded-none relative">
           <div className="absolute inset-0 border-2 border-background z-10" />
           {user?.profile_picture ? (
-            <img
+            <Image
               src={user.profile_picture}
               alt={user.full_name || "User"}
+              width={96}
+              height={96}
               className="h-full w-full object-cover grayscale opacity-80"
             />
           ) : (
@@ -91,9 +94,9 @@ export default function ProfileForm() {
           )}
         </div>
         <div className="space-y-1">
-          <div className="text-[10px] font-mono text-primary/60 uppercase tracking-widest leading-none">Verified_Operator</div>
+          <div className="text-[10px] font-mono text-primary/60 uppercase tracking-widest leading-none">Account</div>
           <h2 className="text-3xl font-mono font-bold uppercase tracking-tighter">{user?.full_name}</h2>
-          <p className="text-sm font-mono text-muted-foreground uppercase opacity-70">Hash: {user?.email}</p>
+          <p className="text-sm font-mono text-muted-foreground uppercase opacity-70">{user?.email}</p>
         </div>
       </div>
 
@@ -101,11 +104,11 @@ export default function ProfileForm() {
         <TabsList className="grid w-full grid-cols-3 h-12 bg-primary/5 rounded-none border-2 border-primary/10 p-1">
           <TabsTrigger value="api-keys" className="rounded-none font-mono uppercase text-[10px] tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <Key className="mr-2 h-3.5 w-3.5" />
-            Auth_Keys
+            API Keys
           </TabsTrigger>
           <TabsTrigger value="models" className="rounded-none font-mono uppercase text-[10px] tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <Cpu className="mr-2 h-3.5 w-3.5" />
-            Neural_Core
+            Models
           </TabsTrigger>
           <TabsTrigger value="observability" className="rounded-none font-mono uppercase text-[10px] tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <Activity className="mr-2 h-3.5 w-3.5" />
@@ -117,14 +120,14 @@ export default function ProfileForm() {
         <TabsContent value="api-keys" className="mt-6">
           <Card className="rounded-none border-2 border-primary/20 bg-background/50">
             <CardHeader className="border-b border-primary/10 pb-4">
-              <CardTitle className="font-mono uppercase tracking-widest text-sm">Security_Encryption_Keys</CardTitle>
+              <CardTitle className="font-mono uppercase tracking-widest text-sm">API Keys</CardTitle>
               <CardDescription className="font-sans italic text-xs">
-                Manage personal credentials for accessing LLM subnetworks.
+                Manage your API keys for accessing AI services.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 pt-6">
               <div className="space-y-3">
-                <Label htmlFor="nvidia-key" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">NVIDIA_NIM_MASTER_KEY</Label>
+                <Label htmlFor="nvidia-key" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">NVIDIA API Key</Label>
                 <Input
                   id="nvidia-key"
                   type="password"
@@ -134,7 +137,7 @@ export default function ProfileForm() {
                   className="rounded-none border-primary/20 bg-background font-mono text-sm focus-visible:ring-primary/30 h-10"
                 />
                 <p className="text-[10px] italic font-sans text-muted-foreground">
-                  Grant permission to utilize NVIDIA high-compute optimized nodes.
+                  Your personal NVIDIA NIM API key for AI model access.
                 </p>
               </div>
             </CardContent>
@@ -145,14 +148,14 @@ export default function ProfileForm() {
         <TabsContent value="models" className="mt-6">
           <Card className="rounded-none border-2 border-primary/20 bg-background/50">
             <CardHeader className="border-b border-primary/10 pb-4">
-              <CardTitle className="font-mono uppercase tracking-widest text-sm">Logic_Processor_Mapping</CardTitle>
+              <CardTitle className="font-mono uppercase tracking-widest text-sm">Model Configuration</CardTitle>
               <CardDescription className="font-sans italic text-xs">
-                Assign specific neural architectures for each procedural operation.
+                Choose which AI models to use for each task.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
               <div className="space-y-3">
-                <Label htmlFor="chat-model" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Agent_Communication_Core</Label>
+                <Label htmlFor="chat-model" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Chat Model</Label>
                 <Select
                   value={formData.chatModel}
                   onValueChange={(value) => setFormData({ ...formData, chatModel: value })}
@@ -169,12 +172,12 @@ export default function ProfileForm() {
                   </SelectContent>
                 </Select>
                 <p className="text-[10px] italic font-sans text-muted-foreground font-medium">
-                  Protocol: Code generation and multi-agent synergy.
+                  Used for code generation and multi-agent tasks.
                 </p>
               </div>
 
               <div className="space-y-3">
-                <Label htmlFor="summary-model" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Data_Distillation_Core</Label>
+                <Label htmlFor="summary-model" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Summary Model</Label>
                 <Select
                   value={formData.summaryModel}
                   onValueChange={(value) => setFormData({ ...formData, summaryModel: value })}
@@ -193,7 +196,7 @@ export default function ProfileForm() {
               </div>
 
               <div className="space-y-3">
-                <Label htmlFor="embedding-model" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Semantic_Vector_Base</Label>
+                <Label htmlFor="embedding-model" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Embedding Model</Label>
                 <Select
                   value={formData.embeddingModel}
                   onValueChange={(value) => setFormData({ ...formData, embeddingModel: value })}
@@ -218,17 +221,17 @@ export default function ProfileForm() {
         <TabsContent value="observability" className="mt-6">
           <Card className="rounded-none border-2 border-primary/20 bg-background/50">
             <CardHeader className="border-b border-primary/10 pb-4">
-              <CardTitle className="font-mono uppercase tracking-widest text-sm">Realtime_Tracing_Relay</CardTitle>
+              <CardTitle className="font-mono uppercase tracking-widest text-sm">LangSmith Tracing</CardTitle>
               <CardDescription className="font-sans italic text-xs">
-                Configure LangSmith telemetry for advanced session auditing.
+                Configure LangSmith for monitoring and debugging.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
               <div className="flex items-center justify-between p-4 border border-primary/10 bg-primary/5">
                 <Label htmlFor="tracing-enabled" className="flex flex-col space-y-1 cursor-pointer">
-                  <span className="font-mono uppercase text-[11px] font-bold tracking-widest">Enable_Tracing_Relay</span>
+                  <span className="font-mono uppercase text-[11px] font-bold tracking-widest">Enable Tracing</span>
                   <span className="font-normal text-[10px] text-muted-foreground uppercase">
-                    Initialize LangChain_V2 monitoring
+                    Enable LangSmith monitoring
                   </span>
                 </Label>
                 <Switch
@@ -240,7 +243,7 @@ export default function ProfileForm() {
               </div>
 
               <div className="space-y-3">
-                <Label htmlFor="langsmith-key" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">LangSmith_API_Auth</Label>
+                <Label htmlFor="langsmith-key" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">LangSmith API Key</Label>
                 <Input
                   id="langsmith-key"
                   type="password"
@@ -253,7 +256,7 @@ export default function ProfileForm() {
               </div>
 
               <div className="space-y-3">
-                <Label htmlFor="project-name" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Project_Telemetry_ID</Label>
+                <Label htmlFor="project-name" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Project Name</Label>
                 <Input
                   id="project-name"
                   placeholder="e.g. my-specs-project"
@@ -275,11 +278,11 @@ export default function ProfileForm() {
           className="rounded-none font-mono uppercase text-[11px] tracking-[0.2em] px-10 py-6 border-2 border-primary/50 bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
         >
           {isLoading ? (
-            <>Uploading_Params...</>
+            <>Saving...</>
           ) : (
             <>
               <Save className="mr-2 h-3.5 w-3.5" />
-              Commit_Global_Changes
+              Save Settings
             </>
           )}
         </Button>

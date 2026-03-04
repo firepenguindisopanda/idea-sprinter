@@ -79,7 +79,7 @@ export default function ResultsPage() {
       });
       
       toast.success("Project Saved!", {
-        description: "TRANSACTION_COMPLETE: Data committed to local archive.",
+        description: "Your project has been saved to the dashboard.",
       });
       
       setIsSaveModalOpen(false);
@@ -91,7 +91,7 @@ export default function ResultsPage() {
       }, 1500);
     } catch (error) {
       toast.error("Error", {
-        description: error instanceof Error ? error.message : "UPLOAD_FAILURE: Could not commit data.",
+        description: error instanceof Error ? error.message : "Could not save the project. Please try again.",
       });
     } finally {
       setIsSaving(false);
@@ -107,11 +107,11 @@ export default function ResultsPage() {
       await downloadProjectPdf(projectDescription, results.markdown_outputs);
       
       toast.success("PDF Downloaded!", {
-        description: "FILE_EXPORT_SUCCESS: Artifact downloaded to local drive.",
+        description: "Your specification PDF has been downloaded.",
       });
     } catch (error) {
       toast.error("Error", {
-        description: error instanceof Error ? error.message : "EXPORT_FAULT: PDF generation failed.",
+        description: error instanceof Error ? error.message : "PDF download failed. Please try again.",
       });
     } finally {
       setIsDownloading(false);
@@ -167,7 +167,7 @@ export default function ResultsPage() {
             <div className="space-y-2">
               <h1 className="text-2xl font-mono font-bold uppercase">Session Not Found</h1>
               <p className="text-muted-foreground text-sm font-mono">
-                The generation session "{sessionId}" could not be found or has expired.
+                The generation session &quot;{sessionId}&quot; could not be found or has expired.
               </p>
             </div>
             <div className="flex justify-center gap-4">

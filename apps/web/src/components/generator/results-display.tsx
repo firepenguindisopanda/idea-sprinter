@@ -25,18 +25,18 @@ interface Section {
 }
 
 const AGENT_ROLES = [
-  { key: "product_owner", label: "PRODUCT_OWNER", id: "PO-01" },
-  { key: "business_analyst", label: "BUSINESS_ANALYST", id: "BA-02" },
-  { key: "solution_architect", label: "SOLUTION_ARCHITECT", id: "SA-03" },
-  { key: "data_architect", label: "DATA_ARCHITECT", id: "DA-04" },
-  { key: "security_analyst", label: "SECURITY_ANALYST", id: "SEC-05" },
-  { key: "ux_designer", label: "UX_DESIGNER", id: "UX-06" },
-  { key: "api_designer", label: "API_DESIGNER", id: "API-07" },
-  { key: "qa_strategist", label: "QA_STRATEGIST", id: "QA-08" },
-  { key: "devops_architect", label: "DEVOPS_ARCHITECT", id: "OPS-09" },
-  { key: "environment_engineer", label: "ENV_ENGINEER", id: "ENV-10" },
-  { key: "technical_writer", label: "TECH_WRITER", id: "TW-11" },
-  { key: "spec_coordinator", label: "SPEC_COORDINATOR", id: "SC-12" },
+  { key: "product_owner", label: "Product Owner", id: "PO-01" },
+  { key: "business_analyst", label: "Business Analyst", id: "BA-02" },
+  { key: "solution_architect", label: "Solution Architect", id: "SA-03" },
+  { key: "data_architect", label: "Data Architect", id: "DA-04" },
+  { key: "security_analyst", label: "Security Analyst", id: "SEC-05" },
+  { key: "ux_designer", label: "UX Designer", id: "UX-06" },
+  { key: "api_designer", label: "API Designer", id: "API-07" },
+  { key: "qa_strategist", label: "QA Strategist", id: "QA-08" },
+  { key: "devops_architect", label: "DevOps Architect", id: "OPS-09" },
+  { key: "environment_engineer", label: "Env Engineer", id: "ENV-10" },
+  { key: "technical_writer", label: "Tech Writer", id: "TW-11" },
+  { key: "spec_coordinator", label: "Spec Coordinator", id: "SC-12" },
 ];
 
 function parseSections(content: string): Section[] {
@@ -69,7 +69,7 @@ function parseSections(content: string): Section[] {
   return sections;
 }
 
-function MarkdownViewer({ content, agentKey }: { content: string; agentKey: string }) {
+function MarkdownViewer({ content, agentKey: _agentKey }: { content: string; agentKey: string }) {
   const [sections, setSections] = useState<Section[]>([]);
   const [activeSectionId, setActiveSectionId] = useState<string>('');
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
@@ -258,7 +258,7 @@ export default function ResultsDisplay({
           <div>
             <h3 className="text-xl font-mono font-bold uppercase">Artifacts</h3>
             <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
-              System output pending initialization
+              Waiting for output
             </p>
           </div>
           <div className="h-8 w-8 border border-primary/10 flex items-center justify-center">
@@ -269,7 +269,7 @@ export default function ResultsDisplay({
           <div className="h-20 w-20 border border-dashed border-primary/30 rounded-full flex items-center justify-center mb-4">
              <span className="text-2xl font-mono">?</span>
           </div>
-          <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Waiting for Agent Swarm...</p>
+          <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Waiting for results...</p>
         </div>
       </div>
     );
@@ -323,9 +323,9 @@ export default function ResultsDisplay({
     <div className="h-full border-2 border-primary/20 bg-background/80 backdrop-blur-sm flex flex-col shadow-[4px_4px_0px_0px_rgba(var(--primary),0.05)] overflow-hidden">
       <div className="p-6 border-b-2 border-primary/20 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
-          <h3 className="text-2xl font-mono font-bold uppercase tracking-tighter">Generated <span className="text-primary">Dossier</span></h3>
+          <h3 className="text-2xl font-mono font-bold uppercase tracking-tighter">Generated <span className="text-primary">Specifications</span></h3>
           <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-[0.2em]">
-            Multi-Agent output documentation // v1.0
+            Multi-agent specification documents
           </p>
         </div>
         {!hideActions && (
@@ -343,7 +343,7 @@ export default function ResultsDisplay({
                 ) : (
                   <Save className="mr-2 h-3 w-3" />
                 )}
-                Commit
+                Save
               </Button>
             )}
             {onDownloadPdf && (
@@ -421,7 +421,7 @@ export default function ResultsDisplay({
                           {agent.id}
                         </div>
                         <div>
-                          <h4 className="font-mono font-bold text-sm uppercase tracking-widest">{agent.label} AGENT_LOG</h4>
+                          <h4 className="font-mono font-bold text-sm uppercase tracking-widest">{agent.label}</h4>
                           <div className="flex gap-2 mt-1">
                             {judgeStatus && (
                               <div className={`text-[8px] font-mono px-1.5 py-0.5 border ${
@@ -431,11 +431,11 @@ export default function ResultsDisplay({
                                     ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' 
                                     : 'bg-red-500/10 text-red-500 border-red-500/20'
                               }`}>
-                                QA_SCORE: {judgeStatus.score}/10
+                                Quality: {judgeStatus.score}/10
                               </div>
                             )}
                             <div className="text-[8px] font-mono px-1.5 py-0.5 border bg-primary/5 text-primary/60 border-primary/10 uppercase">
-                              Encrypted_Transmission
+                              Verified
                             </div>
                           </div>
                         </div>
@@ -477,7 +477,7 @@ export default function ResultsDisplay({
                               ) : (
                                 <Save className="mr-1 h-3 w-3" />
                               )}
-                              Save_Changes
+                              Save
                             </Button>
                           </div>
                         ) : (
@@ -490,12 +490,12 @@ export default function ResultsDisplay({
                             {copiedAgent === agent.key ? (
                               <>
                                 <Check className="mr-1 h-3 w-3 text-green-500" />
-                                Synchronized
+                                Copied!
                               </>
                             ) : (
                               <>
                                 <Copy className="mr-1 h-3 w-3" />
-                                Clone Buffer
+                                Copy
                               </>
                             )}
                           </Button>
@@ -513,7 +513,7 @@ export default function ResultsDisplay({
                         />
                         <div className="flex justify-end">
                            <p className="text-[10px] font-mono text-muted-foreground uppercase">
-                             Editing_Mode_Active // Markdown_Supported
+                             Editing mode — Markdown supported
                            </p>
                         </div>
                       </div>
@@ -523,13 +523,13 @@ export default function ResultsDisplay({
                    
                     {judgeStatus?.feedback && (
                         <div className="mt-8 border-t border-primary/10 pt-4">
-                             <div className="text-[10px] font-mono text-primary uppercase mb-2">Internal_Agent_Feedback:</div>
+                             <div className="text-[10px] font-mono text-primary uppercase mb-2">Quality Review:</div>
                             <p className="text-xs font-mono italic text-muted-foreground opacity-80 mb-2">
-                                "{judgeStatus.feedback}"
+                                &quot;{judgeStatus.feedback}&quot;
                             </p>
                             {judgeStatus.recommended_action && (
                                 <p className="text-[10px] font-mono text-muted-foreground">
-                                    <span className="text-primary font-bold">REC_ACTION:</span> {judgeStatus.recommended_action}
+                                    <span className="text-primary font-bold">Recommended:</span> {judgeStatus.recommended_action}
                                 </p>
                             )}
                         </div>

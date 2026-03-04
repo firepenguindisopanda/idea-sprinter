@@ -1,4 +1,4 @@
-import type { User, ProjectRequest, GenerateResponse, Project, ProjectCreate, UsageMetrics } from '../types';
+import type { User, ProjectRequest, GenerateResponse, Project, ProjectCreate, UsageMetrics, PRDStartResponse, PRDChatResponse, PRDStatusResponse, PRDDocumentResponse } from '../types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
 
@@ -111,6 +111,55 @@ class ApiClient {
   // Metrics
   async getMetrics(): Promise<UsageMetrics> {
     return this.request('/health/metrics');
+  }
+
+  // ---------------- PRD agent endpoints ----------------
+  
+  // Start a new PRD session
+  async startPrdSession(description: string, userId: number | undefined): Promise<PRDStartResponse> {
+    if (!userId) {
+      throw new Error("User must be logged in to create a PRD");
+    }
+    return this.request('/prd/start', {
+      method: 'POST',
+      body: JSON.stringify({ description, user_id: userId }),
+    });
+  }
+
+  // Send message to PRD agent chat
+  async prdChat(sessionId: string, message: string): Promise<PRDChatResponse> {
+    return this.request('/prd/chat', {
+      method: 'POST',
+      body: JSON.stringify({ session_id: sessionId, message }),
+    });
+  }
+
+  // Get PRD session status
+  async getPrdStatus(sessionId: string): Promise<PRDStatusResponse> {
+    return this.request(`/prd/status/${encodeURIComponent(sessionId)}`);
+  }
+
+  // Get generated PRD document
+  async getPrdDoc(sessionId: string): Promise<PRDDocumentResponse> {
+    return this.request(`/prd/doc/${encodeURIComponent(sessionId)}`);
+  }
+
+  // Download PRD as markdown or PDF
+  async downloadPrd(sessionId: string, format: 'markdown' | 'pdf' = 'markdown'): Promise<Blob> {
+    const response = await fetch(`${API_URL}/prd/download/${encodeURIComponent(sessionId)}?format=${format}`, {
+      headers: this.token ? { 'Authorization': `Bearer ${this.token}` } : {},
+    });
+    if (!response.ok) {
+      throw new Error('Failed to download PRD');
+    }
+    return response.blob();
+  }
+
+  // Send PRD to pipeline for full SRS generation
+  async sendPrdToPipeline(sessionId: string): Promise<GenerateResponse> {
+    return this.request(`/prd/pipeline/${encodeURIComponent(sessionId)}`, {
+      method: 'POST',
+    });
   }
 }
 

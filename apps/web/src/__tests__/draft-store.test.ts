@@ -3,10 +3,7 @@ import { act, renderHook } from '@testing-library/react';
 import { 
   useDraftStore, 
   useHasActiveGeneration, 
-  useMostRecentDraft,
   useIdeationDraftWithDefaults,
-  type IdeationDraft,
-  type GenerationDraft,
 } from '@/lib/draft-store';
 import type { PreGenerationRequest, ProjectRequest, GenerateResponse } from '@/types';
 

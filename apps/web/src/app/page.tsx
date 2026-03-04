@@ -109,17 +109,6 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* Legacy generator link for authenticated users */}
-            {user && (
-              <div className="mt-6 text-center">
-                <Link 
-                  href="/generator" 
-                  className="text-[10px] font-mono text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors"
-                >
-                  Or use legacy generator →
-                </Link>
-              </div>
-            )}
           </div>
 
           {/* Secondary CTA for non-authenticated users */}

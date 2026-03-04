@@ -50,6 +50,7 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
     if (step === "refine" && !extracted.suggestedTitle && !isExtracting) {
       handleExtractInfo();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
   const handleExtractInfo = async () => {
@@ -103,7 +104,6 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
       setStep("refine");
     } else if (step === "refine") {
       handleApplyAndContinue();
-      setStep("context");
     } else if (step === "context") {
       setStep("generate");
     } else {
@@ -111,10 +111,17 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
     }
   };
 
-  const handleBack = () => {
-    if (step === "refine") setStep("problem");
-    else if (step === "context") setStep("refine");
-    else if (step === "generate") setStep("context");
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+      event.preventDefault();
+      if (step === "generate") {
+        if (!isLoading) {
+          onSubmit(value);
+        }
+        return;
+      }
+      handleNext();
+    }
   };
 
   const steps = [
@@ -125,7 +132,7 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
   ] as const;
 
   return (
-    <div className="space-y-8">
+      <div className="space-y-8" onKeyDown={handleKeyDown}>
       <div className="flex items-center justify-between">
         {steps.map((s, i) => {
           const Icon = s.icon;
@@ -173,7 +180,7 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <Label className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
-                Don't worry about structure - just describe what you're thinking
+                Don&apos;t worry about structure - just describe what you&apos;re thinking
               </Label>
               <Textarea
                 value={rawInput}
@@ -219,7 +226,7 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
           <CardContent className="space-y-6">
             <div className="bg-amber-500/5 border border-amber-500/20 p-4 rounded-md">
               <p className="text-xs font-mono uppercase text-amber-500 mb-2">Original description:</p>
-              <p className="text-sm italic text-muted-foreground">"{rawInput.slice(0, 200)}{rawInput.length > 200 ? "..." : ""}"</p>
+              <p className="text-sm italic text-muted-foreground">&quot;{rawInput.slice(0, 200)}{rawInput.length > 200 ? "..." : ""}&quot;</p>
             </div>
 
             {isExtracting ? (

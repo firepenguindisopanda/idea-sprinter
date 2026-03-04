@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { FileText, Code, Database, Lock, Shield, Layout, TestTube, Server, Settings } from "lucide-react";
+import { useState, useLayoutEffect, useRef } from "react";
+import { FileText, Code, Database, Lock, Layout, TestTube, Server, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface PreviewSection {
@@ -31,7 +31,7 @@ export function LivePreview({
   const [showScrollButton, setShowScrollButton] = useState(false);
 
   // Auto-scroll to bottom when new content arrives
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (contentRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
       const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
@@ -40,6 +40,7 @@ export function LivePreview({
         contentRef.current.scrollTop = scrollHeight;
       }
       
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowScrollButton(scrollHeight > clientHeight && scrollTop < scrollHeight - clientHeight);
     }
   }, [streamingContent, isGenerating]);

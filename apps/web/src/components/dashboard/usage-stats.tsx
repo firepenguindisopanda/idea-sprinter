@@ -48,38 +48,38 @@ export default function UsageStats({ stats, isLoading = false }: UsageStatsProps
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <div className="border-2 border-primary/20 bg-background/50 p-4 relative group hover:border-primary/40 transition-colors">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary/60">SYS_TICKS</span>
+          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary/60">Requests</span>
           <Activity className="h-3 w-3 text-primary/40" />
         </div>
         <div className="text-2xl font-mono font-bold">{requestsTotal.toLocaleString()}</div>
-        <div className="mt-1 text-[9px] font-mono text-muted-foreground uppercase">TOTAL_REQUEST_LOAD</div>
+        <div className="mt-1 text-[9px] font-mono text-muted-foreground uppercase">Total API Requests</div>
       </div>
 
       <div className="border-2 border-primary/20 bg-background/50 p-4 relative group hover:border-primary/40 transition-colors">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary/60">DATA_VOL</span>
+          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary/60">Tokens</span>
           <Zap className="h-3 w-3 text-primary/40" />
         </div>
         <div className="text-2xl font-mono font-bold">{tokensUsed.toLocaleString()}</div>
-        <div className="mt-1 text-[9px] font-mono text-muted-foreground uppercase">TOKEN_EXCHANGE_VOL</div>
+        <div className="mt-1 text-[9px] font-mono text-muted-foreground uppercase">Monthly Tokens Used</div>
       </div>
 
       <div className="border-2 border-primary/20 bg-background/50 p-4 relative group hover:border-primary/40 transition-colors">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary/60">RES_ALLOC</span>
+          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary/60">Cost</span>
           <DollarSign className="h-3 w-3 text-primary/40" />
         </div>
         <div className="text-2xl font-mono font-bold">${costEstimate.toFixed(2)}</div>
-        <div className="mt-1 text-[9px] font-mono text-muted-foreground uppercase">CREDIT_EXPENDITURE</div>
+        <div className="mt-1 text-[9px] font-mono text-muted-foreground uppercase">Estimated Cost</div>
       </div>
 
       <div className="border-2 border-primary/20 bg-background/50 p-4 relative group hover:border-primary/40 transition-colors">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary/60">CAP_RESERVE</span>
+          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary/60">Budget</span>
           <TrendingUp className="h-3 w-3 text-primary/40" />
         </div>
         <div className="space-y-2">
-          <div className="text-lg font-mono font-bold">{budgetUsedPercentage.toFixed(1)}% <span className="text-[10px] text-muted-foreground uppercase font-normal">CAPACITY</span></div>
+          <div className="text-lg font-mono font-bold">{budgetUsedPercentage.toFixed(1)}% <span className="text-[10px] text-muted-foreground uppercase font-normal">used</span></div>
           <div className="w-full h-1 bg-primary/10 rounded-none overflow-hidden">
             <div className="h-full bg-primary" style={{ width: `${budgetUsedPercentage}%` }} />
           </div>

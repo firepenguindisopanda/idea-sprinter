@@ -31,11 +31,11 @@ export default function LoginPage() {
         <CardHeader className="text-center pb-8 border-b border-primary/10">
           <div className="flex items-center justify-center gap-2 mb-4">
             <span className="h-1.5 w-1.5 bg-primary rounded-full animate-pulse" />
-            <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-primary/60">Secure_Access_Point</span>
+            <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-primary/60">Sign In</span>
           </div>
-          <CardTitle className="text-3xl font-mono font-bold uppercase tracking-tight">System_Login</CardTitle>
+          <CardTitle className="text-3xl font-mono font-bold uppercase tracking-tight">Sign In</CardTitle>
           <CardDescription className="font-sans italic text-sm mt-2">
-            Authenticate session to access specs before code architectural protocols.
+            Sign in to start building software specifications.
           </CardDescription>
         </CardHeader>
         
@@ -55,7 +55,7 @@ export default function LoginPage() {
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                 </svg>
-                <span>Authorize_Google</span>
+                <span>Sign in with Google</span>
               </div>
             )}
             <span className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity"> {">"} </span>
@@ -63,7 +63,7 @@ export default function LoginPage() {
           
           <div className="text-center">
             <p className="text-[10px] font-mono uppercase text-muted-foreground tracking-tighter">
-              By accessing this terminal, you agree to procedural guidelines.
+              By continuing, you agree to our terms of service.
             </p>
           </div>
         </CardContent>

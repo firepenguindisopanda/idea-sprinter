@@ -58,12 +58,20 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
 
   // Dynamic Options State
   const [availableRuntimes, setAvailableRuntimes] = useState<TechOption[]>(RUNTIME_OPTIONS);
-  const [availableOrms, setAvailableOrms] = useState<TechOption[]>(ORM_OPTIONS);
-  const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOption[]>(PACKAGE_MANAGER_OPTIONS);
+  const [, setAvailableOrms] = useState<TechOption[]>(ORM_OPTIONS);
+const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOption[]>(PACKAGE_MANAGER_OPTIONS);
+
+  const updateField = <K extends keyof ProjectRequest>(
+    field: K,
+    value: ProjectRequest[K]
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   // Update description when initialDescription changes
   useEffect(() => {
     if (initialDescription) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       updateField("description", initialDescription);
     }
   }, [initialDescription]);
@@ -71,6 +79,7 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
   // Effect to filter Runtimes based on Backend
   useEffect(() => {
     if (!formData.backend_framework) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAvailableRuntimes(RUNTIME_OPTIONS);
       return;
     }
@@ -88,20 +97,24 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
       filteredRuntimes = RUNTIME_OPTIONS.filter(r => r.value.startsWith("go"));
     }
 
+     
     setAvailableRuntimes(filteredRuntimes);
     
     // Reset runtime if current selection is invalid
     if (formData.runtime && !filteredRuntimes.some(r => r.value === formData.runtime)) {
+       
       updateField("runtime", null);
     }
-  }, [formData.backend_framework]);
+  }, [formData.backend_framework]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Effect to filter Package Managers based on Backend
   useEffect(() => {
     if (!formData.backend_framework) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAvailablePackageManagers(PACKAGE_MANAGER_OPTIONS);
       // If current selection doesn't match default options, reset it
       if (formData.package_manager && !PACKAGE_MANAGER_OPTIONS.some(p => p.value === formData.package_manager)) {
+         
         updateField("package_manager", null);
       }
       return;
@@ -124,9 +137,10 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
 
     // Reset package manager if current selection is invalid
     if (formData.package_manager && !filtered.some(p => p.value === formData.package_manager)) {
+       
       updateField("package_manager", null);
     }
-  }, [formData.backend_framework]);
+  }, [formData.backend_framework]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Effect to filter ORMs based on Database and Backend
   useEffect(() => {
@@ -152,33 +166,38 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
       }
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAvailableOrms(filteredOrms);
 
     // Reset ORM if current selection is invalid
     if (formData.orm && !filteredOrms.some(o => o.value === formData.orm)) {
       updateField("orm", null);
     }
-  }, [formData.database, formData.backend_framework]);
+  }, [formData.database, formData.backend_framework]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate
+  const submitForm = () => {
     if (!formData.description.trim()) {
       setErrors({ description: "Project description is required" });
       return;
     }
-    
+
     setErrors({});
     onSubmit(formData);
   };
 
-  const updateField = <K extends keyof ProjectRequest>(
-    field: K,
-    value: ProjectRequest[K]
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    submitForm();
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+      event.preventDefault();
+        if (!isLoading) {
+          submitForm();
+        }
+    }
   };
 
   const handleLoadExample = () => {
@@ -196,7 +215,7 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
           <div className="flex items-center gap-2">
             <div className="h-1.5 w-1.5 bg-primary rounded-full animate-pulse" />
             <Label htmlFor="description" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">
-              Project_Definition_Protocol *
+              Project Description *
             </Label>
           </div>
           <Button
@@ -209,12 +228,12 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
             {isExampleLoaded ? (
               <>
                 <Check className="mr-1.5 h-3 w-3" />
-                Data_Injected
+                Example Loaded
               </>
             ) : (
               <>
                 <Lightbulb className="mr-1.5 h-3 w-3" />
-                Inject_Example_Data
+                Load Example
               </>
             )}
           </Button>
@@ -224,6 +243,7 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
           placeholder="Describe your project here... (e.g. 'Build a high-performance e-commerce engine with real-time inventory tracking')"
           value={formData.description}
           onChange={(e) => updateField("description", e.target.value)}
+          onKeyDown={handleKeyDown}
           rows={10}
           className={`${errors.description ? "border-destructive" : "border-primary/20"} min-h-[260px] rounded-none bg-background/50 font-mono text-sm focus-visible:ring-primary/30 p-6 leading-relaxed`}
           disabled={isLoading}
@@ -234,10 +254,10 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
           ) : (
             <div className="flex items-center gap-2">
               <span className="h-1 w-1 bg-muted-foreground rounded-full" />
-              <span>Input_Validation_Active</span>
+              <span>Required field</span>
             </div>
           )}
-          <span className="bg-primary/5 px-2 py-0.5 border border-primary/10 tabular-nums">BYTE_COUNT: {formData.description.length}</span>
+          <span className="bg-primary/5 px-2 py-0.5 border border-primary/10 tabular-nums">{formData.description.length} characters</span>
         </div>
       </div>
 
@@ -250,7 +270,7 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
             </div>
             <div>
               <h3 className="text-sm font-mono font-bold uppercase tracking-widest">
-                {!isAdvancedMode ? "AI_Architect_Mode: Active" : "Manual_Configuration: Active"}
+                {!isAdvancedMode ? "AI Selects Stack" : "Manual Configuration"}
               </h3>
               <p className="text-[10px] text-muted-foreground font-mono mt-1 max-w-[500px]">
                 {!isAdvancedMode 
@@ -268,7 +288,7 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
             className={`font-mono text-[10px] uppercase tracking-wider border-primary/20 hover:bg-primary/5 ${isAdvancedMode ? 'bg-primary/5 text-primary' : 'text-muted-foreground'}`}
           >
             <Settings2 className="mr-2 h-3 w-3" />
-            {isAdvancedMode ? "Hide_Advanced_Config" : "Configure_Stack_Manually"}
+            {isAdvancedMode ? "Hide Options" : "Show Options"}
             {isAdvancedMode ? <ChevronUp className="ml-2 h-3 w-3" /> : <ChevronDown className="ml-2 h-3 w-3" />}
           </Button>
         </div>
@@ -279,14 +299,14 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
         <div className="space-y-12 animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="space-y-6">
             <div className="flex items-center gap-4">
-              <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary pr-2">Module_01: Stack_Architecture</h3>
+              <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary pr-2">Technology Stack</h3>
               <div className="h-px bg-primary/20 flex-1" />
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Frontend Framework */}
               <div className="space-y-2">
-                <Label htmlFor="frontend" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Frontend_Unit</Label>
+                <Label htmlFor="frontend" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Frontend</Label>
                 <Select
                   value={formData.frontend_framework || ""}
                   onValueChange={(value) =>
@@ -309,7 +329,7 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
 
               {/* Backend Framework */}
               <div className="space-y-2">
-                <Label htmlFor="backend" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Logic_Engine</Label>
+                <Label htmlFor="backend" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Backend</Label>
                 <Select
                   value={formData.backend_framework || ""}
                   onValueChange={(value) =>
@@ -332,7 +352,7 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
 
               {/* Database */}
               <div className="space-y-2">
-                <Label htmlFor="database" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Persistence_Layer</Label>
+                <Label htmlFor="database" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Database</Label>
                 <Select
                   value={formData.database || ""}
                   onValueChange={(value) => updateField("database", value || null)}
@@ -353,7 +373,7 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
 
               {/* Auth Service */}
               <div className="space-y-2">
-                <Label htmlFor="auth" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Access_Control</Label>
+                <Label htmlFor="auth" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Authentication</Label>
                 <Select
                   value={formData.auth_service || ""}
                   onValueChange={(value) =>
@@ -376,7 +396,7 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
 
               {/* Runtime */}
               <div className="space-y-2">
-                <Label htmlFor="runtime" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Execution_Env</Label>
+                <Label htmlFor="runtime" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Runtime</Label>
                 <Select
                   value={formData.runtime || ""}
                   onValueChange={(value) => updateField("runtime", value || null)}
@@ -397,7 +417,7 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
 
               {/* Package Manager */}
               <div className="space-y-2">
-                <Label htmlFor="package-manager" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Dep_Registry</Label>
+                <Label htmlFor="package-manager" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Package Manager</Label>
                 <Select
                   value={formData.package_manager || ""}
                   onValueChange={(value) =>
@@ -423,16 +443,16 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
           {/* Additional Options */}
           <div className="space-y-6">
             <div className="flex items-center gap-4">
-              <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary pr-2">Module_02: Infrastructure</h3>
+              <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary pr-2">Infrastructure</h3>
               <div className="h-px bg-primary/20 flex-1" />
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="flex items-center justify-between p-4 border border-primary/10 bg-primary/5">
                 <div className="space-y-1">
-                  <Label htmlFor="docker" className="text-[11px] font-mono uppercase tracking-widest font-bold">Encapsulation: Docker</Label>
+                  <Label htmlFor="docker" className="text-[11px] font-mono uppercase tracking-widest font-bold">Docker</Label>
                   <p className="text-[10px] text-muted-foreground font-mono uppercase">
-                    Initialize_Container_Blueprints
+                    Include Dockerfile and docker-compose
                   </p>
                 </div>
                 <Switch
@@ -448,7 +468,7 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
                 <div className="space-y-1">
                   <Label htmlFor="cicd" className="text-[11px] font-mono uppercase tracking-widest font-bold">Pipeline: CI/CD</Label>
                   <p className="text-[10px] text-muted-foreground font-mono uppercase">
-                    Inject_Automation_Workflows
+                    Include CI/CD workflow files
                   </p>
                 </div>
                 <Switch
@@ -473,12 +493,12 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
         {isLoading ? (
           <>
             <Loader2 className="mr-3 h-6 w-6 animate-spin" />
-            Compiling_Specifications...
+            Generating...
           </>
         ) : (
           <div className="flex items-center gap-4">
             <span>
-              {!isAdvancedMode ? "Architect_&_Generate_Specs" : "Commit_Custom_Architecture"}
+              {!isAdvancedMode ? "Generate Specifications" : "Generate with Custom Stack"}
             </span>
             <span className="opacity-40 group-hover:translate-x-2 transition-transform">{">>>"}</span>
           </div>

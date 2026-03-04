@@ -69,7 +69,11 @@ export default function ExamplesModal({ open, onOpenChange, request = null, isLo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent id="gen-ex-modal" className="w-[90vw] max-w-6xl max-h-[85vh] overflow-y-auto rounded-none border-2 border-primary/20 bg-background/95 backdrop-blur-xl blueprint-grid">
+      <DialogContent
+        id="gen-ex-modal"
+        className="w-[90vw] max-w-6xl max-h-[85vh] overflow-y-auto rounded-none border-2 border-primary/20 bg-background/95 backdrop-blur-xl blueprint-grid"
+        onEscapeKeyDown={() => onOpenChange(false)}
+      >
         <DialogHeader className="border-b border-primary/10 pb-6">
           <div className="flex items-center gap-2 mb-2">
             <span className="h-2 w-2 bg-primary animate-pulse" />

@@ -71,6 +71,7 @@ export function AgentPipelineProgress({
         </div>
         <Progress 
           value={progressPercentage} 
+          aria-label={`Generation progress: ${Math.round(progressPercentage)}% complete`}
           className={cn(
             "h-2 rounded-none transition-all duration-500",
             isGenerating && "animate-pulse"
@@ -135,7 +136,7 @@ export function AgentPipelineProgress({
 
       {/* Current Status */}
       {isGenerating && streamingContent && (
-        <div className="border-t border-primary/10 pt-4 animate-in fade-in slide-in-from-top-2">
+        <div className="border-t border-primary/10 pt-4 animate-in fade-in slide-in-from-top-2" role="status" aria-live="polite" aria-atomic="true">
           <div className="text-[10px] font-mono text-primary uppercase mb-2 flex items-center gap-2">
             <span className="h-2 w-2 bg-primary rounded-full animate-pulse" />
             Current Activity
@@ -159,6 +160,7 @@ export function AgentPipelineProgress({
           {onRetry && (
             <button
               onClick={onRetry}
+              aria-label="Dismiss error and retry"
               className="mt-4 px-4 py-2 bg-destructive/10 border border-destructive/20 rounded-none font-mono text-[10px] uppercase hover:bg-destructive/20 transition-colors"
             >
               Dismiss & Retry

@@ -86,46 +86,46 @@ export default function DashboardPage() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <div className="h-1.5 w-1.5 bg-primary rounded-full animate-pulse" />
-              <span className="text-[10px] font-mono text-primary/60 uppercase tracking-widest">Archive Active</span>
+              <span className="text-[10px] font-mono text-primary/60 uppercase tracking-widest">Dashboard</span>
             </div>
-            <h1 className="text-4xl font-mono font-bold uppercase tracking-tighter">Project <span className="text-primary">Database</span></h1>
+            <h1 className="text-4xl font-mono font-bold uppercase tracking-tighter">Your <span className="text-primary">Projects</span></h1>
             <p className="text-muted-foreground font-sans text-sm max-w-xl">
-              Access previously initialized system specifications and architectural blueprints.
+              View and manage your saved specification documents.
             </p>
           </div>
           
-          <Link href="/generator">
+          <Link href="/generate">
             <Button size="xl" className="font-mono uppercase tracking-widest rounded-none border-2 border-primary/20 shadow-[4px_4px_0px_0px_rgba(var(--primary),0.1)]">
               <Plus className="mr-2 h-5 w-5" />
-              Init New System
+              New Project
             </Button>
           </Link>
         </div>
 
         {/* Usage Statistics */}
         <div className="relative">
-          <div className="absolute top-0 right-0 p-2 text-[10px] font-mono text-primary/20 select-none uppercase">Metric Logs</div>
+          <div className="absolute top-0 right-0 p-2 text-[10px] font-mono text-primary/20 select-none uppercase">Usage</div>
           <UsageStats stats={metrics} isLoading={isLoadingMetrics} />
         </div>
 
         <div className="space-y-6">
           <div className="flex items-center gap-2 mb-4">
-            <span className="font-mono text-xs font-bold uppercase text-primary/70">Stored Artifacts:</span>
+            <span className="font-mono text-xs font-bold uppercase text-primary/70">Saved Projects:</span>
             <div className="h-px flex-1 bg-primary/10" />
-            <span className="font-mono text-xs text-muted-foreground">{projects.length} RECORDS</span>
+            <span className="font-mono text-xs text-muted-foreground">{projects.length} projects</span>
           </div>
           
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-32 space-y-4">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
-              <span className="font-mono text-[10px] uppercase animate-pulse">Scanning Archive...</span>
+              <span className="font-mono text-[10px] uppercase animate-pulse">Loading projects...</span>
             </div>
           ) : (
             <>
               {projects.length === 0 ? (
                 <EmptyState
-                  title="No entities detected"
-                  description="System memory is currently empty. Initialize a new project to populate the database."
+                  title="No projects yet"
+                  description="You haven&apos;t created any projects yet. Start a new generation to get started."
                 />
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

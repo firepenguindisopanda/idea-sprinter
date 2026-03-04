@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Sparkles, SkipForward, Copy, Check, Loader2, RotateCcw } from "lucide-react";
+import { ArrowRight, Sparkles, SkipForward, Copy, Check, Loader2, FileText } from "lucide-react";
 import ProtectedRoute from "@/components/protected-route";
 import IdeationWizard from "@/components/generator/ideation-wizard";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,6 @@ export default function IdeationPage() {
     updateIdeationPreGen,
     setIdeationExamples,
     selectIdeationExample,
-    clearIdeationDraft,
     startGeneration,
   } = useDraftStore();
 
@@ -45,6 +44,15 @@ export default function IdeationPage() {
   
   // Track copied example
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const buildExampleText = (ex: ExampleItem): string => {
+    const parts: string[] = [];
+    if (ex.title) parts.push(ex.title);
+    if (ex.one_line) parts.push(ex.one_line);
+    if (ex.scope_bullets?.length) parts.push(ex.scope_bullets.map((b) => `- ${b}`).join("\n"));
+    if (ex.full_text) parts.push(ex.full_text);
+    return parts.join("\n\n");
+  };
   
   // Sync local state changes back to draft store
   useEffect(() => {
@@ -88,15 +96,6 @@ export default function IdeationPage() {
     router.push("/generate");
   };
 
-  const buildExampleText = (ex: ExampleItem): string => {
-    const parts: string[] = [];
-    if (ex.title) parts.push(ex.title);
-    if (ex.one_line) parts.push(ex.one_line);
-    if (ex.scope_bullets?.length) parts.push(ex.scope_bullets.map((b) => `- ${b}`).join("\n"));
-    if (ex.full_text) parts.push(ex.full_text);
-    return parts.join("\n\n");
-  };
-
   const handleSelectExample = (example: ExampleItem) => {
     const text = buildExampleText(example);
     selectIdeationExample(text);
@@ -115,6 +114,21 @@ export default function IdeationPage() {
       include_cicd: false,
     });
     router.push("/generate");
+  };
+
+  const handleCreatePrdFromExample = (example: ExampleItem) => {
+    const text = buildExampleText(example);
+    selectIdeationExample(text);
+    const encoded = encodeURIComponent(text);
+    router.push(`/prd?prefill=${encoded}`);
+  };
+
+  const handleCreatePrdFromForm = () => {
+    const text = formData.problemStatement || formData.title || "";
+    if (text) {
+      const encoded = encodeURIComponent(text);
+      router.push(`/prd?prefill=${encoded}`);
+    }
   };
 
   const handleCopyExample = async (example: ExampleItem) => {
@@ -147,14 +161,25 @@ export default function IdeationPage() {
           </div>
 
           {/* Skip to Generation */}
-          <Button
-            variant="outline"
-            onClick={handleSkipToGeneration}
-            className="font-mono text-[10px] uppercase tracking-widest rounded-none h-10 px-6 border-2 border-primary/20 hover:bg-primary/5"
-          >
-            <SkipForward className="h-4 w-4 mr-2" />
-            Skip to Generation
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleCreatePrdFromForm}
+              disabled={!formData.problemStatement && !formData.title}
+              className="font-mono text-[10px] uppercase tracking-widest rounded-none h-10 px-4 border-2 border-amber-500/30 hover:bg-amber-500/10 text-amber-600"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Create PRD
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleSkipToGeneration}
+              className="font-mono text-[10px] uppercase tracking-widest rounded-none h-10 px-6 border-2 border-primary/20 hover:bg-primary/5"
+            >
+              <SkipForward className="h-4 w-4 mr-2" />
+              Skip to Generation
+            </Button>
+          </div>
         </div>
 
         {/* Ideation Wizard */}
@@ -234,7 +259,7 @@ export default function IdeationPage() {
               <div className="border-2 border-dashed border-primary/20 p-12 text-center">
                 <Sparkles className="h-12 w-12 text-amber-500/30 mx-auto mb-4" />
                 <p className="font-mono text-xs uppercase text-muted-foreground tracking-widest">
-                  Fill out the form above and click "Initialize_Concepts" to generate ideas.
+                  Fill out the form above and click &quot;Initialize_Concepts&quot; to generate ideas.
                 </p>
               </div>
             )}
@@ -291,6 +316,15 @@ export default function IdeationPage() {
                         >
                           Use This
                           <ArrowRight className="h-3 w-3 ml-2" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleCreatePrdFromExample(example)}
+                          className="rounded-none font-mono uppercase text-[10px] tracking-widest px-3 h-8 border-amber-500/30 text-amber-600 hover:bg-amber-500/10"
+                        >
+                          <FileText className="h-3 w-3 mr-1" />
+                          PRD
                         </Button>
                         <Button
                           size="sm"

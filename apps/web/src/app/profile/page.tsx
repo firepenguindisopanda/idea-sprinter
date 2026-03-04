@@ -11,16 +11,12 @@ export default function ProfilePage() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <div className="h-1.5 w-1.5 bg-primary rounded-full" />
-              <span className="text-[10px] font-mono text-primary/60 uppercase tracking-widest">System_Access: Admin</span>
+              <span className="text-[10px] font-mono text-primary/60 uppercase tracking-widest">Settings</span>
             </div>
-            <h1 className="text-4xl font-mono font-bold uppercase tracking-tighter">Profile_<span className="text-primary">Settings</span></h1>
+            <h1 className="text-4xl font-mono font-bold uppercase tracking-tighter">Profile <span className="text-primary">Settings</span></h1>
             <p className="text-muted-foreground font-sans text-sm italic">
-              Configure user authentication protocols and AI model parameters.
+              Manage your API keys and model preferences.
             </p>
-          </div>
-          <div className="text-right">
-            <div className="text-[10px] font-mono text-muted-foreground uppercase">Entity Ref</div>
-            <div className="text-xs font-mono font-bold uppercase tracking-widest">USR_NODE_PROT_7</div>
           </div>
         </div>
 

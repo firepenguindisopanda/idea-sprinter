@@ -44,14 +44,6 @@ export const AUTH_SERVICE_OPTIONS: TechOption[] = [
   { value: "jwt", label: "JWT (Custom)" },
 ];
 
-export const PAYMENT_GATEWAY_OPTIONS: TechOption[] = [
-  { value: "stripe", label: "Stripe" },
-  { value: "paypal", label: "PayPal" },
-  { value: "square", label: "Square" },
-  { value: "razorpay", label: "Razorpay" },
-  { value: "paddle", label: "Paddle" },
-];
-
 export const PACKAGE_MANAGER_OPTIONS_NODE: TechOption[] = [
   { value: "npm", label: "npm" },
   { value: "yarn", label: "Yarn" },

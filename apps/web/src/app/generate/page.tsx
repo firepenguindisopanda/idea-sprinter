@@ -4,11 +4,13 @@ import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Lightbulb, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import ProtectedRoute from "@/components/protected-route";
 import ProjectForm from "@/components/generator/project-form";
 import { AgentPipelineProgress } from "@/components/generator/agent-pipeline-progress";
 import { LivePreview } from "@/components/generator/live-preview";
 import { useDraftStore } from "@/lib/draft-store";
+import { useAuthStore } from "@/lib/auth-store";
 import type { ProjectRequest, GenerateResponse } from "@/types";
 
 /**
@@ -84,10 +86,14 @@ function GeneratePageContent() {
     generationDraft,
     startGeneration,
     updateGenerationPhase,
+    updateGenerationPartialResults,
     setGenerationResults,
     setGenerationError,
     clearGenerationDraft
   } = useDraftStore();
+
+  // Auth token for API calls
+  const { token } = useAuthStore();
 
   // Get initial description from URL params (fallback for direct links) or draft store
   const searchParams = useSearchParams();
@@ -104,6 +110,7 @@ function GeneratePageContent() {
   
   // Track if we should resume from draft
   const resumedFromDraft = useRef(false);
+  const partialOutputsRef = useRef<Record<string, string>>({});
 
   // Resume from draft if exists and not complete
   useEffect(() => {
@@ -111,83 +118,17 @@ function GeneratePageContent() {
       resumedFromDraft.current = true;
       setCurrentPhase(generationDraft.currentPhase);
       setCompletedAgents(generationDraft.completedAgents);
+      if (generationDraft.partialResults?.markdown_outputs) {
+        setStreamingContent("Recovered partial results from your last session.");
+        partialOutputsRef.current = {
+          ...generationDraft.partialResults.markdown_outputs,
+        };
+      }
       if (generationDraft.error) {
         setError(generationDraft.error);
       }
     }
   }, [generationDraft]);
-
-  const handleGenerate = useCallback(async (data: ProjectRequest) => {
-    setIsGenerating(true);
-    setCurrentPhase(1);
-    setCompletedAgents([]);
-    setActiveAgent(null);
-    setStreamingContent("");
-    setError(null);
-    
-    // Start generation in draft store
-    const sessionId = startGeneration(data);
-    
-    try {
-      const response = await fetch(`${API_URL}/api/generate/stream`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Generation failed: ${response.status}`);
-      }
-
-      if (!response.body) {
-        throw new Error('No response body');
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-      let finalResults: GenerateResponse | null = null;
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        
-        // Parse SSE events
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || ''; // Keep incomplete line in buffer
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const eventData = JSON.parse(line.slice(6));
-              handleStreamEvent(eventData, sessionId, (results) => {
-                finalResults = results;
-              });
-            } catch {
-              // Ignore parse errors for malformed events
-            }
-          }
-        }
-      }
-
-      // On completion, redirect to results
-      if (finalResults) {
-        setGenerationResults(finalResults);
-        router.push(`/generate/${sessionId}`);
-      }
-      
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Generation failed';
-      setError(errorMessage);
-      setGenerationError(errorMessage);
-    } finally {
-      setIsGenerating(false);
-    }
-  }, [startGeneration, setGenerationResults, setGenerationError, router]);
 
   const handleStreamEvent = useCallback((
     event: Record<string, unknown>,
@@ -212,43 +153,53 @@ function GeneratePageContent() {
         
       case 'chunk':
         // Update streaming content with chunk
-        if (event.content) {
-          setStreamingContent(prev => prev + (event.content as string));
+        if (event.chunk) {
+          const role = event.role as string;
+          const chunk = event.chunk as string;
+          setStreamingContent(prev => prev + chunk);
+          if (role) {
+            const nextContent = `${partialOutputsRef.current[role] ?? ""}${chunk}`;
+            partialOutputsRef.current = {
+              ...partialOutputsRef.current,
+              [role]: nextContent,
+            };
+            updateGenerationPartialResults({
+              markdown_outputs: {
+                [role]: nextContent,
+              },
+            });
+          }
         }
         break;
         
       case 'agent_complete': {
         const role = event.role as string;
-        setCompletedAgents(prev => {
-          if (!prev.includes(role)) {
-            return [...prev, role];
-          }
-          return prev;
+      setCompletedAgents(prev => {
+        if (!prev.includes(role)) {
+          return [...prev, role];
+        }
+        return prev;
         });
         setActiveAgent(null);
-        // Phase update will be handled in useEffect
         break;
       }
-          // Effect to update phase after completedAgents changes
-          useEffect(() => {
-            if (completedAgents.length > 0) {
-              const lastCompleted = completedAgents.at(-1);
-              if (lastCompleted) {
-                const phase = getPhaseForAgent(lastCompleted);
-                if (phase > currentPhase) {
-                  setCurrentPhase(phase);
-                  updateGenerationPhase(phase, lastCompleted);
-                }
-              }
-            }
-          }, [completedAgents]);
-        
+
       case 'judge_start':
         setStreamingContent(`Quality review for ${AGENT_LABELS[event.role as string] || event.role}...`);
         break;
         
       case 'judge_complete':
-        // Judge completed, continue
+        updateGenerationPartialResults({
+          judge_results: {
+            [event.role as string]: {
+              is_approved: Boolean(event.is_approved),
+              score: Number(event.score ?? 0),
+              issues_count: Number(event.issues_count ?? 0),
+              recommended_action: String(event.recommended_action ?? ""),
+              feedback: String(event.feedback ?? ""),
+            },
+          },
+        });
         break;
         
       case 'pipeline_complete':
@@ -266,7 +217,82 @@ function GeneratePageContent() {
         // Stream finished
         break;
     }
-  }, [currentPhase, updateGenerationPhase]);
+  }, [updateGenerationPartialResults]);
+
+  const handleGenerate = useCallback(async (data: ProjectRequest) => {
+    setIsGenerating(true);
+    setCurrentPhase(1);
+    setCompletedAgents([]);
+    setActiveAgent(null);
+    setStreamingContent("");
+    setError(null);
+    partialOutputsRef.current = {};
+    
+    // Start generation in draft store
+    const sessionId = startGeneration(data);
+    
+    try {
+      const response = await fetch(`${API_URL}/api/generate/stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Generation failed: ${response.status}`);
+      }
+
+      if (!response.body) {
+        throw new Error('No response body');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let finalResults: GenerateResponse | null = null;
+
+      partialOutputsRef.current = {};
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        // Parse SSE events
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const eventData = JSON.parse(line.slice(6));
+              handleStreamEvent(eventData, sessionId, (results) => {
+                finalResults = results;
+              });
+            } catch {
+              // Ignore parse errors for malformed events
+            }
+          }
+        }
+      }
+
+      if (finalResults) {
+        setGenerationResults(finalResults);
+        router.push(`/generate/${sessionId}`);
+      }
+
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Generation failed';
+      setError(errorMessage);
+      setGenerationError(errorMessage);
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [startGeneration, setGenerationResults, setGenerationError, router, token, handleStreamEvent]);
 
   const getPhaseForAgent = (agent: string): number => {
     for (const phase of AGENT_PHASES) {
@@ -277,13 +303,26 @@ function GeneratePageContent() {
     return 1;
   };
 
-  const getAgentStatus = (agent: string): 'completed' | 'active' | 'pending' => {
-    if (completedAgents.includes(agent)) return 'completed';
-    if (activeAgent === agent) return 'active';
-    return 'pending';
-  };
+  useEffect(() => {
+    if (completedAgents.length > 0) {
+      const lastCompleted = completedAgents.at(-1);
+      if (lastCompleted) {
+        const phase = getPhaseForAgent(lastCompleted);
+        if (phase > currentPhase) {
+          setCurrentPhase(phase);
+        }
+        updateGenerationPhase(phase, lastCompleted);
+      }
+    }
+  }, [completedAgents, currentPhase, updateGenerationPhase]);
 
-  const progressPercentage = (completedAgents.length / 12) * 100;
+
+  const hasInterruptedGeneration = Boolean(
+    generationDraft &&
+    !generationDraft.isComplete &&
+    generationDraft.completedAgents.length > 0 &&
+    !isGenerating
+  );
 
   return (
     <div className="w-full max-w-7xl mx-auto px-6 py-8 space-y-8">
@@ -313,6 +352,46 @@ function GeneratePageContent() {
           Need help with your idea?
         </Link>
       </div>
+
+      {hasInterruptedGeneration && (
+        <div className="border border-amber-500/30 bg-amber-500/10 p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="space-y-1">
+            <p className="text-xs font-mono uppercase text-amber-500/80 tracking-widest">
+              Generation was interrupted
+            </p>
+            <p className="text-sm text-muted-foreground">
+              We found partial progress from your last session. You can view it or start over.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {generationDraft?.partialResults && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push(`/generate/${generationDraft.sessionId}`)}
+                className="rounded-none font-mono uppercase text-[10px] tracking-widest"
+              >
+                View Partial Results
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                clearGenerationDraft();
+                setCompletedAgents([]);
+                setCurrentPhase(0);
+                setActiveAgent(null);
+                setStreamingContent("");
+                setError(null);
+              }}
+              className="rounded-none font-mono uppercase text-[10px] tracking-widest text-muted-foreground"
+            >
+              Start Over
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left: Project Form */}
@@ -376,10 +455,10 @@ function GeneratePageContent() {
         </Link>
         
         <Link 
-          href="/generator"
+          href="/dashboard"
           className="text-[10px] font-mono text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors flex items-center gap-2"
         >
-          Legacy Generator
+          Dashboard
           <ArrowRight className="h-3 w-3" />
         </Link>
       </div>

@@ -25,7 +25,7 @@ function tryParseExamplesFromContent(content: string): ExampleItem[] | null {
     const parsed = JSON.parse(jsonText.trim());
     if (Array.isArray(parsed)) return parsed as ExampleItem[];
     if (parsed && Array.isArray((parsed as any).examples)) return (parsed as any).examples as ExampleItem[];
-  } catch (err) {
+  } catch {
     // ignore parsing errors and fall back
   }
 
@@ -125,7 +125,7 @@ async function consumeUpstreamSse(res: Response, handlers: StreamHandlers) {
           if (typeof delta === "string" && delta.length > 0) {
             handlers.onChunk(delta);
           }
-        } catch (err) {
+        } catch {
           // Ignore malformed JSON chunks and keep streaming
         }
       }
@@ -190,8 +190,9 @@ export async function POST(req: NextRequest) {
             if (parsed) {
               send("done", JSON.stringify({ examples: parsed, vendor: "nvidia" }));
             } else {
+              console.warn("NVIDIA response could not be parsed as JSON. Full response:", fullText.slice(0, 500));
               const fallback = buildMockExamples(body);
-              send("done", JSON.stringify({ examples: fallback, mock: true, vendor: "nvidia", parseError: true }));
+              send("done", JSON.stringify({ examples: fallback, mock: true, vendor: "nvidia", parseError: true, debug: fullText.slice(0, 200) }));
             }
             writer.close();
           },
@@ -239,7 +240,7 @@ export async function POST(req: NextRequest) {
               headers: { "Content-Type": "application/json" },
             });
           }
-        } catch (err) {
+        } catch {
           // fallthrough
         }
       }
@@ -295,20 +296,54 @@ export async function POST(req: NextRequest) {
 }
 
 function buildNvidiaPayload(req: PreGenerationRequest, stream: boolean) {
-  const prompt = `Generate ${req.exampleCount ?? 3} distinct project descriptions for a project titled: "${req.title}".
-For each example, include: a 1-line summary, 3 short bullet scope points, constraints, suggested timeline, and one-sentence acceptance criteria. Vary complexity across examples: one MVP, one medium, one ambitious. Return JSON array with fields: id, one_line, full_text, scope_bullets, constraints, timeline, acceptance_criteria, tags. Use the following context:\n\nTitle: ${req.title}\nAudience: ${req.audience}\nProblem: ${req.problemStatement}\nDomain: ${req.domain || "(unspecified)"}\nMust-have features: ${(req.mustHaveFeatures ?? []).join(", ") || "(none)"}\nTech Stack: ${req.techStack || "(unspecified)"}\nTone: ${req.desiredTone || "(not specified)"}\nConstraints: ${req.constraints || "(none)"}`;
+  const prompt = `Generate ${req.exampleCount ?? 3} distinct project concepts for: "${req.title}".
+
+IMPORTANT: You MUST return valid JSON only. No other text. Start with [ and end with ].
+
+For each concept, include:
+- id: unique identifier (string)
+- title: project title (string)
+- one_line: 1-line summary (string)
+- full_text: DETAILED description that includes:
+  * PROBLEM: What specific problem this solves
+  * TARGET USERS: Who this is for (be specific)
+  * KEY FEATURES: 4-6 core features this product must have
+  * SOLUTION: How it solves the problem
+  * BENEFITS: Why users would use this
+- scope_bullets: array of 4 bullet points covering key capabilities (string[])
+- tags: array like ["MVP", "Medium", "Ambitious"] (string[])
+
+Make the full_text rich and detailed - it will be used to create a Product Requirements Document (PRD) so include:
+- Clear problem statement
+- Specific target user groups
+- Core features that define the MVP
+
+Example format:
+[
+  {"id": "1", "title": "...", "one_line": "...", "full_text": "PROBLEM: ...\\n\\nTARGET USERS: ...\\n\\nKEY FEATURES:\\n1. ...\\n2. ...\\n3. ...", "scope_bullets": ["...", "...", "...", "..."], "tags": ["MVP"]}
+]
+
+Context:
+Title: ${req.title}
+Audience: ${req.audience}
+Problem: ${req.problemStatement}
+Domain: ${req.domain || "(unspecified)"}
+Must-have features: ${(req.mustHaveFeatures ?? []).join(", ") || "(none specified)"}
+Tech Stack: ${req.techStack || "(unspecified)"}
+Tone: ${req.desiredTone || "(not specified)"}
+Constraints: ${req.constraints || "(none)"}`;
 
   const messages = [
-    { role: "system", content: "You are a helpful assistant that returns structured JSON output." },
+    { role: "system", content: "You are a helpful assistant that returns valid JSON only. Never return any text outside of JSON format." },
     { role: "user", content: prompt },
   ];
 
   return {
-    model: process.env.NVIDIA_MODEL || "deepseek-ai/deepseek-v3.1-terminus",
+    model: process.env.NVIDIA_MODEL || "meta/llama-3.1-70b-instruct",
     messages,
-    temperature: 0.2,
+    temperature: 0.3,
     top_p: 0.7,
-    max_tokens: 1000,
+    max_tokens: 2500,
     stream,
   };
 }

@@ -65,10 +65,13 @@ npm run test:ui
 npm run test:e2e
 ```
 
-Linting and type checks are also available via:
+Linting and type checks are also available:
 
 ```bash
-npm run lint
+# From apps/web folder
+cd apps/web
+npm run lint      # ESLint with warnings allowed
+npm run lint:fix  # Auto-fix lint issues
 npm run check-types
 ```
 
