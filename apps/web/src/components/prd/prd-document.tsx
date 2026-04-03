@@ -11,9 +11,10 @@ import type { ProjectRequest, PRDStatusResponse, GenerateResponse } from "@/type
 
 interface PrdDocumentProps {
   sessionId: string | null;
+  generatedPrd?: string | null;
 }
 
-export default function PrdDocument({ sessionId }: PrdDocumentProps) {
+export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp }: PrdDocumentProps) {
   const router = useRouter();
   const { startGeneration, setGenerationResults } = useDraftStore();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -38,6 +39,12 @@ export default function PrdDocument({ sessionId }: PrdDocumentProps) {
     setSentToPipeline(false);
     setAutoLoaded(false);
   }, [sessionId]);
+
+  useEffect(() => {
+    if (generatedPrdProp) {
+      setPrdContent(generatedPrdProp);
+    }
+  }, [generatedPrdProp]);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -181,11 +188,15 @@ export default function PrdDocument({ sessionId }: PrdDocumentProps) {
 
   if (!sessionId) {
     return (
-      <div className="bg-background border-2 border-primary/10 p-4">
-        <h3 className="text-xs font-mono uppercase text-primary/60">PRD Document</h3>
-        <p className="text-sm text-muted-foreground mt-2">
-          Start a PRD session to generate a document.
-        </p>
+      <div className="flex flex-col h-full min-h-0 bg-background border-2 border-primary/10 p-4">
+        <div className="shrink-0 pb-2 border-b border-primary/10">
+          <h3 className="text-xs font-mono uppercase text-primary/60">PRD Document</h3>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-sm text-muted-foreground">
+            Start a PRD session to generate a document.
+          </p>
+        </div>
       </div>
     );
   }
@@ -193,25 +204,30 @@ export default function PrdDocument({ sessionId }: PrdDocumentProps) {
   return (
     <div
       ref={containerRef}
-      className="bg-background border-2 border-primary/10 p-4 space-y-4"
+      className="flex flex-col h-full min-h-0 bg-background border-2 border-primary/10"
     >
-      <div className="flex items-center justify-between">
-        <h3 className="text-xs font-mono uppercase text-primary/60">PRD Document</h3>
-        {autoLoaded && (
-          <span className="text-[10px] font-mono uppercase text-green-600 border border-green-500/30 bg-green-500/10 px-2 py-0.5">
-            Auto-loaded
-          </span>
-        )}
+      {/* Sticky action row */}
+      <div className="sticky top-0 bg-background z-10 pb-2 border-b border-primary/10 px-4 pt-4 shrink-0">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-mono uppercase text-primary/60">PRD Document</h3>
+          {autoLoaded && (
+            <span className="text-[10px] font-mono uppercase text-green-600 border border-green-500/30 bg-green-500/10 px-2 py-0.5">
+              Auto-loaded
+            </span>
+          )}
+        </div>
       </div>
 
-      {!prdContent && !loading && (
-        <button
-          onClick={handleFetchDoc}
-          className="w-full text-[10px] font-mono uppercase bg-amber-500/10 py-2 px-3 border border-amber-500/20 rounded-none hover:bg-amber-500/20 transition-colors"
-        >
-          Fetch PRD
-        </button>
-      )}
+      {/* Content area - scrollable */}
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+        {!prdContent && !loading && (
+          <button
+            onClick={handleFetchDoc}
+            className="w-full text-[10px] font-mono uppercase bg-amber-500/10 py-2 px-3 border border-amber-500/20 rounded-none hover:bg-amber-500/20 transition-colors"
+          >
+            Fetch PRD
+          </button>
+        )}
 
       {loading && (
         <div className="flex items-center justify-center py-4">
@@ -253,13 +269,25 @@ export default function PrdDocument({ sessionId }: PrdDocumentProps) {
             </button>
           </div>
 
-          <div className="max-h-[300px] overflow-y-auto text-xs">
+          {/* PRD Content - scrollable */}
+          <div className="text-xs">
             <div className="prose prose-xs prose-amber max-w-none">
               <ReactMarkdown>{prdContent}</ReactMarkdown>
             </div>
           </div>
 
-          <div className="space-y-2 pt-2 border-t border-primary/10">
+          {/* Judge score display */}
+          {prdStatus?.phase === "complete" && (
+            <div className="flex items-center justify-between text-[10px] font-mono uppercase border border-primary/10 p-2">
+              <span className="text-muted-foreground">Judge Score:</span>
+              <span className={prdStatus?.judge_approved ? "text-green-600" : "text-amber-600"}>
+                {prdStatus?.judge_score || "?"}/10
+              </span>
+            </div>
+          )}
+
+          {/* Action buttons - sticky at bottom */}
+          <div className="sticky bottom-0 bg-background pt-2 border-t border-primary/10 space-y-2">
             <div className="flex gap-2">
               <button
                 onClick={() => handleDownload("markdown")}
@@ -328,6 +356,7 @@ export default function PrdDocument({ sessionId }: PrdDocumentProps) {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

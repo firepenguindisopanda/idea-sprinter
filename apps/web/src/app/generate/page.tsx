@@ -325,9 +325,9 @@ function GeneratePageContent() {
   );
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 py-8 space-y-8">
+    <div className="w-full h-[calc(100vh-64px)] px-4 py-4 flex flex-col gap-4 overflow-hidden">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-primary/20 pb-6 gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-primary/20 pb-4 shrink-0 gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className={`h-2 w-2 ${isGenerating ? 'bg-primary animate-pulse' : 'bg-primary/50'}`} />
@@ -335,10 +335,10 @@ function GeneratePageContent() {
               {isGenerating ? 'Pipeline Active' : 'Ready to Generate'}
             </span>
           </div>
-          <h1 className="text-4xl font-mono font-bold uppercase tracking-tighter">
+          <h1 className="text-3xl font-mono font-bold uppercase tracking-tighter">
             Specification <span className="text-primary">Generator</span>
           </h1>
-          <p className="text-muted-foreground font-sans text-sm max-w-xl">
+          <p className="text-muted-foreground font-sans text-xs max-w-xl">
             Multi-agent system generating comprehensive software specifications.
           </p>
         </div>
@@ -393,33 +393,26 @@ function GeneratePageContent() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left: Project Form */}
-        <div className="space-y-6">
-          <div className="relative">
-            <div className="absolute -left-4 top-0 bottom-0 w-1 bg-primary/10" />
-            <div className="mb-4">
-              <h2 className="text-lg font-mono font-bold uppercase flex items-center gap-2">
-                <span className="text-primary">[01]</span> Project Configuration
-              </h2>
-            </div>
-            
-            <div className="bg-background border-2 border-primary/20 p-6 rounded-none relative">
-              <div className="absolute -top-3 -left-3 h-6 w-6 border-l-2 border-t-2 border-primary" />
-              <div className="absolute -bottom-3 -right-3 h-6 w-6 border-r-2 border-b-2 border-primary" />
-              
-              <ProjectForm
-                onSubmit={handleGenerate}
-                isLoading={isGenerating}
-                initialDescription={initialDescription}
-              />
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[35%_20%_45%] gap-4 flex-1 min-h-0">
+        {/* Left: Project Configuration */}
+        <div className="flex flex-col h-full min-h-0 overflow-hidden border border-border/40 rounded-md bg-background/50 p-4">
+          <div className="mb-4 shrink-0">
+            <h2 className="text-sm font-mono font-bold uppercase flex items-center gap-2">
+              <span className="text-primary">[01]</span> Project Configuration
+            </h2>
+          </div>
+          
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            <ProjectForm
+              onSubmit={handleGenerate}
+              isLoading={isGenerating}
+              initialDescription={initialDescription}
+            />
           </div>
         </div>
 
-        {/* Right: Pipeline Status & Live Preview */}
-        <div className="space-y-6">
-          {/* Agent Pipeline Progress */}
+        {/* Middle: Agent Pipeline Progress */}
+        <div className="flex flex-col h-full min-h-0 overflow-hidden border border-border/40 rounded-md bg-background/50 p-4">
           <AgentPipelineProgress
             isGenerating={isGenerating}
             currentPhase={currentPhase}
@@ -434,8 +427,10 @@ function GeneratePageContent() {
               clearGenerationDraft();
             }}
           />
+        </div>
 
-          {/* Live Preview */}
+        {/* Right: Live Preview */}
+        <div className="flex flex-col h-full min-h-0 overflow-hidden border border-border/40 rounded-md bg-background/50 p-4 lg:col-span-1">
           <LivePreview
             streamingContent={streamingContent}
             activeAgent={activeAgent}
@@ -446,7 +441,7 @@ function GeneratePageContent() {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="flex justify-between items-center pt-8 border-t border-primary/10">
+      <div className="flex justify-between items-center pt-4 border-t border-primary/10 shrink-0">
         <Link 
           href="/"
           className="text-[10px] font-mono text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors"
