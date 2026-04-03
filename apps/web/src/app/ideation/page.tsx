@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowRight, Sparkles, SkipForward, Copy, Check, Loader2, FileText } from "lucide-react";
 import ProtectedRoute from "@/components/protected-route";
 import IdeationWizard from "@/components/generator/ideation-wizard";
+import { ConceptSkeletonCard } from "@/components/generator/concept-skeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { useDraftStore, useIdeationDraftWithDefaults } from "@/lib/draft-store";
@@ -220,20 +221,59 @@ export default function IdeationPage() {
           </div>
 
           <div className="space-y-6">
-            {/* Loading State */}
+            {/* Loading / Generating State with Skeletons */}
             {gen.isLoading && (
-              <div className="border-2 border-dashed border-amber-500/30 p-12 flex flex-col items-center justify-center gap-4 bg-amber-500/5">
-                <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
-                <div className="text-center">
-                  <p className="font-mono text-xs uppercase text-amber-500 tracking-widest">
-                    Generating Concepts via NVIDIA NIM...
-                  </p>
-                  {gen.streamText && (
-                    <p className="text-[10px] font-mono text-muted-foreground mt-2 max-w-md">
-                      {gen.streamText}
-                    </p>
-                  )}
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Render any incrementally parsed examples */}
+                {gen.examples && gen.examples.length > 0 && gen.examples.map((example, idx) => (
+                  <Card 
+                    key={example.id ?? `example-${idx}`} 
+                    className="rounded-none bg-background/40 border-2 border-amber-500/20 hover:border-amber-500/50 transition-all flex flex-col group relative overflow-hidden"
+                  >
+                    <div className="absolute top-0 right-0 p-2 opacity-30 group-hover:opacity-100 transition-opacity">
+                      <span className="text-[8px] font-mono uppercase font-bold text-amber-500">
+                        CONCEPT_0{idx + 1}
+                      </span>
+                    </div>
+                    
+                    <CardHeader className="border-b border-amber-500/10 bg-amber-500/[0.02]">
+                      <CardTitle className="font-mono uppercase tracking-tight text-lg line-clamp-1">
+                        {example.title}
+                      </CardTitle>
+                      <CardDescription className="text-[10px] font-mono uppercase tracking-tighter text-amber-500/60 line-clamp-1">
+                        {example.one_line}
+                      </CardDescription>
+                    </CardHeader>
+                    
+                    <CardContent className="flex-1 space-y-4 p-6 font-sans">
+                      <ul className="text-xs space-y-2 text-muted-foreground">
+                        {(example.scope_bullets ?? []).slice(0, 4).map((bullet, bidx) => (
+                          <li key={`${example.id}-bullet-${bidx}`} className="flex items-start gap-2">
+                            <span className="text-amber-500 mt-0.5">»</span>
+                            <span>{bullet}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      
+                      {example.full_text && (
+                        <div className="text-[11px] font-mono leading-relaxed text-muted-foreground/80 border border-amber-500/10 p-4 bg-amber-500/[0.02] max-h-24 overflow-hidden">
+                          {example.full_text.slice(0, 200)}...
+                        </div>
+                      )}
+                    </CardContent>
+                    
+                    <CardFooter className="p-4 pt-0 border-t border-amber-500/10 bg-amber-500/[0.01] flex justify-between items-center gap-4 opacity-50 pointer-events-none">
+                      <div className="text-[10px] font-mono text-amber-500 uppercase flex items-center gap-2">
+                        <Loader2 className="h-3 w-3 animate-spin" /> Generating...
+                      </div>
+                    </CardFooter>
+                  </Card>
+                ))}
+                
+                {/* Always show 1-2 Skeletons to indicate ongoing generation */}
+                {Array.from({ length: Math.max(1, 2 - (gen.examples?.length || 0)) }).map((_, i) => (
+                  <ConceptSkeletonCard key={`skeleton-${i}`} />
+                ))}
               </div>
             )}
 

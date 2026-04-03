@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Download, Trash2, Loader2, Calendar } from "lucide-react";
+import { ArrowLeft, Download, Trash2, Loader2, Calendar, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import ProtectedRoute from "@/components/protected-route";
 import ResultsDisplay from "@/components/generator/results-display";
+import DownloadModal from "@/components/generator/download-modal";
 import { api, downloadProjectPdf } from "@/lib/api";
 import { toast } from "sonner";
 import type { Project } from "@/types";
@@ -30,6 +31,7 @@ export default function ProjectDetailPage() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
 
   useEffect(() => {
     loadProject();
@@ -189,6 +191,14 @@ export default function ProjectDetailPage() {
           <div className="flex gap-3">
             <Button
               variant="outline"
+              onClick={() => setIsDownloadModalOpen(true)}
+              className="font-mono uppercase text-[10px] tracking-widest rounded-none border-2 border-primary bg-primary/5 hover:bg-primary/10"
+            >
+              <Package className="mr-2 h-3 w-3" />
+              Download Specs
+            </Button>
+            <Button
+              variant="outline"
               onClick={handleDownloadPdf}
               disabled={isDownloading}
               className="font-mono uppercase text-[10px] tracking-widest rounded-none border-2 border-primary/20 bg-background/50 hover:bg-primary/5"
@@ -255,6 +265,18 @@ export default function ProjectDetailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Download Modal for Markdown Specs */}
+      <DownloadModal
+        isOpen={isDownloadModalOpen}
+        onClose={() => setIsDownloadModalOpen(false)}
+        results={{
+          markdown_outputs: project.artifacts,
+          judge_results: {},
+          project_description: project.description || "",
+        }}
+        projectName={project.title}
+      />
     </ProtectedRoute>
   );
 }

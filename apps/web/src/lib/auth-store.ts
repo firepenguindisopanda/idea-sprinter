@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import Cookies from 'js-cookie';
 import { api } from './api';
-import type { User } from '../types';
+import type { User, UserPersona } from '../types';
 
 interface AuthStore {
   token: string | null;
@@ -13,6 +13,7 @@ interface AuthStore {
   logout: () => void;
   fetchUser: () => Promise<void>;
   initAuth: () => Promise<void>;
+  updatePersona: (persona: UserPersona) => Promise<void>;
 }
 
 // Helper to redirect to login page
@@ -68,6 +69,16 @@ export const useAuthStore = create<AuthStore>()(
           await get().fetchUser();
         }
         set({ isLoading: false });
+      },
+
+      updatePersona: async (persona: UserPersona) => {
+        try {
+          const updatedUser = await api.updatePersona(persona);
+          set({ user: updatedUser });
+        } catch (error) {
+          console.error('Failed to update persona:', error);
+          throw error;
+        }
       },
     }),
     {

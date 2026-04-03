@@ -12,11 +12,13 @@ import {
   FileText,
   CheckCircle2,
   AlertTriangle,
-  RotateCcw
+  RotateCcw,
+  Package
 } from "lucide-react";
 import ProtectedRoute from "@/components/protected-route";
 import ResultsDisplay from "@/components/generator/results-display";
 import SaveModal from "@/components/generator/save-modal";
+import DownloadModal from "@/components/generator/download-modal";
 import { Button } from "@/components/ui/button";
 import { useDraftStore } from "@/lib/draft-store";
 import { api, downloadProjectPdf } from "@/lib/api";
@@ -43,7 +45,9 @@ export default function ResultsPage() {
   // Local state
   const [results, setResults] = useState<GenerateResponse | null>(null);
   const [projectDescription, setProjectDescription] = useState("");
+  const [projectName, setProjectName] = useState<string>("");
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [notFound, setNotFound] = useState(false);
@@ -54,6 +58,10 @@ export default function ResultsPage() {
       if (generationDraft.partialResults) {
         setResults(generationDraft.partialResults);
         setProjectDescription(generationDraft.projectRequest.description);
+        // Extract project name from description (first line or first 50 chars)
+        const desc = generationDraft.projectRequest.description;
+        const name = desc.split('\n')[0].slice(0, 50).replace(/[^a-zA-Z0-9\s-]/g, '') || "project";
+        setProjectName(name);
       } else if (!generationDraft.isComplete) {
         // Generation not complete, redirect back to generate page
         router.push('/generate');
@@ -239,6 +247,14 @@ export default function ResultsPage() {
             </Button>
             <Button
               variant="outline"
+              onClick={() => setIsDownloadModalOpen(true)}
+              className="rounded-none font-mono uppercase text-[10px] tracking-widest h-10 px-4 border-2 border-primary bg-primary/5 hover:bg-primary/10"
+            >
+              <Package className="h-4 w-4 mr-2" />
+              Download Specs
+            </Button>
+            <Button
+              variant="outline"
               onClick={handleDownloadPdf}
               disabled={isDownloading}
               className="rounded-none font-mono uppercase text-[10px] tracking-widest h-10 px-4 border-2 border-primary/20"
@@ -349,6 +365,14 @@ export default function ResultsPage() {
         onClose={() => setIsSaveModalOpen(false)}
         onSave={handleSave}
         isSaving={isSaving}
+      />
+
+      {/* Download Modal for Markdown Specs */}
+      <DownloadModal
+        isOpen={isDownloadModalOpen}
+        onClose={() => setIsDownloadModalOpen(false)}
+        results={results}
+        projectName={projectName}
       />
     </ProtectedRoute>
   );

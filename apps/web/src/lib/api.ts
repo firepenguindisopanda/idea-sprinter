@@ -1,4 +1,12 @@
-import type { User, ProjectRequest, GenerateResponse, Project, ProjectCreate, UsageMetrics, PRDStartResponse, PRDChatResponse, PRDStatusResponse, PRDDocumentResponse } from '../types';
+import type { User, UserPersona, UserPersonaInfo, ProjectRequest, GenerateResponse, Project, ProjectCreate, UsageMetrics, PRDStartResponse, PRDChatResponse, PRDStatusResponse, PRDDocumentResponse, ArchitectureSession, ArchitectureSessionCreate, ArchitectureSelectRequest, ArchitectureRefineRequest, ArchitectureComparison, ArchitectureOption } from '../types';
+
+interface JudgeReevaluateResponse {
+  session_id: string;
+  judge_approved: boolean;
+  judge_score: number;
+  judge_feedback: string;
+  reevaluated: boolean;
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
 
@@ -38,7 +46,17 @@ class ApiClient {
       throw new Error(error.detail || error.message || 'API request failed');
     }
 
-    return response.json();
+    // Some endpoints (e.g. DELETE) return 204 No Content, so avoid JSON parsing errors
+    if (response.status === 204 || response.headers.get('Content-Length') === '0') {
+      return undefined as unknown as T;
+    }
+
+    const text = await response.text();
+    if (!text) {
+      return undefined as unknown as T;
+    }
+    return JSON.parse(text) as T;
+
   }
 
   // Auth
@@ -48,6 +66,18 @@ class ApiClient {
 
   async getCurrentUser(): Promise<User> {
     return this.request('/me');
+  }
+
+  // Persona
+  async getPersonaOptions(): Promise<{ personas: UserPersonaInfo[] }> {
+    return this.request('/personas');
+  }
+
+  async updatePersona(persona: UserPersona): Promise<User> {
+    return this.request('/me/persona', {
+      method: 'PATCH',
+      body: JSON.stringify({ persona }),
+    });
   }
 
   // Projects
@@ -116,13 +146,13 @@ class ApiClient {
   // ---------------- PRD agent endpoints ----------------
   
   // Start a new PRD session
-  async startPrdSession(description: string, userId: number | undefined): Promise<PRDStartResponse> {
+  async startPrdSession(description: string, userId: number | undefined, persona?: UserPersona | null): Promise<PRDStartResponse> {
     if (!userId) {
       throw new Error("User must be logged in to create a PRD");
     }
     return this.request('/prd/start', {
       method: 'POST',
-      body: JSON.stringify({ description, user_id: userId }),
+      body: JSON.stringify({ description, user_id: userId, persona }),
     });
   }
 
@@ -161,6 +191,99 @@ class ApiClient {
       method: 'POST',
     });
   }
+
+  // Re-evaluate judge status for PRD (fixes parse errors from before judge fix)
+  async reevaluateJudge(sessionId: string): Promise<JudgeReevaluateResponse> {
+    return this.request(`/prd/judge/${encodeURIComponent(sessionId)}/reevaluate`, {
+      method: 'POST',
+    });
+  }
+
+  // ---------------- Architecture Agent endpoints ----------------
+
+  // Create a new architecture session
+  async createArchitectureSession(data: ArchitectureSessionCreate): Promise<ArchitectureSession> {
+    return this.request('/architecture/sessions', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Get architecture session by ID
+  async getArchitectureSession(sessionId: string): Promise<ArchitectureSession> {
+    return this.request(`/architecture/sessions/${sessionId}`);
+  }
+
+  // List architecture sessions
+  async listArchitectureSessions(limit?: number): Promise<ArchitectureSession[]> {
+    const params = limit ? `?limit=${limit}` : '';
+    return this.request(`/architecture/sessions${params}`);
+  }
+
+  // Generate architecture options (streaming)
+  async generateArchitectureOptions(sessionId: string, numOptions: number = 3): Promise<EventSource> {
+    const response = await fetch(`${API_URL}/architecture/sessions/${sessionId}/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(this.token ? { 'Authorization': `Bearer ${this.token}` } : {}),
+      },
+      body: JSON.stringify({ num_options: numOptions }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to start architecture generation');
+    }
+
+    // Return the response body as a readable stream
+    return response.body as unknown as EventSource;
+  }
+
+  // Compare architecture options
+  async compareArchitectureOptions(sessionId: string): Promise<ArchitectureComparison> {
+    return this.request(`/architecture/sessions/${sessionId}/compare`, {
+      method: 'POST',
+    });
+  }
+
+  // Refine an architecture option
+  async refineArchitectureOption(sessionId: string, data: ArchitectureRefineRequest): Promise<{ message: string; iteration: number; target_option: string }> {
+    return this.request(`/architecture/sessions/${sessionId}/refine`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Select a preferred architecture option
+  async selectArchitectureOption(sessionId: string, data: ArchitectureSelectRequest): Promise<{ message: string; selected_option: ArchitectureOption }> {
+    return this.request(`/architecture/sessions/${sessionId}/select`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // ---------------- Architecture Pattern Library ----------------
+
+  // List architecture patterns
+  async listArchitecturePatterns(tag?: string, search?: string): Promise<{ patterns: ArchitectureOption[] }> {
+    const params = new URLSearchParams();
+    if (tag) params.set('tag', tag);
+    if (search) params.set('search', search);
+    const query = params.toString();
+    return this.request(`/architecture/patterns${query ? `?${query}` : ''}`);
+  }
+
+  // Get a specific pattern
+  async getArchitecturePattern(patternId: string): Promise<ArchitectureOption> {
+    return this.request(`/architecture/patterns/${patternId}`);
+  }
+
+  // Import a pattern to a session
+  async importPatternToSession(sessionId: string, patternId: string): Promise<{ message: string; option: ArchitectureOption }> {
+    return this.request(`/architecture/sessions/${sessionId}/import-pattern/${patternId}`, {
+      method: 'POST',
+    });
+  }
 }
 
 export const api = new ApiClient();
@@ -179,4 +302,70 @@ export async function downloadProjectPdf(
   a.click();
   a.remove();
   globalThis.URL.revokeObjectURL(url);
+}
+
+// Download types for markdown downloads
+export type DownloadType = 'prd' | 'srs' | 'architecture' | 'api' | 'qa' | 'handbook' | 'full_package';
+
+export async function downloadMarkdown(
+  type: DownloadType,
+  projectDescription: string,
+  projectName: string,
+  content: string,
+  version: string = '1.0.0'
+): Promise<Blob> {
+  const headers = new Headers();
+  headers.set('Content-Type', 'application/json');
+
+  if (api.token) {
+    headers.set('Authorization', `Bearer ${api.token}`);
+  }
+
+  let endpoint: string;
+  let body: Record<string, unknown>;
+
+  if (type === 'full_package') {
+    endpoint = '/api/download/markdown/package';
+    body = {
+      project_description: projectDescription,
+      project_name: projectName,
+      markdown_outputs: {},
+      version,
+    };
+  } else if (type === 'handbook') {
+    endpoint = '/api/download/markdown/handbook';
+    body = {
+      project_description: projectDescription,
+      project_name: projectName,
+      version,
+    };
+  } else {
+    const endpointMap: Record<Exclude<DownloadType, 'full_package' | 'handbook'>, string> = {
+      prd: '/api/download/markdown/prd',
+      srs: '/api/download/markdown/srs',
+      architecture: '/api/download/markdown/architecture',
+      api: '/api/download/markdown/api',
+      qa: '/api/download/markdown/qa',
+    };
+    endpoint = endpointMap[type];
+    body = {
+      project_description: projectDescription,
+      project_name: projectName,
+      content,
+      version,
+      document_type: type,
+    };
+  }
+
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to download ${type}`);
+  }
+
+  return response.blob();
 }

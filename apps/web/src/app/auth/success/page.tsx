@@ -17,7 +17,7 @@ function AuthSuccessContent() {
       const init = async () => {
         setToken(token);
         await fetchUser();
-        router.push("/generate");
+        router.push("/");
       };
       init();
     } else {

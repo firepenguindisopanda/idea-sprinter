@@ -170,7 +170,7 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
       </div>
 
       {step === "problem" && (
-        <Card className="border-amber-500/20">
+        <Card className="border-amber-500/20 animate-in fade-in slide-in-from-bottom-2 duration-500">
           <CardHeader>
             <CardTitle className="text-xl font-mono uppercase flex items-center gap-2">
               <Target className="w-5 h-5 text-amber-500" />
@@ -216,7 +216,7 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
       )}
 
       {step === "refine" && (
-        <Card className="border-amber-500/20">
+        <Card className="border-amber-500/20 animate-in fade-in slide-in-from-bottom-2 duration-500">
           <CardHeader>
             <CardTitle className="text-xl font-mono uppercase flex items-center gap-2">
               <Lightbulb className="w-5 h-5 text-amber-500" />
@@ -266,7 +266,7 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
                     className="rounded-none font-mono uppercase text-xs tracking-widest"
                   >
                     <Sparkles className="w-4 h-4 mr-2" />
-                    Apply & Continue
+                    Apply &amp; Continue
                   </Button>
                   <Button
                     variant="outline"
@@ -283,7 +283,7 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
       )}
 
       {step === "context" && (
-        <Card className="border-amber-500/20">
+        <Card className="border-amber-500/20 animate-in fade-in slide-in-from-bottom-2 duration-500">
           <CardHeader>
             <CardTitle className="text-xl font-mono uppercase flex items-center gap-2">
               <Settings className="w-5 h-5 text-amber-500" />
@@ -351,7 +351,7 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
       )}
 
       {step === "generate" && (
-        <Card className="border-amber-500/20">
+        <Card className="border-amber-500/20 animate-in fade-in slide-in-from-bottom-2 duration-500">
           <CardHeader>
             <CardTitle className="text-xl font-mono uppercase flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-amber-500" />

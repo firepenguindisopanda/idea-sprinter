@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Save, Key, Cpu, Activity } from "lucide-react";
+import { Save, Key, Cpu, Activity, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useAuthStore } from "@/lib/auth-store";
+import { PersonaSelector } from "@/components/persona/persona-selector";
 
 const CHAT_MODELS = [
   { value: "meta/llama3-70b-instruct", label: "Meta Llama 3 70B" },
@@ -101,10 +102,14 @@ export default function ProfileForm() {
       </div>
 
       <Tabs defaultValue="api-keys" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 h-12 bg-primary/5 rounded-none border-2 border-primary/10 p-1">
+        <TabsList className="grid w-full grid-cols-4 h-12 bg-primary/5 rounded-none border-2 border-primary/10 p-1">
           <TabsTrigger value="api-keys" className="rounded-none font-mono uppercase text-[10px] tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <Key className="mr-2 h-3.5 w-3.5" />
             API Keys
+          </TabsTrigger>
+          <TabsTrigger value="persona" className="rounded-none font-mono uppercase text-[10px] tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <User className="mr-2 h-3.5 w-3.5" />
+            Persona
           </TabsTrigger>
           <TabsTrigger value="models" className="rounded-none font-mono uppercase text-[10px] tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <Cpu className="mr-2 h-3.5 w-3.5" />
@@ -140,6 +145,32 @@ export default function ProfileForm() {
                   Your personal NVIDIA NIM API key for AI model access.
                 </p>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Persona Section */}
+        <TabsContent value="persona" className="mt-6">
+          <Card className="rounded-none border-2 border-primary/20 bg-background/50">
+            <CardHeader className="border-b border-primary/10 pb-4">
+              <CardTitle className="font-mono uppercase tracking-widest text-sm">Your Persona</CardTitle>
+              <CardDescription className="font-sans italic text-xs">
+                Choose how the PRD agent interacts with you. This affects the types of questions asked.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <PersonaSelector 
+                currentPersona={user?.persona}
+                onSelect={() => {
+                  toast.success("Persona updated", {
+                    description: "Your persona preference has been saved.",
+                  });
+                }}
+              />
+              <p className="text-xs text-muted-foreground mt-4">
+                You can also change your persona when starting a new PRD session. 
+                Your choice here becomes the default for all new sessions.
+              </p>
             </CardContent>
           </Card>
         </TabsContent>

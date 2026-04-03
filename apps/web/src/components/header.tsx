@@ -125,9 +125,11 @@ export default function Header() {
 
         <div className="mr-8 flex items-center">
           <Link href="/" className="mr-8 flex items-center space-x-2">
-            <div className="h-6 w-6 border-2 border-primary rotate-45 flex items-center justify-center">
-              <div className="h-4 w-4 bg-primary/20 -rotate-45" />
-            </div>
+            <img 
+              src="/favicon.ico" 
+              alt="Logo" 
+              className="h-6 w-6 object-contain"
+            />
             <span className="font-mono font-bold tracking-tighter text-lg uppercase">
               specs<span className="text-primary">:</span>before<span className="text-primary">:</span>code
             </span>

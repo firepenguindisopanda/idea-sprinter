@@ -25,6 +25,46 @@ function isJsonResponse(res: Response) {
   return res.headers.get("content-type")?.includes("application/json") ?? false;
 }
 
+function tryParseExamplesFromContent(content: string): ExampleItem[] | null {
+  const fenced = content.match(/```json\s*([\s\S]*?)```/i) ?? content.match(/```\s*([\s\S]*?)```/i);
+  const textToParse = fenced ? fenced[1] : content;
+
+  // Try standard JSON parse first (in case it's complete)
+  try {
+    const parsed = JSON.parse(textToParse.trim());
+    if (Array.isArray(parsed)) return parsed as ExampleItem[];
+    if (parsed && Array.isArray((parsed as any).examples)) return (parsed as any).examples as ExampleItem[];
+  } catch {
+    // Standard parse failed, try extracting individual objects via regex
+    // We look for objects with standard fields we expect
+    const items: ExampleItem[] = [];
+    
+    // Quick regex to match a json object that has "title" or "id" roughly inside braces
+    // This is simple but robust enough for top-level array of objects
+    const objectRegex = /\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g;
+    const matches = textToParse.match(objectRegex);
+    
+    if (matches) {
+      for (const match of matches) {
+        try {
+          const obj = JSON.parse(match);
+          if (obj && (obj.title || obj.id)) {
+            items.push(obj as ExampleItem);
+          }
+        } catch {
+          // Incomplete object, skip it
+        }
+      }
+      
+      if (items.length > 0) {
+        return items;
+      }
+    }
+  }
+
+  return null;
+}
+
 async function postJson(url: string, body: unknown) {
   const res = await fetch(url, {
     method: "POST",
@@ -140,7 +180,16 @@ export function useGenerateExamples() {
       }
 
       await consumeSSE(res, {
-        onChunk: (text) => setStreamText((prev) => prev + text),
+        onChunk: (text) => {
+          setStreamText((prev) => {
+            const next = prev + text;
+            const parsed = tryParseExamplesFromContent(next);
+            if (parsed) {
+              setExamples(parsed);
+            }
+            return next;
+          });
+        },
         onDone: (result) => setExamples(result.examples),
       });
     } catch (e) {

@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/lib/auth-store";
-import { ArrowRight, Sparkles, FileCode, Lightbulb, Rocket } from "lucide-react";
+import { PersonaSelector } from "@/components/persona/persona-selector";
+import { ArrowRight, Sparkles, FileCode, Lightbulb, Rocket, User, Building2 } from "lucide-react";
 import DraftBanner from "@/components/landing/draft-banner";
 
 export default function Home() {
   const { user } = useAuthStore();
+  const [showPersonaSelector, setShowPersonaSelector] = useState(false);
 
   return (
     <div className="relative flex flex-col min-h-full">
@@ -39,11 +42,50 @@ export default function Home() {
           
           {/* Two-Path Entry Section */}
           <div className="pt-8">
+            {/* Persona/Role Selector for authenticated users */}
+            {user && !showPersonaSelector && (
+              <div className="mb-8 flex items-center justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPersonaSelector(true)}
+                  className="font-mono uppercase text-[10px] tracking-widest rounded-none"
+                >
+                  <User className="h-3 w-3 mr-2" />
+                  Role: {user.persona || "Set your role"}
+                </Button>
+              </div>
+            )}
+            
+            {showPersonaSelector && user && (
+              <div className="mb-8 max-w-2xl mx-auto">
+                <div className="text-[10px] font-mono text-primary/60 uppercase tracking-[0.3em] mb-4 text-center">
+                  Select Your Role
+                </div>
+                <PersonaSelector
+                  currentPersona={user.persona}
+                  onSelect={(_persona) => {
+                    setShowPersonaSelector(false);
+                  }}
+                />
+                <div className="mt-4 flex justify-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowPersonaSelector(false)}
+                    className="font-mono uppercase text-[10px]"
+                  >
+                    Close
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <div className="text-[10px] font-mono text-primary/60 uppercase tracking-[0.3em] mb-6">
               Select Your Entry Point
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
               {/* Path 1: Ideation (I have an idea) */}
               <Link 
                 href={user ? "/ideation" : "/auth/login"}
@@ -101,6 +143,38 @@ export default function Home() {
                       <div className="mt-4 flex items-center text-[10px] font-mono uppercase tracking-widest text-primary/60 group-hover:text-primary transition-colors">
                         <Rocket className="h-3 w-3 mr-2" />
                         Generate Specs
+                        <ArrowRight className="h-3 w-3 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+
+              {/* Path 3: Architecture Studio (explore architecture options) */}
+              <Link 
+                href={user ? "/architecture" : "/auth/login"}
+                className="group relative"
+              >
+                <div className="h-full border-2 border-primary/20 bg-background/50 p-8 hover:border-primary/40 hover:bg-primary/5 transition-all duration-300">
+                  {/* Corner accents */}
+                  <div className="absolute -top-1 -left-1 h-3 w-3 border-l-2 border-t-2 border-primary/40 group-hover:border-primary transition-colors" />
+                  <div className="absolute -bottom-1 -right-1 h-3 w-3 border-r-2 border-b-2 border-primary/40 group-hover:border-primary transition-colors" />
+                  
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-purple-500/10 border border-purple-500/30 text-purple-500 group-hover:bg-purple-500/20 transition-colors">
+                      <Building2 className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="text-[10px] font-mono text-primary/50 uppercase tracking-widest mb-1">Path_03</div>
+                      <h3 className="font-mono font-bold text-lg uppercase tracking-tight mb-2 group-hover:text-primary transition-colors">
+                        Architecture Studio
+                      </h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Explore multiple architecture options with comparative analysis and iterative refinement.
+                      </p>
+                      <div className="mt-4 flex items-center text-[10px] font-mono uppercase tracking-widest text-primary/60 group-hover:text-primary transition-colors">
+                        <Building2 className="h-3 w-3 mr-2" />
+                        Design Architecture
                         <ArrowRight className="h-3 w-3 ml-2 group-hover:translate-x-1 transition-transform" />
                       </div>
                     </div>

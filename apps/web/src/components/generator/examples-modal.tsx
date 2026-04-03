@@ -129,7 +129,20 @@ export default function ExamplesModal({ open, onOpenChange, request = null, isLo
             <div className="md:col-span-2 font-mono text-xs uppercase text-primary/60 p-12 border-2 border-dashed border-primary/20 flex flex-col items-center justify-center gap-4">
               <Loader2 className="h-8 w-8 animate-spin" />
               <div className="text-center max-w-md">
-                {gen.streamText || "Initializing_Neural_Constructs..."}
+                {gen.examples && gen.examples.length > 0 ? (
+                  <div className="space-y-1">
+                    <p className="font-mono text-[10px] uppercase text-primary/70">
+                      Parsed concepts received: {gen.examples.length}
+                    </p>
+                    <ul className="text-[10px] font-mono text-muted-foreground text-left">
+                      {gen.examples.slice(0, 3).map((ex) => (
+                        <li key={ex.id}>• {ex.title}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  gen.streamText || "Initializing_Neural_Constructs..."
+                )}
               </div>
             </div>
           )}
