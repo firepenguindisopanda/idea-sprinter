@@ -112,9 +112,20 @@ function GeneratePageContent() {
   const resumedFromDraft = useRef(false);
   const partialOutputsRef = useRef<Record<string, string>>({});
 
-  // Resume from draft if exists and not complete
+  // Resume from draft if exists and not complete AND has actual partial progress
   useEffect(() => {
     if (generationDraft && !generationDraft.isComplete && !resumedFromDraft.current) {
+      // Only resume if there's actual partial progress (completed agents or partial results)
+      const hasPartialProgress =
+        generationDraft.completedAgents.length > 0 ||
+        generationDraft.partialResults !== null ||
+        generationDraft.error !== null;
+
+      if (!hasPartialProgress) {
+        // Fresh draft with no progress — don't restore stale state
+        return;
+      }
+
       resumedFromDraft.current = true;
       setCurrentPhase(generationDraft.currentPhase);
       setCompletedAgents(generationDraft.completedAgents);
@@ -283,6 +294,11 @@ function GeneratePageContent() {
       if (finalResults) {
         setGenerationResults(finalResults);
         router.push(`/generate/${sessionId}`);
+      } else {
+        // Stream ended without pipeline_complete event — mark as error
+        const errorMessage = 'Generation stream ended without completing the pipeline';
+        setError(errorMessage);
+        setGenerationError(errorMessage);
       }
 
     } catch (err) {
@@ -384,6 +400,8 @@ function GeneratePageContent() {
                 setActiveAgent(null);
                 setStreamingContent("");
                 setError(null);
+                partialOutputsRef.current = {};
+                resumedFromDraft.current = false;
               }}
               className="rounded-none font-mono uppercase text-[10px] tracking-widest text-muted-foreground"
             >
