@@ -16,14 +16,13 @@ interface PrdDocumentProps {
 
 export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp }: PrdDocumentProps) {
   const router = useRouter();
-  const { startGeneration, setGenerationResults } = useDraftStore();
+  const { startGeneration } = useDraftStore();
   const containerRef = useRef<HTMLDivElement>(null);
   
   const [prdContent, setPrdContent] = useState<string | null>(null);
   const [prdStatus, setPrdStatus] = useState<PRDStatusResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const [sendingToPipeline, setSendingToPipeline] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"markdown">("markdown");
   const [copied, setCopied] = useState(false);
@@ -152,38 +151,22 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
     }, 500);
   };
 
-  const handleSendToPipeline = async () => {
+  const handleSendToPipeline = () => {
     if (!sessionId || !prdContent || prdContent.includes("PRD not yet generated")) return;
 
-    setSendingToPipeline(true);
-    setError(null);
-    try {
-      const results = await api.sendPrdToPipeline(sessionId);
-      
-      // Create a generation draft first (required for setGenerationResults)
-      const projectRequest: ProjectRequest = {
-        description: prdContent,
-        frontend_framework: "",
-      };
-      const genSessionId = startGeneration(projectRequest);
-      
-      // Store the pipeline results and navigate to results page
-      const generateResponse: GenerateResponse = {
-        srs_document: results.srs_document || "",
-        markdown_outputs: results.markdown_outputs || {},
-        judge_results: results.judge_results || {},
-      };
-      
-      // Store results in the draft store for the results page
-      setGenerationResults(generateResponse);
-      
-      // Navigate to the results page
-      router.push(`/generate/${genSessionId}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send to pipeline");
-    } finally {
-      setSendingToPipeline(false);
-    }
+    // Store the PRD content as the project description in the draft store
+    const projectRequest: ProjectRequest = {
+      description: prdContent,
+      frontend_framework: "",
+    };
+
+    startGeneration(projectRequest);
+    setSentToPipeline(true);
+    
+    // Navigate to the Generate page immediately — user clicks Generate to start the pipeline
+    setTimeout(() => {
+      router.push("/generate");
+    }, 500);
   };
 
   if (!sessionId) {
@@ -327,24 +310,14 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
 
             <button
               onClick={handleSendToPipeline}
-              disabled={sendingToPipeline || sentToPipeline || !prdStatus?.judge_approved || !prdContent || prdContent.includes("PRD not yet generated")}
+              disabled={sentToPipeline || !prdContent || prdContent.includes("PRD not yet generated")}
               className="w-full flex items-center justify-center gap-2 text-[10px] font-mono uppercase py-2 px-3 bg-amber-500/10 border border-amber-500/20 rounded-none hover:bg-amber-500/20 transition-colors disabled:opacity-50"
-              title={!prdStatus?.judge_approved ? "PRD must be approved by judge before sending to SRS" : "Send to Pipeline"}
+              title="Send PRD to SRS pipeline on the Generate page"
             >
-              {sendingToPipeline ? (
-                <>
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                  Sending...
-                </>
-              ) : sentToPipeline ? (
+              {sentToPipeline ? (
                 <>
                   <Check className="w-3 h-3 text-green-500" />
-                  Sent to Pipeline
-                </>
-              ) : !prdStatus?.judge_approved && prdStatus?.phase === "complete" ? (
-                <>
-                  <AlertCircle className="w-3 h-3" />
-                  Awaiting Approval
+                  Ready to Generate
                 </>
               ) : (
                 <>
