@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import Cookies from 'js-cookie';
-import { api } from './api';
+import { api, ApiError } from './api';
 import type { User, UserPersona } from '../types';
 
 interface AuthStore {
@@ -56,6 +56,20 @@ export const useAuthStore = create<AuthStore>()(
           const user = await api.getCurrentUser();
           set({ user });
         } catch (error) {
+          // Handle typed API errors gracefully
+          if (error instanceof ApiError) {
+            if (error.code === 'auth_error') {
+              // Token expired or invalid - onAuthError already triggered redirect
+              console.warn('Auth error: session expired, redirecting to login');
+              return; // Don't call logout again, onAuthError handles it
+            }
+            if (error.code === 'network_error') {
+              // Backend unreachable - don't crash, just log and continue
+              console.warn('Network error: backend unreachable, keeping cached token');
+              return; // Don't logout, keep the token in case backend comes back
+            }
+          }
+          // For any other error, logout as fallback
           console.error('Failed to fetch user:', error);
           get().logout();
         }

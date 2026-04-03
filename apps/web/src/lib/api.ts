@@ -10,6 +10,20 @@ interface JudgeReevaluateResponse {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
 
+/**
+ * Typed API error with error code and HTTP status for better error handling.
+ */
+export class ApiError extends Error {
+  constructor(
+    public readonly code: 'network_error' | 'auth_error' | 'api_error',
+    message: string,
+    public readonly status: number
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 class ApiClient {
     // Optional callback to handle auth errors (e.g., logout and redirect)
     onAuthError?: () => void;
@@ -30,10 +44,20 @@ class ApiClient {
       headers.set('Authorization', `Bearer ${this.token}`);
     }
 
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers,
+      });
+    } catch (networkError) {
+      // Network-level errors (backend unreachable, CORS, etc.)
+      throw new ApiError(
+        'network_error',
+        'Unable to connect to the server. Please check your connection.',
+        0
+      );
+    }
 
     if (!response.ok) {
       // If unauthorized or forbidden, trigger auth error handler if set
@@ -41,9 +65,18 @@ class ApiClient {
         if (this.onAuthError) {
           this.onAuthError();
         }
+        throw new ApiError(
+          'auth_error',
+          response.status === 401 ? 'Session expired. Please log in again.' : 'Access denied.',
+          response.status
+        );
       }
       const error = await response.json().catch(() => ({}));
-      throw new Error(error.detail || error.message || 'API request failed');
+      throw new ApiError(
+        'api_error',
+        error.detail || error.message || 'API request failed',
+        response.status
+      );
     }
 
     // Some endpoints (e.g. DELETE) return 204 No Content, so avoid JSON parsing errors
@@ -122,17 +155,28 @@ class ApiClient {
       headers.set('Authorization', `Bearer ${this.token}`);
     }
 
-    const response = await fetch(`${API_URL}/api/download-pdf`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        project_description: projectDescription,
-        markdown_outputs: markdownOutputs
-      })
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${API_URL}/api/download-pdf`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          project_description: projectDescription,
+          markdown_outputs: markdownOutputs
+        })
+      });
+    } catch {
+      throw new ApiError('network_error', 'Unable to connect to the server. Please check your connection.', 0);
+    }
 
     if (!response.ok) {
-      throw new Error('Failed to download PDF');
+      if (response.status === 401 || response.status === 403) {
+        if (this.onAuthError) {
+          this.onAuthError();
+        }
+        throw new ApiError('auth_error', 'Session expired. Please log in again.', response.status);
+      }
+      throw new ApiError('api_error', 'Failed to download PDF', response.status);
     }
 
     return response.blob();
@@ -176,11 +220,22 @@ class ApiClient {
 
   // Download PRD as markdown or PDF
   async downloadPrd(sessionId: string, format: 'markdown' | 'pdf' = 'markdown'): Promise<Blob> {
-    const response = await fetch(`${API_URL}/prd/download/${encodeURIComponent(sessionId)}?format=${format}`, {
-      headers: this.token ? { 'Authorization': `Bearer ${this.token}` } : {},
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${API_URL}/prd/download/${encodeURIComponent(sessionId)}?format=${format}`, {
+        headers: this.token ? { 'Authorization': `Bearer ${this.token}` } : {},
+      });
+    } catch {
+      throw new ApiError('network_error', 'Unable to connect to the server. Please check your connection.', 0);
+    }
     if (!response.ok) {
-      throw new Error('Failed to download PRD');
+      if (response.status === 401 || response.status === 403) {
+        if (this.onAuthError) {
+          this.onAuthError();
+        }
+        throw new ApiError('auth_error', 'Session expired. Please log in again.', response.status);
+      }
+      throw new ApiError('api_error', 'Failed to download PRD', response.status);
     }
     return response.blob();
   }
@@ -222,17 +277,28 @@ class ApiClient {
 
   // Generate architecture options (streaming)
   async generateArchitectureOptions(sessionId: string, numOptions: number = 3): Promise<EventSource> {
-    const response = await fetch(`${API_URL}/architecture/sessions/${sessionId}/generate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(this.token ? { 'Authorization': `Bearer ${this.token}` } : {}),
-      },
-      body: JSON.stringify({ num_options: numOptions }),
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${API_URL}/architecture/sessions/${sessionId}/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(this.token ? { 'Authorization': `Bearer ${this.token}` } : {}),
+        },
+        body: JSON.stringify({ num_options: numOptions }),
+      });
+    } catch {
+      throw new ApiError('network_error', 'Unable to connect to the server. Please check your connection.', 0);
+    }
 
     if (!response.ok) {
-      throw new Error('Failed to start architecture generation');
+      if (response.status === 401 || response.status === 403) {
+        if (this.onAuthError) {
+          this.onAuthError();
+        }
+        throw new ApiError('auth_error', 'Session expired. Please log in again.', response.status);
+      }
+      throw new ApiError('api_error', 'Failed to start architecture generation', response.status);
     }
 
     // Return the response body as a readable stream
@@ -357,14 +423,25 @@ export async function downloadMarkdown(
     };
   }
 
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}${endpoint}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    });
+  } catch {
+    throw new ApiError('network_error', 'Unable to connect to the server. Please check your connection.', 0);
+  }
 
   if (!response.ok) {
-    throw new Error(`Failed to download ${type}`);
+    if (response.status === 401 || response.status === 403) {
+      if (api.onAuthError) {
+        api.onAuthError();
+      }
+      throw new ApiError('auth_error', 'Session expired. Please log in again.', response.status);
+    }
+    throw new ApiError('api_error', `Failed to download ${type}`, response.status);
   }
 
   return response.blob();
