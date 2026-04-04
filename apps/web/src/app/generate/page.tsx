@@ -213,6 +213,19 @@ function GeneratePageContent() {
         });
         break;
         
+      case 'srs_assemble':
+        setStreamingContent(event.message as string || 'Assembling SRS...');
+        break;
+      case 'srs_complete':
+        setStreamingContent('SRS document assembled. Validating...');
+        break;
+      case 'cross_validate':
+        setStreamingContent(event.message as string || 'Validating SRS...');
+        break;
+      case 'validation_report':
+        setStreamingContent('Validation complete.');
+        break;
+        
       case 'pipeline_complete':
         onComplete({
           markdown_outputs: event.markdown_outputs as Record<string, string>,
