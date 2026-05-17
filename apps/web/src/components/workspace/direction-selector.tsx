@@ -57,7 +57,7 @@ function initDocSections() {
 }
 
 export function DirectionSelector() {
-  const { directions, selectDirection, phase } = useWorkspace();
+  const { directions, selectDirection } = useWorkspace();
 
   const handleSelect = async (directionId: string) => {
     selectDirection(directionId);
