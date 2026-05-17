@@ -158,7 +158,7 @@ describe('DocSection', () => {
 
   it('shows refine button on hover in refinement mode', () => {
     render(<DocSection section={baseSection} isRefinementMode={true} />);
-    const refineButton = screen.getByText('Refine');
+    const refineButton = screen.getByTitle('Refine section');
     expect(refineButton).toBeDefined();
   });
 
@@ -177,7 +177,7 @@ describe('DocSection', () => {
     render(<DocSection section={baseSection} isRefinementMode={true} />);
 
     // Click refine to open the panel
-    fireEvent.click(screen.getByText('Refine'));
+    fireEvent.click(screen.getByTitle('Refine section'));
 
     // Type in the refinement textarea
     const textarea = screen.getByPlaceholderText(/Make this more technical/i);
