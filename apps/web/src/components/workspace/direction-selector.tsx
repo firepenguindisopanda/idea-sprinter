@@ -3,7 +3,7 @@
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useWorkspaceStore } from "@/lib/workspace-store";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
 
@@ -136,21 +136,6 @@ export function DirectionSelector() {
       startMockGeneration();
     }
   };
-
-  if (phase === "generating" || phase === "refinement") {
-    const selectedDir = directions.find(d => d.id === useWorkspaceStore.getState().selectedDirectionId);
-    return (
-      <div className="rounded-xl border border-border bg-background p-4 shadow-sm opacity-70 transition-opacity hover:opacity-100">
-        <div className="flex items-start gap-3">
-          <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-          <div>
-            <h3 className="text-sm font-medium text-foreground">Selected Direction</h3>
-            <p className="text-sm text-muted-foreground mt-1">{selectedDir?.title || "Custom Direction"}</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (directions.length === 0) {
     return (
