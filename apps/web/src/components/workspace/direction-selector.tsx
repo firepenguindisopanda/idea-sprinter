@@ -4,8 +4,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { useWorkspaceStore } from "@/lib/workspace-store";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+import { api } from "@/lib/api";
 
 const MOCK_SECTIONS = [
   { id: "sec-overview", title: "Project Overview", content: "A brief overview of your project based on the direction you selected. This section covers the high-level goals, target audience, and core value proposition." },
@@ -65,72 +64,38 @@ export function DirectionSelector() {
     const brief = buildBrief();
 
     try {
-      // Try real SSE streaming from backend
-      const response = await fetch(`${API_URL}/api/workspace/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ direction_id: directionId, brief }),
-      });
-
-      if (!response.ok || !response.body) throw new Error("API unavailable");
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
       const store = useWorkspaceStore.getState();
-      const sectionContents: Record<string, string> = {};
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
-
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          try {
-            const event = JSON.parse(line.slice(6));
-            switch (event.type) {
-              case "section_start": {
-                store.addDocSection({
-                  id: event.section_id,
-                  title: event.title,
-                  status: "generating",
-                  content: "",
-                  order: event.order ?? 0,
-                });
-                sectionContents[event.section_id] = "";
-                break;
-              }
-              case "chunk": {
-                sectionContents[event.section_id] =
-                  (sectionContents[event.section_id] ?? "") + (event.content ?? "");
-                store.updateDocSection(event.section_id, {
-                  content: sectionContents[event.section_id],
-                });
-                break;
-              }
-              case "section_complete": {
-                store.updateDocSection(event.section_id, {
-                  status: "complete",
-                  content: event.content ?? sectionContents[event.section_id] ?? "",
-                });
-                break;
-              }
-              case "pipeline_complete": {
-                store.setPhase("refinement");
-                return;
-              }
-            }
-          } catch {
-            // Skip malformed events
+      await api.streamDocument(directionId, brief, (event) => {
+        switch (event.type) {
+          case "section_start": {
+            store.addDocSection({
+              id: event.section_id!,
+              title: event.title ?? "Untitled",
+              status: "generating",
+              content: "",
+              order: event.order ?? 0,
+            });
+            break;
+          }
+          case "chunk": {
+            store.updateDocSection(event.section_id!, {
+              content: event.content ?? "",
+            });
+            break;
+          }
+          case "section_complete": {
+            store.updateDocSection(event.section_id!, {
+              status: "complete",
+              content: event.content ?? "",
+            });
+            break;
+          }
+          case "pipeline_complete": {
+            store.setPhase("refinement");
+            break;
           }
         }
-      }
-      // Stream ended without pipeline_complete — fallback
-      store.setPhase("refinement");
+      });
     } catch {
       // API unavailable — fall back to mock timer
       startMockGeneration();
