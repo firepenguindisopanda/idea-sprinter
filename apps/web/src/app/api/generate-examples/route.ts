@@ -24,7 +24,7 @@ function tryParseExamplesFromContent(content: string): ExampleItem[] | null {
   try {
     const parsed = JSON.parse(jsonText.trim());
     if (Array.isArray(parsed)) return parsed as ExampleItem[];
-    if (parsed && Array.isArray((parsed as any).examples)) return (parsed as any).examples as ExampleItem[];
+    if (parsed && Array.isArray((parsed as Record<string, unknown>).examples)) return (parsed as Record<string, unknown>).examples as ExampleItem[];
   } catch {
     // ignore parsing errors and fall back
   }
@@ -32,6 +32,7 @@ function tryParseExamplesFromContent(content: string): ExampleItem[] | null {
   return null;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function tryExtractExamplesFromChoicePayload(payload: any): ExampleItem[] | null {
   const content = payload?.choices?.[0]?.message?.content;
   if (!content || typeof content !== "string") return null;
@@ -75,6 +76,7 @@ function buildMockExamples(req: PreGenerationRequest): ExampleItem[] {
   return items;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function validateBody(body: any): asserts body is PreGenerationRequest {
   if (!body || typeof body !== "object") throw new Error("Invalid body");
   if (!body.title || !body.audience) throw new Error("Missing required fields");
@@ -139,6 +141,7 @@ export async function POST(req: NextRequest) {
   const url = new URL(req.url);
   const stream = url.searchParams.get("stream") === "1";
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let body: any;
   try {
     body = await req.json();
@@ -215,7 +218,7 @@ export async function POST(req: NextRequest) {
       const json = await upstream.json();
 
       // If it already has the examples property, return as-is
-      if ((json as any).examples) {
+      if ((json as Record<string, unknown>).examples) {
         return new Response(JSON.stringify(json), {
           headers: { "Content-Type": "application/json" },
         });

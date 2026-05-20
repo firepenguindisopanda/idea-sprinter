@@ -37,7 +37,7 @@ export default function PrdChat({ initialSessionId, prefill: prefillProp, onPhas
   const [messages, setMessages] = useState<Message[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
-  const [generatedPrd, setGeneratedPrd] = useState<string | null>(null);
+  const [, setGeneratedPrd] = useState<string | null>(null);
 
   useEffect(() => {
     if (prefill) {

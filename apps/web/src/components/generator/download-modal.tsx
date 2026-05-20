@@ -15,7 +15,6 @@ import {
   FileText,
   Package,
   BookOpen,
-  Archive,
   FileJson,
   Loader2,
 } from "lucide-react";
@@ -172,7 +171,6 @@ export default function DownloadModal({
       }
 
       // Get content type to determine how to handle response
-      const contentType = response.headers.get("Content-Type") || "";
       const blob = await response.blob();
 
       // Create download link

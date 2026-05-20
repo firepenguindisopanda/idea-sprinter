@@ -118,6 +118,7 @@ describe('Ideation Page - Core Functionality', () => {
         }), {
           headers: { 'Content-Type': 'application/json' },
         }))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ) as any;
 
       render(<IdeationPage />);

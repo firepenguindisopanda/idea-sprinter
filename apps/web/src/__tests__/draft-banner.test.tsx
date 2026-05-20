@@ -24,7 +24,7 @@ describe('DraftBanner', () => {
     vi.clearAllMocks();
     
     // Default mock implementation for useDraftStore
-    (useDraftStore as ReturnType<typeof vi.fn>).mockReturnValue({
+    (useDraftStore as unknown as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       clearIdeationDraft: mockClearIdeationDraft,
       clearGenerationDraft: mockClearGenerationDraft,
     });
@@ -32,7 +32,7 @@ describe('DraftBanner', () => {
 
   describe('When no draft exists', () => {
     it('should not render anything', () => {
-      (useMostRecentDraft as ReturnType<typeof vi.fn>).mockReturnValue({
+      (useMostRecentDraft as unknown as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
         type: null,
         updatedAt: null,
       });
@@ -42,7 +42,7 @@ describe('DraftBanner', () => {
     });
 
     it('should not render when type is null but updatedAt exists', () => {
-      (useMostRecentDraft as ReturnType<typeof vi.fn>).mockReturnValue({
+      (useMostRecentDraft as unknown as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
         type: null,
         updatedAt: Date.now(),
       });
@@ -52,7 +52,7 @@ describe('DraftBanner', () => {
     });
 
     it('should not render when updatedAt is null but type exists', () => {
-      (useMostRecentDraft as ReturnType<typeof vi.fn>).mockReturnValue({
+      (useMostRecentDraft as unknown as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
         type: 'ideation',
         updatedAt: null,
       });
@@ -64,7 +64,7 @@ describe('DraftBanner', () => {
 
   describe('When ideation draft exists', () => {
     beforeEach(() => {
-      (useMostRecentDraft as ReturnType<typeof vi.fn>).mockReturnValue({
+      (useMostRecentDraft as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
         type: 'ideation',
         updatedAt: Date.now() - 60000, // 1 minute ago
       });
@@ -101,7 +101,7 @@ describe('DraftBanner', () => {
 
   describe('When generation draft exists', () => {
     beforeEach(() => {
-      (useMostRecentDraft as ReturnType<typeof vi.fn>).mockReturnValue({
+      (useMostRecentDraft as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
         type: 'generation',
         updatedAt: Date.now() - 3600000, // 1 hour ago
       });
@@ -138,7 +138,7 @@ describe('DraftBanner', () => {
 
   describe('Time ago display', () => {
     it('should show "just now" for recent drafts (< 60 seconds)', () => {
-      (useMostRecentDraft as ReturnType<typeof vi.fn>).mockReturnValue({
+      (useMostRecentDraft as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
         type: 'ideation',
         updatedAt: Date.now() - 30000, // 30 seconds ago
       });
@@ -148,7 +148,7 @@ describe('DraftBanner', () => {
     });
 
     it('should show minutes for drafts < 1 hour', () => {
-      (useMostRecentDraft as ReturnType<typeof vi.fn>).mockReturnValue({
+      (useMostRecentDraft as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
         type: 'ideation',
         updatedAt: Date.now() - 5 * 60000, // 5 minutes ago
       });
@@ -158,7 +158,7 @@ describe('DraftBanner', () => {
     });
 
     it('should show hours for drafts < 24 hours', () => {
-      (useMostRecentDraft as ReturnType<typeof vi.fn>).mockReturnValue({
+      (useMostRecentDraft as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
         type: 'ideation',
         updatedAt: Date.now() - 3 * 3600000, // 3 hours ago
       });
@@ -168,7 +168,7 @@ describe('DraftBanner', () => {
     });
 
     it('should show days for drafts < 7 days', () => {
-      (useMostRecentDraft as ReturnType<typeof vi.fn>).mockReturnValue({
+      (useMostRecentDraft as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
         type: 'ideation',
         updatedAt: Date.now() - 2 * 24 * 3600000, // 2 days ago
       });
@@ -179,7 +179,7 @@ describe('DraftBanner', () => {
 
     it('should show date for drafts >= 7 days', () => {
       const oldDate = new Date(Date.now() - 10 * 24 * 3600000); // 10 days ago
-      (useMostRecentDraft as ReturnType<typeof vi.fn>).mockReturnValue({
+      (useMostRecentDraft as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
         type: 'ideation',
         updatedAt: oldDate.getTime(),
       });
@@ -192,7 +192,7 @@ describe('DraftBanner', () => {
 
   describe('Accessibility', () => {
     beforeEach(() => {
-      (useMostRecentDraft as ReturnType<typeof vi.fn>).mockReturnValue({
+      (useMostRecentDraft as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
         type: 'ideation',
         updatedAt: Date.now(),
       });

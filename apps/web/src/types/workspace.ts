@@ -1,3 +1,9 @@
+/**
+ * Workspace domain types (frontend state, not API-boundary).
+ * Uses camelCase convention for frontend state consistency.
+ * Convert to/from snake_case at API boundaries where needed.
+ */
+
 export type WorkspacePhase =
   | 'idea_input'
   | 'clarifying_questions'
@@ -45,11 +51,11 @@ export interface WorkspaceState {
   phase: WorkspacePhase;
   currentQuestionIndex: number;
   ideaInput: string;
-  brief: string;
   questions: ClarifyingQuestion[];
   directions: DirectionOption[];
   selectedDirectionId: string | null;
   documentSections: DocSection[];
   refinementHistory: RefinementAction[];
   projectTitle: string;
+  savedProjectId: number | null;
 }

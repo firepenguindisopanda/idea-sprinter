@@ -37,6 +37,7 @@ export default function Header() {
   const links: { to: Route; label: string }[] = [
     { to: "/", label: "Home" },
     ...(user ? [
+      { to: "/workspace" as Route, label: "Workspace" },
       { to: "/ideation" as Route, label: "Ideation" },
       { to: "/prd" as Route, label: "PRD" },
       { to: "/generate" as Route, label: "Generator" },
@@ -125,9 +126,11 @@ export default function Header() {
 
         <div className="mr-8 flex items-center">
           <Link href="/" className="mr-8 flex items-center space-x-2">
-            <img 
-              src="/favicon.ico" 
-              alt="Logo" 
+            <Image
+              src="/favicon.ico"
+              alt="Logo"
+              width={24}
+              height={24}
               className="h-6 w-6 object-contain"
             />
             <span className="font-mono font-bold tracking-tighter text-lg uppercase">

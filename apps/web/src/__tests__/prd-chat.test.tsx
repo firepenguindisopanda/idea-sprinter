@@ -31,6 +31,7 @@ describe('PrdChat component', () => {
     };
 
     const { api } = await import('@/lib/api');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (api.prdChat as any).mockResolvedValue(mockAgent);
 
     render(<PrdChat initialSessionId={null} />);

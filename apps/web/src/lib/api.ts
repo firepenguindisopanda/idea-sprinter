@@ -8,6 +8,40 @@ interface JudgeReevaluateResponse {
   reevaluated: boolean;
 }
 
+// Workspace API types
+export interface WorkspaceClarifyResponse {
+  questions: Array<{
+    id: string;
+    question: string;
+    type: 'choice' | 'free_text';
+    options?: string[];
+  }>;
+}
+
+export interface WorkspaceDirectionsResponse {
+  directions: Array<{
+    id: string;
+    title: string;
+    description: string;
+    tags: string[];
+  }>;
+}
+
+export interface WorkspaceGenerateResponse {
+  sections: Array<{
+    id: string;
+    title: string;
+    content: string;
+    order: number;
+  }>;
+}
+
+export interface WorkspaceRefineResponse {
+  section_id: string;
+  content: string;
+  suggestions: string[];
+}
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
 
 /**
@@ -27,10 +61,14 @@ export class ApiError extends Error {
 class ApiClient {
     // Optional callback to handle auth errors (e.g., logout and redirect)
     onAuthError?: () => void;
-  private token: string | null = null;
+  private _token: string | null = null;
+
+  get token(): string | null {
+    return this._token;
+  }
 
   setToken(token: string | null) {
-    this.token = token;
+    this._token = token;
   }
 
   private async request<T>(
@@ -40,8 +78,8 @@ class ApiClient {
     const headers = new Headers(options.headers);
     headers.set('Content-Type', 'application/json');
 
-    if (this.token) {
-      headers.set('Authorization', `Bearer ${this.token}`);
+    if (this._token) {
+      headers.set('Authorization', `Bearer ${this._token}`);
     }
 
     let response: Response;
@@ -50,7 +88,7 @@ class ApiClient {
         ...options,
         headers,
       });
-    } catch (networkError) {
+    } catch {
       // Network-level errors (backend unreachable, CORS, etc.)
       throw new ApiError(
         'network_error',
@@ -151,8 +189,8 @@ class ApiClient {
     const headers = new Headers();
     headers.set('Content-Type', 'application/json');
 
-    if (this.token) {
-      headers.set('Authorization', `Bearer ${this.token}`);
+    if (this._token) {
+      headers.set('Authorization', `Bearer ${this._token}`);
     }
 
     let response: Response;
@@ -223,7 +261,7 @@ class ApiClient {
     let response: Response;
     try {
       response = await fetch(`${API_URL}/prd/download/${encodeURIComponent(sessionId)}?format=${format}`, {
-        headers: this.token ? { 'Authorization': `Bearer ${this.token}` } : {},
+        headers: this._token ? { 'Authorization': `Bearer ${this._token}` } : {},
       });
     } catch {
       throw new ApiError('network_error', 'Unable to connect to the server. Please check your connection.', 0);
@@ -283,7 +321,7 @@ class ApiClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(this.token ? { 'Authorization': `Bearer ${this.token}` } : {}),
+          ...(this._token ? { 'Authorization': `Bearer ${this._token}` } : {}),
         },
         body: JSON.stringify({ num_options: numOptions }),
       });
@@ -348,6 +386,47 @@ class ApiClient {
   async importPatternToSession(sessionId: string, patternId: string): Promise<{ message: string; option: ArchitectureOption }> {
     return this.request(`/architecture/sessions/${sessionId}/import-pattern/${patternId}`, {
       method: 'POST',
+    });
+  }
+
+  // Workspace
+  async getClarifyingQuestions(idea: string): Promise<WorkspaceClarifyResponse> {
+    return this.request<WorkspaceClarifyResponse>('/api/workspace/clarify', {
+      method: 'POST',
+      body: JSON.stringify({ idea }),
+    });
+  }
+
+  async getDirections(answers: Record<string, string>): Promise<WorkspaceDirectionsResponse> {
+    return this.request<WorkspaceDirectionsResponse>('/api/workspace/directions', {
+      method: 'POST',
+      body: JSON.stringify({ answers }),
+    });
+  }
+
+  async generateDocument(directionId: string, brief: string): Promise<WorkspaceGenerateResponse> {
+    return this.request<WorkspaceGenerateResponse>('/api/workspace/generate', {
+      method: 'POST',
+      body: JSON.stringify({ direction_id: directionId, brief }),
+    });
+  }
+
+  async refineSection(sectionId: string, prompt: string): Promise<WorkspaceRefineResponse> {
+    return this.request<WorkspaceRefineResponse>('/api/workspace/refine', {
+      method: 'POST',
+      body: JSON.stringify({ section_id: sectionId, prompt }),
+    });
+  }
+
+  async saveWorkspace(data: {
+    title: string;
+    direction_id?: string | null;
+    brief?: string | null;
+    sections: Array<{ id: string; title: string; content: string; order: number }>;
+  }): Promise<Project> {
+    return this.request<Project>('/api/workspace/save', {
+      method: 'POST',
+      body: JSON.stringify(data),
     });
   }
 }

@@ -225,6 +225,26 @@ export default function Home() {
               </p>
             </div>
           </div>
+
+          <div className="mt-8 p-4 sm:p-6 rounded-xl border-2 border-primary/20 bg-primary/[0.02]">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <p className="text-base font-semibold text-foreground">
+                  New: Workshop Studio
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  A redesigned single-page workspace for co-creating specs with AI guidance.
+                  Try the new experience.
+                </p>
+              </div>
+              <Link href={{ pathname: "/workspace" }}>
+                <Button size="default" className="gap-2 text-xs whitespace-nowrap shrink-0">
+                  Try it now
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>

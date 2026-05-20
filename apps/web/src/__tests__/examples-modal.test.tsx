@@ -71,6 +71,7 @@ describe("ExamplesModal", () => {
             title: "Example without bullets",
             one_line: "One line",
             full_text: "Full text"
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any,
         ]}
         onSelect={onSelect}

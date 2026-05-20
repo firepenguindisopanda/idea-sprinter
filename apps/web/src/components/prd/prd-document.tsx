@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Loader2, Check, Copy, Download, Send, Code, AlertCircle } from "lucide-react";
+import { FileText, Loader2, Check, Copy, Download, Send, Code } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { api } from "@/lib/api";
 import { useDraftStore } from "@/lib/draft-store";
-import type { ProjectRequest, PRDStatusResponse, GenerateResponse } from "@/types";
+import type { ProjectRequest, PRDStatusResponse } from "@/types";
 
 interface PrdDocumentProps {
   sessionId: string | null;
@@ -57,17 +57,27 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
 
         // Auto-fetch PRD content when status becomes complete
         if (status.phase === "complete" && !prdContent && !loading) {
-          await handleFetchDoc();
-          toast.success("PRD auto-loaded", {
-            description: "The PRD is ready and has been loaded for you.",
-          });
-          setAutoLoaded(true);
-          window.requestAnimationFrame(() => {
-            containerRef.current?.scrollIntoView({
-              behavior: "smooth",
-              block: "start",
+          // Inline fetch to avoid dependency on handleFetchDoc
+          setLoading(true);
+          setError(null);
+          try {
+            const data = await api.getPrdDoc(sessionId);
+            setPrdContent(data.generated_prd);
+            toast.success("PRD auto-loaded", {
+              description: "The PRD is ready and has been loaded for you.",
             });
-          });
+            setAutoLoaded(true);
+            window.requestAnimationFrame(() => {
+              containerRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+            });
+          } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to fetch PRD");
+          } finally {
+            setLoading(false);
+          }
           if (pollingInterval) {
             clearInterval(pollingInterval);
             pollingInterval = null;

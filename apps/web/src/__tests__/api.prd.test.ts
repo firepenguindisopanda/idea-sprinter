@@ -11,56 +11,48 @@ describe('PRD API client', () => {
     const mockResponse = {
       session_id: 'sess-1',
       agent_response: 'Got it — clarify the target user.',
-      section_tag: 'Goals & Objectives',
-      missing_sections: ['Constraints & Assumptions'],
+      needs_more: true,
+      phase: 'gathering',
+      missing_requirements: { goals: true },
+      questions: ['What is the target user?'],
     };
 
     global.fetch = vi.fn(() =>
       Promise.resolve(new Response(JSON.stringify(mockResponse), { headers: { 'Content-Type': 'application/json' } }))
-    ) as any;
+    ) as unknown as typeof global.fetch;
 
     const resp = await api.prdChat('sess-1', 'Our main goal is to improve UX');
     expect(resp.agent_response).toBe(mockResponse.agent_response);
-    expect(resp.section_tag).toBe('Goals & Objectives');
+    expect(resp.needs_more).toBe(true);
   });
 
   it('getPrdStatus should fetch status for session', async () => {
     const mockStatus = {
       session_id: 'sess-1',
-      completed_sections: ['overview', 'goals'],
+      phase: 'gathering',
+      requirements_status: { goals: true, features: false },
+      collected_info: { goals: 'Improve UX' },
       missing_sections: ['features'],
-      all_tags: [{ section: 'goals', content: 'Improve UX' }],
+      follow_up_count: 1,
     };
 
     global.fetch = vi.fn(() =>
       Promise.resolve(new Response(JSON.stringify(mockStatus), { headers: { 'Content-Type': 'application/json' } }))
-    ) as any;
+    ) as unknown as typeof global.fetch;
 
     const status = await api.getPrdStatus('sess-1');
     expect(status.session_id).toBe('sess-1');
-    expect(status.completed_sections).toContain('goals');
+    expect(status.missing_sections).toContain('features');
   });
 
-  it('getPrdDoc should return markdown by default and support json format', async () => {
-    const mockDocMd = { session_id: 'sess-1', document: '# PRD\n\nOverview' };
+  it('getPrdDoc should return PRD document', async () => {
+    const mockDoc = { session_id: 'sess-1', generated_prd: '# PRD\n\nOverview', requirements_status: { goals: true } };
     global.fetch = vi.fn(() =>
-      Promise.resolve(new Response(JSON.stringify(mockDocMd), { headers: { 'Content-Type': 'application/json' } }))
-    ) as any;
+      Promise.resolve(new Response(JSON.stringify(mockDoc), { headers: { 'Content-Type': 'application/json' } }))
+    ) as unknown as typeof global.fetch;
 
-    const md = await api.getPrdDoc('sess-1');
-    expect(typeof md.document).toBe('string');
-    expect((md.document as string).startsWith('# PRD')).toBeTruthy();
-
-    const mockDocJson = {
-      session_id: 'sess-1',
-      document: { overview: 'desc', goals: 'g' },
-    };
-    global.fetch = vi.fn(() =>
-      Promise.resolve(new Response(JSON.stringify(mockDocJson), { headers: { 'Content-Type': 'application/json' } }))
-    ) as any;
-
-    const json = await api.getPrdDoc('sess-1', 'json');
-    expect(typeof json.document).toBe('object');
-    expect((json.document as any).overview).toBe('desc');
+    const doc = await api.getPrdDoc('sess-1');
+    expect(doc.generated_prd).toContain('# PRD');
+    expect(doc.session_id).toBe('sess-1');
   });
 });

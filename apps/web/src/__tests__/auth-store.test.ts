@@ -18,6 +18,7 @@ describe('Auth Store', () => {
       initAuth: vi.fn(),
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (useAuthStore as any).mockReturnValue(mockStore);
 
     expect(mockStore.user).toBeNull();
@@ -36,6 +37,7 @@ describe('Auth Store', () => {
       initAuth: vi.fn(),
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (useAuthStore as any).mockReturnValue(mockStore);
 
     const testToken = 'test-token-123';

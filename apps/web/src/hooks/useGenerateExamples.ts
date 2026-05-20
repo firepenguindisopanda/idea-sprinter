@@ -33,7 +33,7 @@ function tryParseExamplesFromContent(content: string): ExampleItem[] | null {
   try {
     const parsed = JSON.parse(textToParse.trim());
     if (Array.isArray(parsed)) return parsed as ExampleItem[];
-    if (parsed && Array.isArray((parsed as any).examples)) return (parsed as any).examples as ExampleItem[];
+    if (parsed && Array.isArray((parsed as Record<string, unknown>).examples)) return (parsed as Record<string, unknown>).examples as ExampleItem[];
   } catch {
     // Standard parse failed, try extracting individual objects via regex
     // We look for objects with standard fields we expect

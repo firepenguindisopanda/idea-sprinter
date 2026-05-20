@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest';
 import {
   PACKAGE_MANAGER_OPTIONS_PYTHON,
   PACKAGE_MANAGER_OPTIONS_NODE,
