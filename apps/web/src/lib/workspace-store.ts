@@ -6,6 +6,8 @@ import type {
   DirectionOption,
   DocSection,
   RefinementAction,
+  VaguenessScores,
+  ChatMessage,
 } from '@/types/workspace';
 
 interface WorkspaceActions {
@@ -25,9 +27,18 @@ interface WorkspaceActions {
   setProjectTitle: (title: string) => void;
   setSavedProjectId: (id: number | null) => void;
   reset: () => void;
+  // New actions
+  setVaguenessScores: (scores: VaguenessScores) => void;
+  setThreshold: (threshold: number) => void;
+  addChatMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'>) => void;
+  setChatMessages: (messages: ChatMessage[]) => void;
 }
 
-const initialState: WorkspaceState = {
+const initialState: WorkspaceState & {
+  vaguenessScores: VaguenessScores | null;
+  threshold: number;
+  chatMessages: ChatMessage[];
+} = {
   phase: 'idea_input',
   currentQuestionIndex: 0,
   ideaInput: '',
@@ -38,9 +49,16 @@ const initialState: WorkspaceState = {
   refinementHistory: [],
   projectTitle: '',
   savedProjectId: null,
+  vaguenessScores: null,
+  threshold: 7,
+  chatMessages: [],
 };
 
-export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set, get) => ({
+export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions & {
+  vaguenessScores: VaguenessScores | null;
+  threshold: number;
+  chatMessages: ChatMessage[];
+}>((set, get) => ({
   ...initialState,
 
   setPhase: (phase) => set({ phase }),
@@ -83,7 +101,6 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set,
     set((state) => {
       const existing = state.documentSections.find((s) => s.id === section.id);
       if (existing) {
-        // Section already exists (e.g., pre-initialized), update in place
         return {
           documentSections: state.documentSections.map((s) =>
             s.id === section.id ? { ...s, ...section } : s
@@ -133,4 +150,23 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set,
   setSavedProjectId: (id) => set({ savedProjectId: id }),
 
   reset: () => set({ ...initialState }),
+
+  // New actions
+  setVaguenessScores: (scores) => set({ vaguenessScores: scores }),
+
+  setThreshold: (threshold) => set({ threshold }),
+
+  addChatMessage: (message) =>
+    set((state) => ({
+      chatMessages: [
+        ...state.chatMessages,
+        {
+          ...message,
+          id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          timestamp: Date.now(),
+        },
+      ],
+    })),
+
+  setChatMessages: (messages) => set({ chatMessages: messages }),
 }));
