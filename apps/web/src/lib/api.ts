@@ -42,6 +42,25 @@ export interface WorkspaceRefineResponse {
   suggestions: string[];
 }
 
+export interface WorkspaceEvaluateResponse {
+  scores: {
+    borderline_case: number;
+    scalar_terms: number;
+    quantitative_imprecision: number;
+    subjective_modality: number;
+    context_dependence: number;
+  };
+  overall_score: number;
+  threshold_met: boolean;
+  weak_dimensions: string[];
+  targeted_questions: Array<{
+    id: string;
+    question: string;
+    type: 'choice' | 'free_text';
+    options?: string[];
+  }>;
+}
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
 
 /**
@@ -404,11 +423,63 @@ class ApiClient {
     });
   }
 
-  async generateDocument(directionId: string, brief: string): Promise<WorkspaceGenerateResponse> {
-    return this.request<WorkspaceGenerateResponse>('/api/workspace/generate', {
+  async streamDocument(
+    directionId: string,
+    brief: string,
+    onEvent: (event: {
+      type: string;
+      section_id?: string;
+      title?: string;
+      content?: string;
+      order?: number;
+    }) => void,
+  ): Promise<void> {
+    const headers = new Headers();
+    headers.set('Content-Type', 'application/json');
+    if (this._token) {
+      headers.set('Authorization', `Bearer ${this._token}`);
+    }
+
+    const response = await fetch(`${API_URL}/api/workspace/generate`, {
       method: 'POST',
+      headers,
       body: JSON.stringify({ direction_id: directionId, brief }),
     });
+
+    if (!response.ok) {
+      throw new ApiError('api_error', 'Failed to start document generation', response.status);
+    }
+
+    if (!response.body) {
+      throw new ApiError('network_error', 'Response body is null', 0);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          try {
+            const event = JSON.parse(line.slice(6));
+            onEvent(event);
+          } catch {
+            // Skip malformed events
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
   }
 
   async refineSection(sectionId: string, prompt: string): Promise<WorkspaceRefineResponse> {
@@ -427,6 +498,13 @@ class ApiClient {
     return this.request<Project>('/api/workspace/save', {
       method: 'POST',
       body: JSON.stringify(data),
+    });
+  }
+
+  async evaluateVagueness(idea: string): Promise<WorkspaceEvaluateResponse> {
+    return this.request<WorkspaceEvaluateResponse>('/api/workspace/evaluate', {
+      method: 'POST',
+      body: JSON.stringify({ idea }),
     });
   }
 }
