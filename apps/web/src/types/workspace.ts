@@ -61,6 +61,13 @@ export interface WorkspaceState {
   savedProjectId: number | null;
 }
 
+export type VaguenessDimension =
+  | 'borderlineCase'
+  | 'scalarTerms'
+  | 'quantitativeImprecision'
+  | 'subjectiveModality'
+  | 'contextDependence';
+
 export interface VaguenessScores {
   borderlineCase: number;
   scalarTerms: number;
@@ -69,7 +76,7 @@ export interface VaguenessScores {
   contextDependence: number;
   overallScore: number;
   thresholdMet: boolean;
-  weakDimensions: string[];
+  weakDimensions: VaguenessDimension[];
 }
 
 export interface ChatMessage {
