@@ -205,11 +205,16 @@ describe('WorkspaceStore', () => {
   });
 
   it('setChatMessages replaces all messages', () => {
-    useWorkspaceStore.getState().setChatMessages([
-      { id: '1', role: 'user', content: 'Hi', timestamp: 1000 },
-      { id: '2', role: 'system', content: 'Hello', timestamp: 2000 },
-    ]);
-    expect(useWorkspaceStore.getState().chatMessages).toHaveLength(2);
+    const msgs = [
+      { id: '1', role: 'user' as const, content: 'Hi', timestamp: 1000 },
+      { id: '2', role: 'system' as const, content: 'Hello', timestamp: 2000 },
+    ];
+    useWorkspaceStore.getState().setChatMessages(msgs);
+    expect(useWorkspaceStore.getState().chatMessages).toEqual(msgs);
+  });
+
+  it('defaults threshold to 7', () => {
+    expect(useWorkspaceStore.getState().threshold).toBe(7);
   });
 
   it('reset clears vagueness scores and chat messages', () => {

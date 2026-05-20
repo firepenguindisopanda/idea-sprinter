@@ -34,6 +34,8 @@ interface WorkspaceActions {
   setChatMessages: (messages: ChatMessage[]) => void;
 }
 
+export const DEFAULT_VAGUENESS_THRESHOLD = 7;
+
 const initialState: WorkspaceState & {
   vaguenessScores: VaguenessScores | null;
   threshold: number;
@@ -50,7 +52,7 @@ const initialState: WorkspaceState & {
   projectTitle: '',
   savedProjectId: null,
   vaguenessScores: null,
-  threshold: 7,
+  threshold: DEFAULT_VAGUENESS_THRESHOLD,
   chatMessages: [],
 };
 
@@ -162,7 +164,7 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions & {
         ...state.chatMessages,
         {
           ...message,
-          id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          id: `msg-${crypto.randomUUID()}`,
           timestamp: Date.now(),
         },
       ],
