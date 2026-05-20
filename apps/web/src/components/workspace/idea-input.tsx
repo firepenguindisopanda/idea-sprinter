@@ -76,6 +76,12 @@ export function IdeaInput() {
           role: "system",
           content: "Your idea is clear and specific enough to generate a spec. Let's pick a direction.",
         });
+        // Set fallback directions so the direction selector has options
+        setDirections([
+          { id: "dir-a", title: "MVP First", description: "Build the core features quickly, launch to early users, then iterate based on feedback.", tags: ["lean", "fast", "validated-learning"] },
+          { id: "dir-b", title: "Full-Featured", description: "Plan and build a comprehensive solution with all key features from the start.", tags: ["polished", "complete", "enterprise-ready"] },
+          { id: "dir-c", title: "Hybrid Approach", description: "Start with a solid core but architect for scale.", tags: ["balanced", "scalable", "pragmatic"] },
+        ]);
         setPhase("direction_selection");
         setIsSubmitting(false);
         return;

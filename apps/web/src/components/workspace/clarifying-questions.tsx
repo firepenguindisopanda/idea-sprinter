@@ -102,7 +102,7 @@ export function ClarifyingQuestions() {
     }
   };
 
-  const handleChatSend = (message: string) => {
+  const handleChatSend = (_message: string) => {
     addChatMessage({
       role: "system",
       content: `Thanks for your note. When you're ready, please answer: "${currentQuestion.question}"`,
