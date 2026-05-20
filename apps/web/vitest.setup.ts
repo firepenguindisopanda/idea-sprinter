@@ -15,3 +15,8 @@ if (typeof (globalThis as any).ResizeObserver === 'undefined') {
     disconnect() {}
   };
 }
+
+// scrollIntoView is not implemented in jsdom; provide a noop.
+if (typeof Element.prototype.scrollIntoView === 'undefined') {
+  Element.prototype.scrollIntoView = () => {};
+}

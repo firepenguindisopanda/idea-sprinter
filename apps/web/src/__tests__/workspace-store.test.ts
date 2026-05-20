@@ -170,4 +170,63 @@ describe('WorkspaceStore', () => {
     useWorkspaceStore.getState().setProjectTitle('Sprint Planner');
     expect(useWorkspaceStore.getState().projectTitle).toBe('Sprint Planner');
   });
+
+  it('setVaguenessScores stores evaluation results', () => {
+    const scores = {
+      borderlineCase: 4,
+      scalarTerms: 6,
+      quantitativeImprecision: 3,
+      subjectiveModality: 8,
+      contextDependence: 5,
+      overallScore: 5.2,
+      thresholdMet: false,
+      weakDimensions: ['quantitativeImprecision' as const, 'borderlineCase' as const],
+    };
+    useWorkspaceStore.getState().setVaguenessScores(scores);
+    expect(useWorkspaceStore.getState().vaguenessScores).toEqual(scores);
+  });
+
+  it('setThreshold updates the threshold value', () => {
+    useWorkspaceStore.getState().setThreshold(8);
+    expect(useWorkspaceStore.getState().threshold).toBe(8);
+  });
+
+  it('addChatMessage appends a message with auto-generated id and timestamp', () => {
+    useWorkspaceStore.getState().addChatMessage({
+      role: 'user',
+      content: 'Hello',
+    });
+    const messages = useWorkspaceStore.getState().chatMessages;
+    expect(messages).toHaveLength(1);
+    expect(messages[0].role).toBe('user');
+    expect(messages[0].content).toBe('Hello');
+    expect(messages[0].id).toBeDefined();
+    expect(messages[0].timestamp).toBeDefined();
+  });
+
+  it('setChatMessages replaces all messages', () => {
+    const msgs = [
+      { id: '1', role: 'user' as const, content: 'Hi', timestamp: 1000 },
+      { id: '2', role: 'system' as const, content: 'Hello', timestamp: 2000 },
+    ];
+    useWorkspaceStore.getState().setChatMessages(msgs);
+    expect(useWorkspaceStore.getState().chatMessages).toEqual(msgs);
+  });
+
+  it('defaults threshold to 7', () => {
+    expect(useWorkspaceStore.getState().threshold).toBe(7);
+  });
+
+  it('reset clears vagueness scores and chat messages', () => {
+    useWorkspaceStore.getState().setVaguenessScores({
+      borderlineCase: 5, scalarTerms: 5, quantitativeImprecision: 5,
+      subjectiveModality: 5, contextDependence: 5, overallScore: 5,
+      thresholdMet: false, weakDimensions: [],
+    });
+    useWorkspaceStore.getState().addChatMessage({ role: 'user', content: 'test' });
+    useWorkspaceStore.getState().reset();
+    const state = useWorkspaceStore.getState();
+    expect(state.vaguenessScores).toBeNull();
+    expect(state.chatMessages).toEqual([]);
+  });
 });

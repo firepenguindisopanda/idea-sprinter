@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, SkipForward, CheckCircle2 } from "lucide-react";
 import { api } from "@/lib/api";
 import type { DirectionOption } from "@/types/workspace";
+import { HybridChatInput } from "./hybrid-chat-input";
 
 const FALLBACK_DIRECTIONS: DirectionOption[] = [
   {
@@ -40,6 +41,7 @@ export function ClarifyingQuestions() {
     previousQuestion,
     setDirections,
     phase,
+    addChatMessage,
   } = useWorkspace();
 
   const [localAnswer, setLocalAnswer] = useState<string>("");
@@ -98,6 +100,13 @@ export function ClarifyingQuestions() {
     } else {
       fetchDirections();
     }
+  };
+
+  const handleChatSend = (_message: string) => {
+    addChatMessage({
+      role: "system",
+      content: `Thanks for your note. When you're ready, please answer: "${currentQuestion.question}"`,
+    });
   };
 
   const answeredQuestions = questions.filter((q) => q.answer !== null);
@@ -231,6 +240,10 @@ export function ClarifyingQuestions() {
           </div>
         </div>
       )}
+
+      <div className="pt-4 border-t border-border">
+        <HybridChatInput onSend={handleChatSend} />
+      </div>
     </div>
   );
 }

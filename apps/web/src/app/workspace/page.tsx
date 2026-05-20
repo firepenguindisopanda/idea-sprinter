@@ -6,6 +6,7 @@ import { IdeaInput } from "@/components/workspace/idea-input";
 import { ClarifyingQuestions } from "@/components/workspace/clarifying-questions";
 import { DirectionSelector } from "@/components/workspace/direction-selector";
 import { ProgressiveDoc } from "@/components/workspace/progressive-doc";
+import { WorkspaceChatFeed } from "@/components/workspace/workspace-chat-feed";
 
 export default function WorkspacePage() {
   const { phase } = useWorkspace();
@@ -18,7 +19,13 @@ export default function WorkspacePage() {
         {/* Left Column: Command Center Feed */}
         <div className="bg-muted/30 border-r border-border overflow-y-auto p-6 space-y-6">
           <IdeaInput />
-          {phase !== "idea_input" && <ClarifyingQuestions />}
+          {phase === "evaluating" && <WorkspaceChatFeed />}
+          {phase === "clarifying_questions" && (
+            <>
+              <WorkspaceChatFeed />
+              <ClarifyingQuestions />
+            </>
+          )}
           {phase === "direction_selection" && <DirectionSelector />}
         </div>
 

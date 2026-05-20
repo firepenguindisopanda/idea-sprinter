@@ -5,7 +5,8 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
 import { Sparkles, ArrowRight, CheckCircle2 } from "lucide-react";
 import { api } from "@/lib/api";
-import type { ClarifyingQuestion } from "@/types/workspace";
+import type { ClarifyingQuestion, VaguenessScores, VaguenessDimension } from "@/types/workspace";
+import { VaguenessReport } from "./vagueness-report";
 
 const FALLBACK_QUESTIONS: ClarifyingQuestion[] = [
   {
@@ -37,7 +38,18 @@ const FALLBACK_QUESTIONS: ClarifyingQuestion[] = [
 ];
 
 export function IdeaInput() {
-  const { ideaInput, setIdeaInput, startClarifying, setQuestions, phase } = useWorkspace();
+  const {
+    ideaInput,
+    setIdeaInput,
+    startClarifying,
+    setQuestions,
+    phase,
+    vaguenessScores,
+    setVaguenessScores,
+    setPhase,
+    setDirections,
+    addChatMessage,
+  } = useWorkspace();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
@@ -45,9 +57,38 @@ export function IdeaInput() {
     setIsSubmitting(true);
 
     try {
-      // Try the real API first
-      const response = await api.getClarifyingQuestions(ideaInput);
-      const questions: ClarifyingQuestion[] = (response.questions ?? []).map(
+      const response = await api.evaluateVagueness(ideaInput);
+
+      const scores: VaguenessScores = {
+        borderlineCase: response.scores.borderline_case,
+        scalarTerms: response.scores.scalar_terms,
+        quantitativeImprecision: response.scores.quantitative_imprecision,
+        subjectiveModality: response.scores.subjective_modality,
+        contextDependence: response.scores.context_dependence,
+        overallScore: response.overall_score,
+        thresholdMet: response.threshold_met,
+        weakDimensions: response.weak_dimensions as VaguenessDimension[],
+      };
+      setVaguenessScores(scores);
+
+      if (scores.thresholdMet) {
+        addChatMessage({
+          role: "system",
+          content: "Your idea is clear and specific enough to generate a spec. Let's pick a direction.",
+        });
+        // Set fallback directions so the direction selector has options
+        setDirections([
+          { id: "dir-a", title: "MVP First", description: "Build the core features quickly, launch to early users, then iterate based on feedback.", tags: ["lean", "fast", "validated-learning"] },
+          { id: "dir-b", title: "Full-Featured", description: "Plan and build a comprehensive solution with all key features from the start.", tags: ["polished", "complete", "enterprise-ready"] },
+          { id: "dir-c", title: "Hybrid Approach", description: "Start with a solid core but architect for scale.", tags: ["balanced", "scalable", "pragmatic"] },
+        ]);
+        setPhase("direction_selection");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Use targeted questions from the evaluator, or fall back
+      const questions: ClarifyingQuestion[] = (response.targeted_questions ?? []).map(
         (q: { id?: string; question?: string; type?: string; options?: string[] }, i: number) => ({
           id: q.id ?? `q${i + 1}`,
           question: q.question ?? "",
@@ -56,6 +97,7 @@ export function IdeaInput() {
           answer: null,
         })
       );
+
       if (questions.length > 0 && questions.every((q) => q.question)) {
         setQuestions(questions);
         startClarifying();
@@ -66,13 +108,13 @@ export function IdeaInput() {
       // API unavailable — use fallback
     }
 
-    // Fallback to hardcoded questions
+    // Fallback: use generic questions
     setQuestions(FALLBACK_QUESTIONS);
     startClarifying();
     setIsSubmitting(false);
   };
 
-  if (phase !== "idea_input") {
+  if (phase !== "idea_input" && phase !== "evaluating") {
     return (
       <div className="rounded-xl border border-border bg-background p-4 shadow-sm opacity-70 transition-opacity hover:opacity-100">
         <div className="flex items-start gap-3">
@@ -87,46 +129,50 @@ export function IdeaInput() {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-background p-6 shadow-sm space-y-6">
-      <div className="space-y-2">
-        <h2 className="text-lg font-semibold text-foreground tracking-tight">
-          What are you building?
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Describe your idea in a sentence or two. We&apos;ll help you refine it into a clear spec.
-        </p>
+    <div className="space-y-4">
+      <div className="rounded-xl border border-border bg-background p-6 shadow-sm space-y-6">
+        <div className="space-y-2">
+          <h2 className="text-lg font-semibold text-foreground tracking-tight">
+            What are you building?
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Describe your idea in a sentence or two. We&apos;ll analyze it for clarity and help you refine it.
+          </p>
+        </div>
+
+        <textarea
+          value={ideaInput}
+          onChange={(e) => setIdeaInput(e.target.value)}
+          placeholder="I want to build a..."
+          rows={4}
+          className="w-full resize-none rounded-lg border border-input bg-background px-4 py-3 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring focus:border-input transition-shadow"
+        />
+
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={handleSubmit}
+            disabled={!ideaInput.trim() || isSubmitting}
+            size="lg"
+            className="gap-2"
+          >
+            {isSubmitting ? (
+              <>Analyzing...</>
+            ) : (
+              <>
+                Start Crafting
+                <ArrowRight className="h-4 w-4" />
+              </>
+            )}
+          </Button>
+
+          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground gap-1">
+            <Sparkles className="h-3.5 w-3.5" />
+            Need inspiration?
+          </Button>
+        </div>
       </div>
 
-      <textarea
-        value={ideaInput}
-        onChange={(e) => setIdeaInput(e.target.value)}
-        placeholder="I want to build a..."
-        rows={4}
-        className="w-full resize-none rounded-lg border border-input bg-background px-4 py-3 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring focus:border-input transition-shadow"
-      />
-
-      <div className="flex items-center gap-3">
-        <Button
-          onClick={handleSubmit}
-          disabled={!ideaInput.trim() || isSubmitting}
-          size="lg"
-          className="gap-2"
-        >
-          {isSubmitting ? (
-            <>Processing...</>
-          ) : (
-            <>
-              Start Crafting
-              <ArrowRight className="h-4 w-4" />
-            </>
-          )}
-        </Button>
-
-        <Button variant="ghost" size="sm" className="text-xs text-muted-foreground gap-1">
-          <Sparkles className="h-3.5 w-3.5" />
-          Need inspiration?
-        </Button>
-      </div>
+      {vaguenessScores && <VaguenessReport scores={vaguenessScores} />}
     </div>
   );
 }

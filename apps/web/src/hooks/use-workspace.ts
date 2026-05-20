@@ -15,6 +15,9 @@ export function useWorkspace() {
     refinementHistory: store.refinementHistory,
     projectTitle: store.projectTitle,
     savedProjectId: store.savedProjectId,
+    vaguenessScores: store.vaguenessScores,
+    threshold: store.threshold,
+    chatMessages: store.chatMessages,
 
     // Computed
     canGoPrevious: store.currentQuestionIndex > 0,
@@ -39,5 +42,9 @@ export function useWorkspace() {
     setProjectTitle: store.setProjectTitle,
     setSavedProjectId: store.setSavedProjectId,
     reset: store.reset,
+    setVaguenessScores: store.setVaguenessScores,
+    setThreshold: store.setThreshold,
+    addChatMessage: store.addChatMessage,
+    setChatMessages: store.setChatMessages,
   };
 }

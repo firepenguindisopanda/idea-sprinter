@@ -6,6 +6,7 @@
 
 export type WorkspacePhase =
   | 'idea_input'
+  | 'evaluating'
   | 'clarifying_questions'
   | 'direction_selection'
   | 'generating'
@@ -58,4 +59,30 @@ export interface WorkspaceState {
   refinementHistory: RefinementAction[];
   projectTitle: string;
   savedProjectId: number | null;
+}
+
+export type VaguenessDimension =
+  | 'borderlineCase'
+  | 'scalarTerms'
+  | 'quantitativeImprecision'
+  | 'subjectiveModality'
+  | 'contextDependence';
+
+export interface VaguenessScores {
+  borderlineCase: number;
+  scalarTerms: number;
+  quantitativeImprecision: number;
+  subjectiveModality: number;
+  contextDependence: number;
+  overallScore: number;
+  thresholdMet: boolean;
+  weakDimensions: VaguenessDimension[];
+}
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'system';
+  content: string;
+  timestamp: number;
+  metadata?: Record<string, unknown>;
 }

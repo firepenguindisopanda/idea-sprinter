@@ -94,7 +94,7 @@ export default function DashboardPage() {
             </p>
           </div>
           
-          <Link href="/generate">
+          <Link href={{ pathname: "/workspace" }}>
             <Button size="xl" className="font-mono uppercase tracking-widest rounded-none border-2 border-primary/20 shadow-[4px_4px_0px_0px_rgba(var(--primary),0.1)]">
               <Plus className="mr-2 h-5 w-5" />
               New Project
@@ -141,6 +141,75 @@ export default function DashboardPage() {
               )}
             </>
           )}
+        </div>
+
+        {/* The Relics */}
+        <div className="relative">
+          <div className="absolute top-0 right-0 p-2 text-[10px] font-mono text-primary/20 select-none uppercase">Legacy</div>
+          <div className="border border-primary/10 bg-muted/20 rounded-xl p-6 space-y-4">
+            <div className="space-y-1">
+              <h2 className="text-lg font-mono font-bold uppercase tracking-tighter text-muted-foreground">
+                The Relics
+              </h2>
+              <p className="text-sm text-muted-foreground/70">
+                Older tools, still functional. The Workshop Studio is the recommended experience.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Link
+                href="/ideation"
+                className="group flex items-center gap-3 p-4 rounded-lg border border-primary/10 bg-background/50 hover:border-primary/30 hover:bg-primary/5 transition-all opacity-70 hover:opacity-100"
+              >
+                <div className="h-8 w-8 rounded-md bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
+                  <span className="text-sm">💡</span>
+                </div>
+                <div>
+                  <div className="text-xs font-mono font-bold uppercase text-muted-foreground group-hover:text-primary transition-colors">Ideation</div>
+                  <div className="text-[10px] text-muted-foreground/60">Brainstorm & refine</div>
+                </div>
+              </Link>
+
+              <Link
+                href="/generate"
+                className="group flex items-center gap-3 p-4 rounded-lg border border-primary/10 bg-background/50 hover:border-primary/30 hover:bg-primary/5 transition-all opacity-70 hover:opacity-100"
+              >
+                <div className="h-8 w-8 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                  <span className="text-sm">⚡</span>
+                </div>
+                <div>
+                  <div className="text-xs font-mono font-bold uppercase text-muted-foreground group-hover:text-primary transition-colors">Generator</div>
+                  <div className="text-[10px] text-muted-foreground/60">Direct spec generation</div>
+                </div>
+              </Link>
+
+              <Link
+                href="/prd"
+                className="group flex items-center gap-3 p-4 rounded-lg border border-primary/10 bg-background/50 hover:border-primary/30 hover:bg-primary/5 transition-all opacity-70 hover:opacity-100"
+              >
+                <div className="h-8 w-8 rounded-md bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
+                  <span className="text-sm">📄</span>
+                </div>
+                <div>
+                  <div className="text-xs font-mono font-bold uppercase text-muted-foreground group-hover:text-primary transition-colors">PRD Agent</div>
+                  <div className="text-[10px] text-muted-foreground/60">Product requirements doc</div>
+                </div>
+              </Link>
+
+              <Link
+                href="/architecture"
+                className="group flex items-center gap-3 p-4 rounded-lg border border-primary/10 bg-background/50 hover:border-primary/30 hover:bg-primary/5 transition-all opacity-70 hover:opacity-100"
+              >
+                <div className="h-8 w-8 rounded-md bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500">
+                  <span className="text-sm">🏗️</span>
+                </div>
+                <div>
+                  <div className="text-xs font-mono font-bold uppercase text-muted-foreground group-hover:text-primary transition-colors">Architecture</div>
+                  <div className="text-[10px] text-muted-foreground/60">Compare architectures</div>
+                </div>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </ProtectedRoute>

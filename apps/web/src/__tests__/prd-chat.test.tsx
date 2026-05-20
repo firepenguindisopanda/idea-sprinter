@@ -4,49 +4,41 @@ import PrdChat from '@/components/prd/prd-chat';
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }), useSearchParams: () => ({ get: (_: string) => null }) }));
 vi.mock('@/components/protected-route', () => ({ default: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
-vi.mock('@/lib/api', () => ({ api: { prdChat: vi.fn() } }));
+vi.mock('@/lib/api', () => ({ api: { startPrdSession: vi.fn(), prdChat: vi.fn() } }));
 
 describe('PrdChat component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('renders input and send button (prefill shown)', () => {
-    // Render with a prefill via query param is handled by useSearchParams in real page;
-    // here we just assert basic rendering of the component.
+  it('renders input and start button (disabled when empty)', () => {
     render(<PrdChat initialSessionId={null} />);
     const textarea = screen.getByLabelText('prd-input');
-    const sendBtn = screen.getByRole('button', { name: /Send/i });
+    const startBtn = screen.getByRole('button', { name: /Start PRD/i });
     expect(textarea).toBeInTheDocument();
-    expect(sendBtn).toBeInTheDocument();
-    expect(sendBtn).toBeDisabled();
+    expect(startBtn).toBeInTheDocument();
+    expect(startBtn).toBeDisabled();
   });
 
-  it('sends message and displays agent response', async () => {
-    const mockAgent = {
-      session_id: 'sess-42',
-      agent_response: 'Thanks — can you clarify the users?',
-      section_tag: 'Stakeholders',
-      missing_sections: ['features']
-    };
-
+  it('starts a new PRD session and shows agent response', async () => {
     const { api } = await import('@/lib/api');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (api.prdChat as any).mockResolvedValue(mockAgent);
+    (api.startPrdSession as any).mockResolvedValue({
+      session_id: 'sess-42',
+      message: 'Thanks — can you clarify the users?',
+    });
 
     render(<PrdChat initialSessionId={null} />);
     const textarea = screen.getByLabelText('prd-input') as HTMLTextAreaElement;
-    const sendBtn = screen.getByRole('button', { name: /Send/i });
+    const startBtn = screen.getByRole('button', { name: /Start PRD/i });
 
     fireEvent.change(textarea, { target: { value: 'Primary users are product managers' } });
-    expect(sendBtn).toBeEnabled();
+    expect(startBtn).toBeEnabled();
 
-    fireEvent.click(sendBtn);
+    fireEvent.click(startBtn);
 
-    await waitFor(() => expect(api.prdChat).toHaveBeenCalled());
+    await waitFor(() => expect(api.startPrdSession).toHaveBeenCalled());
     expect(await screen.findByText(/PRD Agent/i)).toBeInTheDocument();
     expect(screen.getByText(/Thanks — can you clarify the users\?/i)).toBeInTheDocument();
-    expect(screen.getByText(/Section: Stakeholders/i)).toBeInTheDocument();
-    expect(screen.getByText(/Missing: features/i)).toBeInTheDocument();
   });
 });
