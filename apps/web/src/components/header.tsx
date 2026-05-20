@@ -35,12 +35,9 @@ export default function Header() {
   }, [initAuth]);
 
   const links: { to: Route; label: string }[] = [
-    { to: "/", label: "Home" },
+    { to: "/" as Route, label: "Home" },
     ...(user ? [
-      { to: "/workspace" as Route, label: "Workspace" },
-      { to: "/ideation" as Route, label: "Ideation" },
-      { to: "/prd" as Route, label: "PRD" },
-      { to: "/generate" as Route, label: "Generator" },
+      { to: "/workspace" as Route, label: "Workshop" },
       { to: "/dashboard" as Route, label: "Dashboard" },
     ] : [])
   ];
