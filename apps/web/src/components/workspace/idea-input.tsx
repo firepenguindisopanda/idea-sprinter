@@ -3,39 +3,11 @@
 import { useState } from "react";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
-import { Sparkles, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Sparkles, ArrowRight, CheckCircle2, ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
 import { api } from "@/lib/api";
+import { EXAMPLE_PROMPTS } from "@/lib/example-prompts";
 import type { ClarifyingQuestion, VaguenessScores, VaguenessDimension } from "@/types/workspace";
 import { VaguenessReport } from "./vagueness-report";
-
-const FALLBACK_QUESTIONS: ClarifyingQuestion[] = [
-  {
-    id: "q1",
-    question: "Who is the primary user of this product?",
-    type: "choice",
-    options: ["End consumers (B2C)", "Other businesses (B2B)", "Internal team use"],
-    answer: null,
-  },
-  {
-    id: "q2",
-    question: "What platform do you want to target first?",
-    type: "choice",
-    options: ["Web app", "Mobile app", "Both", "Desktop"],
-    answer: null,
-  },
-  {
-    id: "q3",
-    question: "What is the core problem this product solves?",
-    type: "free_text",
-    answer: null,
-  },
-  {
-    id: "q4",
-    question: "Do you have any key differentiators vs existing solutions?",
-    type: "free_text",
-    answer: null,
-  },
-];
 
 export function IdeaInput() {
   const {
@@ -49,8 +21,10 @@ export function IdeaInput() {
     setPhase,
     setDirections,
     addChatMessage,
+    setError,
   } = useWorkspace();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showExamples, setShowExamples] = useState(false);
 
   const handleSubmit = async () => {
     if (!ideaInput.trim()) return;
@@ -76,18 +50,30 @@ export function IdeaInput() {
           role: "system",
           content: "Your idea is clear and specific enough to generate a spec. Let's pick a direction.",
         });
-        // Set fallback directions so the direction selector has options
-        setDirections([
-          { id: "dir-a", title: "MVP First", description: "Build the core features quickly, launch to early users, then iterate based on feedback.", tags: ["lean", "fast", "validated-learning"] },
-          { id: "dir-b", title: "Full-Featured", description: "Plan and build a comprehensive solution with all key features from the start.", tags: ["polished", "complete", "enterprise-ready"] },
-          { id: "dir-c", title: "Hybrid Approach", description: "Start with a solid core but architect for scale.", tags: ["balanced", "scalable", "pragmatic"] },
-        ]);
-        setPhase("direction_selection");
+        try {
+          const dirResponse = await api.getDirections({});
+          const dirs = (dirResponse.directions ?? [])
+            .filter((d: { id?: string; title?: string }) => d.id && d.title)
+            .map((d: { id?: string; title?: string; description?: string; tags?: string[] }) => ({
+              id: d.id ?? "",
+              title: d.title ?? "",
+              description: d.description ?? "",
+              tags: d.tags ?? [],
+            }));
+          if (dirs.length >= 2) {
+            setDirections(dirs);
+            setPhase("direction_selection");
+            setIsSubmitting(false);
+            return;
+          }
+        } catch {
+          // fall through to error
+        }
+        setError("Could not fetch project directions from the server.");
         setIsSubmitting(false);
         return;
       }
 
-      // Use targeted questions from the evaluator, or fall back
       const questions: ClarifyingQuestion[] = (response.targeted_questions ?? []).map(
         (q: { id?: string; question?: string; type?: string; options?: string[] }, i: number) => ({
           id: q.id ?? `q${i + 1}`,
@@ -104,13 +90,12 @@ export function IdeaInput() {
         setIsSubmitting(false);
         return;
       }
+
+      setError("Received empty questions from the server. Please try again.");
     } catch {
-      // API unavailable — use fallback
+      setError("Unable to connect to the backend at localhost:5001. Make sure the server is running.");
     }
 
-    // Fallback: use generic questions
-    setQuestions(FALLBACK_QUESTIONS);
-    startClarifying();
     setIsSubmitting(false);
   };
 
@@ -148,7 +133,7 @@ export function IdeaInput() {
           className="w-full resize-none rounded-lg border border-input bg-background px-4 py-3 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring focus:border-input transition-shadow"
         />
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-3">
           <Button
             onClick={handleSubmit}
             disabled={!ideaInput.trim() || isSubmitting}
@@ -165,11 +150,41 @@ export function IdeaInput() {
             )}
           </Button>
 
-          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground gap-1">
+          <Button variant="ghost" size="sm" onClick={() => setShowExamples(!showExamples)} className="text-xs text-muted-foreground gap-1 shrink-0">
             <Sparkles className="h-3.5 w-3.5" />
-            Need inspiration?
+            {showExamples ? "Hide examples" : "Need inspiration?"}
+            {showExamples ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
           </Button>
         </div>
+
+        {showExamples && (
+          <div className="space-y-2 pt-1">
+            <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+              <Lightbulb className="h-3 w-3" />
+              Try one of these example prompts
+            </p>
+            <div className="grid gap-2">
+              {EXAMPLE_PROMPTS.map((ex) => (
+                <button
+                  key={ex.id}
+                  onClick={() => setIdeaInput(ex.prompt)}
+                  className="group text-left w-full rounded-lg border border-border bg-muted/30 p-3 hover:border-primary/30 hover:bg-muted/50 transition-all"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <span className="text-xs font-semibold text-foreground">{ex.title}</span>
+                      <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5 leading-relaxed">
+                        {ex.prompt}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground/60 mt-1 italic">{ex.why}</p>
+                    </div>
+                    <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40 group-hover:text-primary transition-colors mt-1" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {vaguenessScores && <VaguenessReport scores={vaguenessScores} />}

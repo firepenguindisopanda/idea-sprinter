@@ -13,7 +13,7 @@ interface DocSectionProps {
 }
 
 export function DocSection({ section, isRefinementMode }: DocSectionProps) {
-  const { applyRefinement, undoRefinement, refinementHistory } = useWorkspace();
+  const { applyRefinement, undoRefinement, refinementHistory, setError } = useWorkspace();
   const [showRefine, setShowRefine] = useState(false);
   const [refinePrompt, setRefinePrompt] = useState("");
   const [_isRefining, setIsRefining] = useState(false);
@@ -27,24 +27,16 @@ export function DocSection({ section, isRefinementMode }: DocSectionProps) {
     setIsRefining(true);
 
     try {
-      // Try the real API
       const response = await api.refineSection(section.id, refinePrompt.trim());
       applyRefinement({
         sectionId: section.id,
         prompt: refinePrompt.trim(),
         originalContent: section.content,
-        suggestedContent: response.content ?? section.content + `\n\n[Refined based on: ${refinePrompt.trim()}]`,
+        suggestedContent: response.content ?? section.content,
         applied: true,
       });
     } catch {
-      // Fallback: mock refinement
-      applyRefinement({
-        sectionId: section.id,
-        prompt: refinePrompt.trim(),
-        originalContent: section.content,
-        suggestedContent: section.content + `\n\n[Refined based on: ${refinePrompt.trim()}]`,
-        applied: true,
-      });
+      setError("Unable to connect to the backend at localhost:5001. Make sure the server is running.");
     }
 
     setIsRefining(false);

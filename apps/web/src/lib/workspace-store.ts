@@ -32,6 +32,8 @@ interface WorkspaceActions {
   setThreshold: (threshold: number) => void;
   addChatMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'>) => void;
   setChatMessages: (messages: ChatMessage[]) => void;
+  setError: (error: string | null) => void;
+  clearError: () => void;
 }
 
 export const DEFAULT_VAGUENESS_THRESHOLD = 7;
@@ -40,6 +42,7 @@ const initialState: WorkspaceState & {
   vaguenessScores: VaguenessScores | null;
   threshold: number;
   chatMessages: ChatMessage[];
+  error: string | null;
 } = {
   phase: 'idea_input',
   currentQuestionIndex: 0,
@@ -54,12 +57,14 @@ const initialState: WorkspaceState & {
   vaguenessScores: null,
   threshold: DEFAULT_VAGUENESS_THRESHOLD,
   chatMessages: [],
+  error: null,
 };
 
 export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions & {
   vaguenessScores: VaguenessScores | null;
   threshold: number;
   chatMessages: ChatMessage[];
+  error: string | null;
 }>((set, get) => ({
   ...initialState,
 
@@ -171,4 +176,8 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions & {
     })),
 
   setChatMessages: (messages) => set({ chatMessages: messages }),
+
+  setError: (error) => set({ error }),
+
+  clearError: () => set({ error: null }),
 }));

@@ -8,27 +8,6 @@ import { api } from "@/lib/api";
 import type { DirectionOption } from "@/types/workspace";
 import { HybridChatInput } from "./hybrid-chat-input";
 
-const FALLBACK_DIRECTIONS: DirectionOption[] = [
-  {
-    id: "dir-a",
-    title: "MVP First",
-    description: "Build the core features quickly, launch to early users, then iterate based on feedback.",
-    tags: ["lean", "fast", "validated-learning"],
-  },
-  {
-    id: "dir-b",
-    title: "Full-Featured",
-    description: "Plan and build a comprehensive solution with all key features from the start.",
-    tags: ["polished", "complete", "enterprise-ready"],
-  },
-  {
-    id: "dir-c",
-    title: "Hybrid Approach",
-    description: "Start with a solid core but architect for scale — build the foundation right, add features iteratively.",
-    tags: ["balanced", "scalable", "pragmatic"],
-  },
-];
-
 export function ClarifyingQuestions() {
   const {
     questions,
@@ -42,6 +21,7 @@ export function ClarifyingQuestions() {
     setDirections,
     phase,
     addChatMessage,
+    setError,
   } = useWorkspace();
 
   const [localAnswer, setLocalAnswer] = useState<string>("");
@@ -55,7 +35,6 @@ export function ClarifyingQuestions() {
   }
 
   const fetchDirections = async () => {
-    // Build answers map from answered questions
     const answers: Record<string, string> = {};
     for (const q of questions) {
       if (q.answer) answers[q.id] = q.answer;
@@ -74,10 +53,10 @@ export function ClarifyingQuestions() {
         setDirections(dirs);
         return;
       }
+      setError("Received insufficient directions from the server. Please try again.");
     } catch {
-      // API unavailable
+      setError("Unable to connect to the backend at localhost:5001. Make sure the server is running.");
     }
-    setDirections(FALLBACK_DIRECTIONS);
   };
 
   const handleAnswer = () => {

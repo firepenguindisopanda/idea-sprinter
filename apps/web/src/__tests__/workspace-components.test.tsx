@@ -60,22 +60,32 @@ describe('IdeaInput', () => {
     expect(button).toBeEnabled();
   });
 
-  it('calls startClarifying via fallback when API is unavailable', async () => {
+  it('shows error when API is unavailable instead of falling back', async () => {
     const startClarifying = vi.fn();
     const setQuestions = vi.fn();
+    const setError = vi.fn();
     mockUseWorkspace.mockReturnValue({
       ideaInput: 'Build a task manager',
       setIdeaInput: vi.fn(),
       startClarifying,
       setQuestions,
       phase: 'idea_input',
+      vaguenessScores: null,
+      setVaguenessScores: vi.fn(),
+      setPhase: vi.fn(),
+      setDirections: vi.fn(),
+      addChatMessage: vi.fn(),
+      setError,
     });
     render(<IdeaInput />);
     fireEvent.click(screen.getByRole('button', { name: /Start Crafting/i }));
 
     await waitFor(() => {
-      expect(setQuestions).toHaveBeenCalled();
-      expect(startClarifying).toHaveBeenCalled();
+      expect(setError).toHaveBeenCalledWith(
+        expect.stringContaining('Unable to connect')
+      );
+      expect(startClarifying).not.toHaveBeenCalled();
+      expect(setQuestions).not.toHaveBeenCalled();
     });
   });
 });
@@ -167,12 +177,14 @@ describe('DocSection', () => {
     expect(screen.queryByText('Refine')).toBeNull();
   });
 
-  it('applies refinement via fallback when API is unavailable', async () => {
+  it('shows error when refineSection fails, does not mock-refine', async () => {
     const applyRefinement = vi.fn();
+    const setError = vi.fn();
     mockUseWorkspace.mockReturnValue({
       applyRefinement,
       undoRefinement: vi.fn(),
       refinementHistory: [],
+      setError,
     });
     render(<DocSection section={baseSection} isRefinementMode={true} />);
 
@@ -183,16 +195,14 @@ describe('DocSection', () => {
     const textarea = screen.getByPlaceholderText(/Make this more technical/i);
     fireEvent.change(textarea, { target: { value: 'Add pricing details' } });
 
-    // Click Apply (async — uses fallback since API is mocked to reject)
+    // Click Apply
     fireEvent.click(screen.getByText('Apply'));
 
     await waitFor(() => {
-      expect(applyRefinement).toHaveBeenCalledWith(
-        expect.objectContaining({
-          sectionId: 'sec-1',
-          prompt: 'Add pricing details',
-        })
+      expect(setError).toHaveBeenCalledWith(
+        expect.stringContaining('Unable to connect')
       );
+      expect(applyRefinement).not.toHaveBeenCalled();
     });
   });
 });

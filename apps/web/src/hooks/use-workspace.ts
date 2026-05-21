@@ -18,6 +18,7 @@ export function useWorkspace() {
     vaguenessScores: store.vaguenessScores,
     threshold: store.threshold,
     chatMessages: store.chatMessages,
+    error: store.error,
 
     // Computed
     canGoPrevious: store.currentQuestionIndex > 0,
@@ -46,5 +47,7 @@ export function useWorkspace() {
     setThreshold: store.setThreshold,
     addChatMessage: store.addChatMessage,
     setChatMessages: store.setChatMessages,
+    setError: store.setError,
+    clearError: store.clearError,
   };
 }

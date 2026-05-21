@@ -6,33 +6,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { api } from "@/lib/api";
 
-const MOCK_SECTIONS = [
-  { id: "sec-overview", title: "Project Overview", content: "A brief overview of your project based on the direction you selected. This section covers the high-level goals, target audience, and core value proposition." },
-  { id: "sec-features", title: "Core Features", content: "Key features and functionality that define the product scope." },
-  { id: "sec-tech-stack", title: "Technical Stack", content: "Recommended technology choices including frontend framework, backend runtime, database, and infrastructure." },
-  { id: "sec-security", title: "Security Considerations", content: "Security requirements, authentication approach, data protection measures." },
-  { id: "sec-deployment", title: "Deployment Strategy", content: "Deployment pipeline, hosting infrastructure, CI/CD approach." },
-];
-
-function startMockGeneration() {
-  const store = useWorkspaceStore.getState();
-  let order = 0;
-  const timer = setInterval(() => {
-    if (order < MOCK_SECTIONS.length) {
-      const section = MOCK_SECTIONS[order];
-      store.updateDocSection(section.id, { status: "complete", content: section.content });
-      const nextIdx = order + 1;
-      if (nextIdx < MOCK_SECTIONS.length) {
-        store.updateDocSection(MOCK_SECTIONS[nextIdx].id, { status: "generating" });
-      }
-      order++;
-    } else {
-      store.setPhase("refinement");
-      clearInterval(timer);
-    }
-  }, 1500);
-}
-
 function buildBrief(): string {
   const state = useWorkspaceStore.getState();
   const parts: string[] = [state.ideaInput];
@@ -42,25 +15,11 @@ function buildBrief(): string {
   return parts.join("\n");
 }
 
-function initDocSections() {
-  const store = useWorkspaceStore.getState();
-  for (let i = 0; i < MOCK_SECTIONS.length; i++) {
-    store.addDocSection({
-      id: MOCK_SECTIONS[i].id,
-      title: MOCK_SECTIONS[i].title,
-      status: i === 0 ? "generating" : "pending",
-      content: "",
-      order: i,
-    });
-  }
-}
-
 export function DirectionSelector() {
-  const { directions, selectDirection } = useWorkspace();
+  const { directions, selectDirection, setError } = useWorkspace();
 
   const handleSelect = async (directionId: string) => {
     selectDirection(directionId);
-    initDocSections();
     const brief = buildBrief();
 
     try {
@@ -97,8 +56,8 @@ export function DirectionSelector() {
         }
       });
     } catch {
-      // API unavailable — fall back to mock timer
-      startMockGeneration();
+      setError("Unable to connect to the backend at localhost:5001. Make sure the server is running.");
+      useWorkspaceStore.getState().setPhase("idea_input");
     }
   };
 
