@@ -35,7 +35,7 @@ const AGENT_PHASES = [
   {
     phase: 4,
     name: "Operations",
-    agents: ["qa_strategist", "devops_architect", "environment_engineer"],
+    agents: ["qa_strategist", "devops_architect"],
   },
   {
     phase: 5,
@@ -54,7 +54,6 @@ const AGENT_LABELS: Record<string, string> = {
   api_designer: "API Designer",
   qa_strategist: "QA Strategist",
   devops_architect: "DevOps Architect",
-  environment_engineer: "Environment Engineer",
   technical_writer: "Technical Writer",
   spec_coordinator: "Spec Coordinator",
 };
@@ -198,7 +197,15 @@ function GeneratePageContent() {
       case 'judge_start':
         setStreamingContent(`Quality review for ${AGENT_LABELS[event.role as string] || event.role}...`);
         break;
-        
+
+      case 'critic_complete':
+        setStreamingContent(`Critic evaluation for ${AGENT_LABELS[event.role as string] || event.role} completed`);
+        break;
+
+      case 'skeptic_complete':
+        setStreamingContent(`Adversarial review for ${AGENT_LABELS[event.role as string] || event.role} completed`);
+        break;
+
       case 'judge_complete':
         updateGenerationPartialResults({
           judge_results: {

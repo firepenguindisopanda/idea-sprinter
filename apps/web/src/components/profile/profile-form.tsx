@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { Save, Key, Cpu, Activity, User } from "lucide-react";
+import { Save, Key, Cpu, Activity, User, RotateCcw, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,8 +22,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useAuthStore } from "@/lib/auth-store";
+import { api } from "@/lib/api";
 import { PersonaSelector } from "@/components/persona/persona-selector";
 
 const CHAT_MODELS = [
@@ -49,6 +52,12 @@ const EMBEDDING_MODELS = [
 export default function ProfileForm() {
   const { user } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
+  const [cacheHealth, setCacheHealth] = useState<{
+    status: string;
+    keys_tracked: number;
+    ttl_seconds: number;
+  } | null>(null);
+  const [cacheLoading, setCacheLoading] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -61,6 +70,36 @@ export default function ProfileForm() {
     summaryModel: "nvidia/mixtral-8x22b-instruct",
   });
 
+  const fetchCacheHealth = useCallback(async () => {
+    try {
+      const health = await api.getCacheHealth();
+      setCacheHealth(health);
+    } catch {
+      setCacheHealth({ status: "degraded", keys_tracked: 0, ttl_seconds: 300 });
+    }
+  }, []);
+
+  const handleRefreshCache = async () => {
+    setCacheLoading(true);
+    try {
+      const result = await api.invalidateUserCache();
+      toast.success("Cache cleared", {
+        description: `Invalidated ${result.keys_cleared} cached entries.`,
+      });
+      await fetchCacheHealth();
+    } catch {
+      toast.error("Failed to clear cache", {
+        description: "Could not connect to the cache service.",
+      });
+    } finally {
+      setCacheLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCacheHealth();
+  }, [fetchCacheHealth]);
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -71,6 +110,13 @@ export default function ProfileForm() {
     toast.info("Coming Soon", {
       description: "Custom API keys and model configuration will be available in the next update. Your settings have been saved locally for this session.",
     });
+
+    // Invalidate cache so observability dashboard picks up fresh data
+    try {
+      await api.invalidateUserCache();
+    } catch {
+      // Non-blocking: cache invalidation is best-effort
+    }
 
     setIsLoading(false);
   };
@@ -299,6 +345,61 @@ export default function ProfileForm() {
               </div>
             </CardContent>
           </Card>
+
+          <div className="mt-6">
+            <Card className="rounded-none border-2 border-primary/20 bg-background/50">
+              <CardHeader className="border-b border-primary/10 pb-4">
+                <CardTitle className="font-mono uppercase tracking-widest text-sm">Cache &amp; Data</CardTitle>
+                <CardDescription className="font-sans italic text-xs">
+                  Monitor and manage the observability data cache.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-6">
+                {/* Health indicator row */}
+                <div className="flex items-center justify-between p-4 border border-primary/10 bg-primary/5">
+                  <div className="flex items-center gap-3">
+                    <Database className="h-4 w-4 text-primary/60" />
+                    <div className="flex flex-col">
+                      <span className="font-mono uppercase text-[11px] font-bold tracking-widest">Cache Health</span>
+                      {cacheHealth ? (
+                        <span className="text-[10px] text-muted-foreground uppercase">
+                          {cacheHealth.keys_tracked} key{cacheHealth.keys_tracked !== 1 ? "s" : ""} tracked &middot; {cacheHealth.ttl_seconds}s TTL
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-muted-foreground uppercase">Checking...</span>
+                      )}
+                    </div>
+                  </div>
+                  {cacheHealth ? (
+                    <Badge
+                      variant="outline"
+                      className={`rounded-none font-mono text-[10px] uppercase tracking-wider ${
+                        cacheHealth.status === "ok"
+                          ? "border-green-500/50 text-green-600 bg-green-500/5"
+                          : "border-amber-500/50 text-amber-600 bg-amber-500/5"
+                      }`}
+                    >
+                      {cacheHealth.status === "ok" ? "Connected" : "Degraded"}
+                    </Badge>
+                  ) : (
+                    <Skeleton className="h-5 w-20 rounded-none" />
+                  )}
+                </div>
+
+                {/* Refresh button */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={cacheLoading}
+                  onClick={handleRefreshCache}
+                  className="w-full rounded-none border-primary/20 font-mono text-[10px] uppercase tracking-widest h-10"
+                >
+                  <RotateCcw className={`mr-2 h-3.5 w-3.5 ${cacheLoading ? "animate-spin" : ""}`} />
+                  {cacheLoading ? "Clearing..." : "Refresh Data"}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
 

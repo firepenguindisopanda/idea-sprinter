@@ -4,17 +4,20 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { ArchitectureSession } from "@/types";
 import { Send, Loader2, User, Bot } from "lucide-react";
+import { api } from "@/lib/api";
 
 interface ArchitectureChatProps {
   session: ArchitectureSession;
   onGenerate: () => void;
   isGenerating: boolean;
+  onRefined?: () => void;
 }
 
 export default function ArchitectureChat({
   session,
   onGenerate: _onGenerate,
-  isGenerating
+  isGenerating,
+  onRefined,
 }: ArchitectureChatProps) {
   const [message, setMessage] = useState("");
   const [isRefining, setIsRefining] = useState(false);
@@ -24,8 +27,16 @@ export default function ArchitectureChat({
 
     setIsRefining(true);
     try {
-      // This would call the refine API
-      // TODO: Implement refine API call
+      await api.refineArchitectureOption(session.id, {
+        feedback: message,
+        target_option_id: session.selected_option_id,
+      });
+      // Reload session to reflect refined options
+      if (onRefined) {
+        onRefined();
+      } else {
+        window.location.reload();
+      }
     } catch (error) {
       console.error("Failed to refine:", error);
     } finally {

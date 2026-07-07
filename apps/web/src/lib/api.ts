@@ -154,6 +154,13 @@ class ApiClient {
     return this.request('/google/login');
   }
 
+  async exchangeCode(code: string): Promise<{ token: string }> {
+    return this.request('/auth/exchange-code', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    });
+  }
+
   async getCurrentUser(): Promise<User> {
     return this.request('/me');
   }
@@ -242,6 +249,15 @@ class ApiClient {
   // Metrics
   async getMetrics(): Promise<UsageMetrics> {
     return this.request('/health/metrics');
+  }
+
+  // Cache
+  async invalidateUserCache(): Promise<{ status: string; keys_cleared: number }> {
+    return this.request('/api/v1/cache/invalidate', { method: 'POST' });
+  }
+
+  async getCacheHealth(): Promise<{ status: string; keys_tracked: number; ttl_seconds: number }> {
+    return this.request('/api/v1/cache/health');
   }
 
   // ---------------- PRD agent endpoints ----------------
@@ -370,7 +386,7 @@ class ApiClient {
   }
 
   // Refine an architecture option
-  async refineArchitectureOption(sessionId: string, data: ArchitectureRefineRequest): Promise<{ message: string; iteration: number; target_option: string }> {
+  async refineArchitectureOption(sessionId: string, data: ArchitectureRefineRequest): Promise<{ message: string; iteration: number; refined_option: ArchitectureOption }> {
     return this.request(`/architecture/sessions/${sessionId}/refine`, {
       method: 'POST',
       body: JSON.stringify(data),

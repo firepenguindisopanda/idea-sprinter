@@ -144,6 +144,11 @@ function ArchitecturePageContent() {
     }
   };
 
+  const handleRefined = async () => {
+    if (!session) return;
+    await loadSession(session.id);
+  };
+
   const handleSelectOption = async (optionId: string) => {
     if (!session) return;
     
@@ -325,6 +330,7 @@ function ArchitecturePageContent() {
               session={session} 
               onGenerate={handleGenerate}
               isGenerating={isGenerating}
+              onRefined={handleRefined}
             />
           )}
           

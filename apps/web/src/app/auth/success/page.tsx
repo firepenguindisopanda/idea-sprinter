@@ -1,23 +1,33 @@
 "use client";
 
-import { useEffect, Suspense } from "react";
+import { useEffect, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/lib/auth-store";
+import { api } from "@/lib/api";
 import { Loader2 } from "lucide-react";
 
 function AuthSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setToken, fetchUser } = useAuthStore();
+  const initialized = useRef(false);
 
   useEffect(() => {
-    const token = searchParams.get("token");
+    if (initialized.current) return;
+    const code = searchParams.get("code");
     
-    if (token) {
+    if (code) {
+      initialized.current = true;
       const init = async () => {
-        setToken(token);
-        await fetchUser();
-        router.push("/");
+        try {
+          const { token } = await api.exchangeCode(code);
+          setToken(token);
+          await fetchUser();
+          router.push("/");
+        } catch (err) {
+          console.error("Exchange code failed", err);
+          router.push("/auth/login?error=exchange_failed");
+        }
       };
       init();
     } else {

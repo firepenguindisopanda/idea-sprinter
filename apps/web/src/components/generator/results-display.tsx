@@ -34,7 +34,6 @@ const AGENT_ROLES = [
   { key: "api_designer", label: "API Designer", id: "API-07" },
   { key: "qa_strategist", label: "QA Strategist", id: "QA-08" },
   { key: "devops_architect", label: "DevOps Architect", id: "OPS-09" },
-  { key: "environment_engineer", label: "Env Engineer", id: "ENV-10" },
   { key: "technical_writer", label: "Tech Writer", id: "TW-11" },
   { key: "spec_coordinator", label: "Spec Coordinator", id: "SC-12" },
 ];
