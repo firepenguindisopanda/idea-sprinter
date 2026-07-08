@@ -25,7 +25,7 @@ describe('PrdChat component', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (api.startPrdSession as any).mockResolvedValue({
       session_id: 'sess-42',
-      message: 'Thanks — can you clarify the users?',
+      message: 'Thanks - can you clarify the users?',
     });
 
     render(<PrdChat initialSessionId={null} />);
@@ -39,6 +39,6 @@ describe('PrdChat component', () => {
 
     await waitFor(() => expect(api.startPrdSession).toHaveBeenCalled());
     expect(await screen.findByText(/PRD Agent/i)).toBeInTheDocument();
-    expect(screen.getByText(/Thanks — can you clarify the users\?/i)).toBeInTheDocument();
+    expect(screen.getByText(/Thanks - can you clarify the users\?/i)).toBeInTheDocument();
   });
 });

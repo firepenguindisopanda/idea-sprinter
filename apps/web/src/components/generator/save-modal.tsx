@@ -20,6 +20,8 @@ interface SaveModalProps {
   readonly onClose: () => void;
   readonly onSave: (title: string, description: string) => void;
   readonly isSaving?: boolean;
+  readonly defaultTitle?: string;
+  readonly defaultDescription?: string;
 }
 
 export default function SaveModal({
@@ -27,9 +29,11 @@ export default function SaveModal({
   onClose,
   onSave,
   isSaving = false,
+  defaultTitle = "",
+  defaultDescription = "",
 }: SaveModalProps) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [title, setTitle] = useState(defaultTitle);
+  const [description, setDescription] = useState(defaultDescription);
   const [error, setError] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {

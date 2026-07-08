@@ -4,7 +4,7 @@
 
 **Goal:** Transform the Workshop Studio into the primary user experience with vagueness-aware clarification, SSE streaming, and a streamlined navigation that de-emphasizes legacy pages.
 
-**Architecture:** Incremental improvements to the existing workspace foundation — add vagueness evaluation phase, fix SSE communication, update landing page to single CTA, hide legacy nav links, add "The Relics" section to dashboard.
+**Architecture:** Incremental improvements to the existing workspace foundation - add vagueness evaluation phase, fix SSE communication, update landing page to single CTA, hide legacy nav links, add "The Relics" section to dashboard.
 
 **Tech Stack:** Next.js 16 (App Router), React 19, TypeScript strict, Zustand, Tailwind CSS v4, FastAPI (backend), SSE streaming, Vitest
 
@@ -44,7 +44,7 @@
 Add the vagueness evaluation types, chat message type, and the new `'evaluating'` phase to the existing file. Append these types before the closing of the file:
 
 ```typescript
-// apps/web/src/types/workspace.ts — append after WorkspaceState interface
+// apps/web/src/types/workspace.ts - append after WorkspaceState interface
 
 export type WorkspacePhase =
   | 'idea_input'
@@ -291,7 +291,7 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions & {
 Append these tests to `apps/web/src/__tests__/workspace-store.test.ts`:
 
 ```typescript
-// apps/web/src/__tests__/workspace-store.test.ts — append to existing describe block
+// apps/web/src/__tests__/workspace-store.test.ts - append to existing describe block
 
   it('setVaguenessScores stores evaluation results', () => {
     const scores = {
@@ -452,7 +452,7 @@ git commit -m "hooks: expose vagueness scores, threshold, and chat messages in u
 Add these types near the top of `api.ts`, after the existing workspace types (around line 43):
 
 ```typescript
-// apps/web/src/lib/api.ts — add after WorkspaceRefineResponse interface
+// apps/web/src/lib/api.ts - add after WorkspaceRefineResponse interface
 
 export interface WorkspaceEvaluateResponse {
   scores: {
@@ -479,7 +479,7 @@ export interface WorkspaceEvaluateResponse {
 Add this method inside the `ApiClient` class, after the existing workspace methods (after `saveWorkspace`):
 
 ```typescript
-// apps/web/src/lib/api.ts — add inside ApiClient class, after saveWorkspace method
+// apps/web/src/lib/api.ts - add inside ApiClient class, after saveWorkspace method
 
   async evaluateVagueness(idea: string): Promise<WorkspaceEvaluateResponse> {
     return this.request<WorkspaceEvaluateResponse>('/api/workspace/evaluate', {
@@ -999,7 +999,7 @@ export function IdeaInput() {
         return;
       }
     } catch {
-      // API unavailable — use fallback
+      // API unavailable - use fallback
     }
 
     // Fallback: use generic questions
@@ -1123,7 +1123,7 @@ const FALLBACK_DIRECTIONS: DirectionOption[] = [
   {
     id: "dir-c",
     title: "Hybrid Approach",
-    description: "Start with a solid core but architect for scale — build the foundation right, add features iteratively.",
+    description: "Start with a solid core but architect for scale - build the foundation right, add features iteratively.",
     tags: ["balanced", "scalable", "pragmatic"],
   },
 ];
@@ -1408,7 +1408,7 @@ export default function Home() {
               specs<br />before<br /><span className="text-primary underline decoration-primary/30 underline-offset-8">code</span>
             </h1>
             <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-2xl/relaxed font-sans leading-relaxed">
-              Co-create software specifications with AI. Refine your idea through guided clarification, then generate a complete spec — all in one workspace.
+              Co-create software specifications with AI. Refine your idea through guided clarification, then generate a complete spec - all in one workspace.
             </p>
           </div>
 
@@ -1570,7 +1570,7 @@ git commit -m "components: remove legacy links from header navigation"
 Add this section after the projects grid in `dashboard/page.tsx`. Insert it after the closing `</div>` of the projects section (after line 143, before the closing `</ProtectedRoute>`):
 
 ```typescript
-// apps/web/src/app/dashboard/page.tsx — add before </ProtectedRoute>
+// apps/web/src/app/dashboard/page.tsx - add before </ProtectedRoute>
 
         {/* The Relics */}
         <div className="relative">
@@ -1673,14 +1673,14 @@ git commit -m "pages: add The Relics section to dashboard"
 Add these imports at the top of the file (after existing imports):
 
 ```python
-# multi-agent-system/app/routers/workspace.py — add to imports section
+# multi-agent-system/app/routers/workspace.py - add to imports section
 from app.core.schemas import TeamRole
 ```
 
 Add the Pydantic models after the existing ones (after `WorkspaceSaveRequest`):
 
 ```python
-# multi-agent-system/app/routers/workspace.py — add after WorkspaceSaveRequest class
+# multi-agent-system/app/routers/workspace.py - add after WorkspaceSaveRequest class
 
 class VaguenessEvaluateRequest(BaseModel):
     idea: str
@@ -1697,7 +1697,7 @@ class VaguenessEvaluateResponse(BaseModel):
 Add the endpoint function after the `save_workspace` function:
 
 ```python
-# multi-agent-system/app/routers/workspace.py — add after save_workspace function
+# multi-agent-system/app/routers/workspace.py - add after save_workspace function
 
 @router.post("/evaluate", response_model=VaguenessEvaluateResponse)
 @with_retry(max_retries=2, base_delay=1.0)
@@ -1902,7 +1902,7 @@ git commit -m "pages: update workspace layout with chat feed integration"
 
 - [ ] **Step 1: Replace mock generation with real SSE via api.streamDocument**
 
-Replace the `handleSelect` function in `direction-selector.tsx`. The existing code already has SSE parsing inline — we need to clean it up to use the new `api.streamDocument` method and remove the mock fallback:
+Replace the `handleSelect` function in `direction-selector.tsx`. The existing code already has SSE parsing inline - we need to clean it up to use the new `api.streamDocument` method and remove the mock fallback:
 
 ```typescript
 // In direction-selector.tsx, replace the handleSelect function:
@@ -1946,7 +1946,7 @@ Replace the `handleSelect` function in `direction-selector.tsx`. The existing co
         }
       });
     } catch {
-      // API unavailable — fall back to mock timer
+      // API unavailable - fall back to mock timer
       startMockGeneration();
     }
   };
@@ -2038,6 +2038,6 @@ No "TBD", "TODO", "implement later", or vague instructions found. Every step con
 - `WorkspacePhase` updated in Task 1 with `'evaluating'`, used in Tasks 2, 7, 13
 - `api.streamDocument` defined in Task 4, used in Task 14
 - `api.evaluateVagueness` defined in Task 4, used in Task 7
-- Backend response uses snake_case (`borderline_case`), frontend uses camelCase (`borderlineCase`) — mapped explicitly in Task 7's `mapVaguenessScores` function
+- Backend response uses snake_case (`borderline_case`), frontend uses camelCase (`borderlineCase`) - mapped explicitly in Task 7's `mapVaguenessScores` function
 
 All types are consistent across tasks.

@@ -11,6 +11,7 @@ import { AgentPipelineProgress } from "@/components/generator/agent-pipeline-pro
 import { LivePreview } from "@/components/generator/live-preview";
 import { useDraftStore } from "@/lib/draft-store";
 import { useAuthStore } from "@/lib/auth-store";
+import { useSSE } from "@/hooks/useSSE";
 import type { ProjectRequest, GenerateResponse } from "@/types";
 
 /**
@@ -100,16 +101,42 @@ function GeneratePageContent() {
   const initialDescription = generationDraft?.projectRequest?.description || urlDescription || '';
   
   // Local state
-  const [isGenerating, setIsGenerating] = useState(false);
   const [currentPhase, setCurrentPhase] = useState(0);
   const [completedAgents, setCompletedAgents] = useState<string[]>([]);
   const [activeAgent, setActiveAgent] = useState<string | null>(null);
   const [streamingContent, setStreamingContent] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   
+  const sse = useSSE<Record<string, unknown>>({
+    onEvent: (event) => {
+      handleEventRef.current(event, sessionIdRef.current, (results) => {
+        finalResultsRef.current = results;
+      });
+    },
+    onComplete: () => {
+      if (finalResultsRef.current) {
+        setGenerationResults(finalResultsRef.current);
+        router.push(`/generate/${sessionIdRef.current}`);
+      } else {
+        const errMsg = 'Generation stream ended without completing the pipeline';
+        setError(errMsg);
+        setGenerationError(errMsg);
+      }
+    },
+    onError: (err) => {
+      const message = err.message || 'Generation failed';
+      setError(message);
+      setGenerationError(message);
+    },
+  });
+  const isGenerating = sse.isStreaming;
+
   // Track if we should resume from draft
   const resumedFromDraft = useRef(false);
   const partialOutputsRef = useRef<Record<string, string>>({});
+  const finalResultsRef = useRef<GenerateResponse | null>(null);
+  const sessionIdRef = useRef<string>('');
+  const handleEventRef = useRef<(event: Record<string, unknown>, sessionId: string, onComplete: (results: GenerateResponse) => void) => void>(() => {});
 
   // Resume from draft if exists and not complete AND has actual partial progress
   useEffect(() => {
@@ -121,7 +148,7 @@ function GeneratePageContent() {
         generationDraft.error !== null;
 
       if (!hasPartialProgress) {
-        // Fresh draft with no progress — don't restore stale state
+        // Fresh draft with no progress - don't restore stale state
         return;
       }
 
@@ -237,6 +264,7 @@ function GeneratePageContent() {
         onComplete({
           markdown_outputs: event.markdown_outputs as Record<string, string>,
           judge_results: event.judge_results as Record<string, GenerateResponse['judge_results'][string]>,
+          project_title: event.project_title as string | undefined,
         });
         break;
         
@@ -249,86 +277,25 @@ function GeneratePageContent() {
         break;
     }
   }, [updateGenerationPartialResults]);
+  handleEventRef.current = handleStreamEvent;
 
   const handleGenerate = useCallback(async (data: ProjectRequest) => {
-    setIsGenerating(true);
     setCurrentPhase(1);
     setCompletedAgents([]);
     setActiveAgent(null);
     setStreamingContent("");
     setError(null);
     partialOutputsRef.current = {};
-    
-    // Start generation in draft store
-    const sessionId = startGeneration(data);
-    
-    try {
-      const response = await fetch(`${API_URL}/api/generate/stream`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(data),
-      });
+    finalResultsRef.current = null;
 
-      if (!response.ok) {
-        throw new Error(`Generation failed: ${response.status}`);
-      }
+    const sid = startGeneration(data);
+    sessionIdRef.current = sid;
 
-      if (!response.body) {
-        throw new Error('No response body');
-      }
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-      let finalResults: GenerateResponse | null = null;
-
-      partialOutputsRef.current = {};
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-
-        // Parse SSE events
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || ''; // Keep incomplete line in buffer
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const eventData = JSON.parse(line.slice(6));
-              handleStreamEvent(eventData, sessionId, (results) => {
-                finalResults = results;
-              });
-            } catch {
-              // Ignore parse errors for malformed events
-            }
-          }
-        }
-      }
-
-      if (finalResults) {
-        setGenerationResults(finalResults);
-        router.push(`/generate/${sessionId}`);
-      } else {
-        // Stream ended without pipeline_complete event — mark as error
-        const errorMessage = 'Generation stream ended without completing the pipeline';
-        setError(errorMessage);
-        setGenerationError(errorMessage);
-      }
-
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Generation failed';
-      setError(errorMessage);
-      setGenerationError(errorMessage);
-    } finally {
-      setIsGenerating(false);
-    }
-  }, [startGeneration, setGenerationResults, setGenerationError, router, token, handleStreamEvent]);
+    await sse.startStream(`${API_URL}/api/generate/stream`, data, headers);
+  }, [startGeneration, sse.startStream, token]);
 
   const getPhaseForAgent = (agent: string): number => {
     for (const phase of AGENT_PHASES) {

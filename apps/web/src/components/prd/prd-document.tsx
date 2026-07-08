@@ -173,7 +173,7 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
     startGeneration(projectRequest);
     setSentToPipeline(true);
     
-    // Navigate to the Generate page immediately — user clicks Generate to start the pipeline
+    // Navigate to the Generate page immediately - user clicks Generate to start the pipeline
     setTimeout(() => {
       router.push("/generate");
     }, 500);

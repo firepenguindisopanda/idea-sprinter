@@ -1,26 +1,44 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Plus, Loader2 } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { Plus, Loader2, Trash2, RefreshCw } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import ProtectedRoute from "@/components/protected-route";
 import ProjectCard from "@/components/dashboard/project-card";
 import EmptyState from "@/components/dashboard/empty-state";
 import UsageStats from "@/components/dashboard/usage-stats";
 import { api, downloadProjectPdf } from "@/lib/api";
+import { useWorkspaceStore } from "@/lib/workspace-store";
 import { toast } from "sonner";
 import type { Project, UsageMetrics } from "@/types";
 
+interface CacheHealth {
+  status: string;
+  keys_tracked: number;
+  ttl_seconds: number;
+}
+
 export default function DashboardPage() {
+  const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [metrics, setMetrics] = useState<UsageMetrics | null>(null);
   const [isLoadingMetrics, setIsLoadingMetrics] = useState(true);
+  const [cacheHealth, setCacheHealth] = useState<CacheHealth | null>(null);
+  const [isClearingCache, setIsClearingCache] = useState(false);
+  const [isLoadingCache, setIsLoadingCache] = useState(false);
+
+  const handleNewProject = useCallback(() => {
+    useWorkspaceStore.getState().reset();
+    router.push("/workspace");
+  }, [router]);
 
   useEffect(() => {
     loadProjects();
     loadMetrics();
+    loadCacheHealth();
   }, []);
 
   const loadProjects = async () => {
@@ -65,6 +83,35 @@ export default function DashboardPage() {
     }
   };
 
+  const loadCacheHealth = async () => {
+    setIsLoadingCache(true);
+    try {
+      const data = await api.getCacheHealth();
+      setCacheHealth(data);
+    } catch {
+      setCacheHealth(null);
+    } finally {
+      setIsLoadingCache(false);
+    }
+  };
+
+  const handleClearCache = async () => {
+    setIsClearingCache(true);
+    try {
+      const result = await api.invalidateUserCache();
+      toast.success("Cache Cleared", {
+        description: `Cleared ${result.keys_cleared} cached entries.`,
+      });
+      await loadCacheHealth();
+    } catch (error) {
+      toast.error("Error", {
+        description: error instanceof Error ? error.message : "Failed to clear cache",
+      });
+    } finally {
+      setIsClearingCache(false);
+    }
+  };
+
   const handleDownloadPdf = async (project: Project) => {
     try {
       await downloadProjectPdf(project.description || project.title, project.artifacts);
@@ -94,12 +141,14 @@ export default function DashboardPage() {
             </p>
           </div>
           
-          <Link href={{ pathname: "/workspace" }}>
-            <Button size="xl" className="font-mono uppercase tracking-widest rounded-none border-2 border-primary/20 shadow-[4px_4px_0px_0px_rgba(var(--primary),0.1)]">
-              <Plus className="mr-2 h-5 w-5" />
-              New Project
-            </Button>
-          </Link>
+          <Button
+            size="xl"
+            onClick={handleNewProject}
+            className="font-mono uppercase tracking-widest rounded-none border-2 border-primary/20 shadow-[4px_4px_0px_0px_rgba(var(--primary),0.1)]"
+          >
+            <Plus className="mr-2 h-5 w-5" />
+            New Project
+          </Button>
         </div>
 
         {/* Usage Statistics */}
@@ -208,6 +257,39 @@ export default function DashboardPage() {
                   <div className="text-[10px] text-muted-foreground/60">Compare architectures</div>
                 </div>
               </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Cache Management */}
+        <div className="relative">
+          <div className="absolute top-0 right-0 p-2 text-[10px] font-mono text-primary/20 select-none uppercase">Admin</div>
+          <div className="border border-primary/10 bg-muted/20 rounded-xl p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <h2 className="text-lg font-mono font-bold uppercase tracking-tighter text-muted-foreground">
+                  Cache
+                </h2>
+                <p className="text-sm text-muted-foreground/70">
+                  {cacheHealth
+                    ? `${cacheHealth.keys_tracked} keys tracked, TTL ${cacheHealth.ttl_seconds}s`
+                    : 'Cache status unknown'}
+                </p>
+              </div>
+              <Button
+                onClick={handleClearCache}
+                disabled={isClearingCache || isLoadingCache}
+                variant="outline"
+                size="sm"
+                className="font-mono uppercase text-[10px]"
+              >
+                {isClearingCache ? (
+                  <RefreshCw className="h-3 w-3 mr-2 animate-spin" />
+                ) : (
+                  <Trash2 className="h-3 w-3 mr-2" />
+                )}
+                {isClearingCache ? 'Clearing...' : 'Clear Cache'}
+              </Button>
             </div>
           </div>
         </div>

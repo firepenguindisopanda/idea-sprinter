@@ -2,6 +2,7 @@
 
 import { useState, useLayoutEffect, useRef } from "react";
 import { FileText, Code, Database, Lock, Layout, TestTube, Server, Settings } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
 
 export interface PreviewSection {
@@ -160,7 +161,13 @@ export function LivePreview({
           )}
         >
           {activeSection.content ? (
-            <div className="whitespace-pre-wrap">{activeSection.content}</div>
+            activeTab === 'preview' ? (
+              <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:font-mono prose-headings:text-primary prose-code:text-primary prose-code:bg-primary/5 prose-code:px-1 prose-code:rounded prose-pre:bg-primary/5 prose-pre:border prose-pre:border-primary/10 prose-a:text-primary prose-strong:text-primary/90 prose-li:marker:text-primary/50">
+                <ReactMarkdown>{activeSection.content}</ReactMarkdown>
+              </div>
+            ) : (
+              <pre className="whitespace-pre-wrap text-muted-foreground">{activeSection.content}</pre>
+            )
           ) : (
             <div className="text-muted-foreground/50 italic">
               {isGenerating ? (

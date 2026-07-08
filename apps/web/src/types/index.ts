@@ -46,6 +46,7 @@ export interface ProjectRequest {
 export interface GenerateResponse {
   srs_document?: string;
   project_description?: string;
+  project_title?: string;
   markdown_outputs: Record<string, string>;
   judge_results: Record<string, JudgeResult>;
 }

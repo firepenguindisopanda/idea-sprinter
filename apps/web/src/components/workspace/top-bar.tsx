@@ -1,12 +1,23 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { ExportDropdown } from "./export-dropdown";
 import { Button } from "@/components/ui/button";
 import { Save, Loader2, PencilLine, Check, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+
+const GENERIC_HEADINGS = new Set([
+  "overview", "project overview", "system overview", "product overview",
+  "introduction", "project introduction", "system introduction",
+  "background", "project background", "scope", "project scope",
+  "description", "project description", "summary", "executive summary",
+  "purpose", "goals", "objectives", "problem statement", "vision",
+]);
+
+const IDEA_LEADING_WORDS = /^(i\s+want\s+to\s+)?(create|build|make|develop|design|implement)\s+(a|an|the)\s+/i;
 
 const PHASE_LABELS: Record<string, string> = {
   idea_input: "Draft",
@@ -16,20 +27,35 @@ const PHASE_LABELS: Record<string, string> = {
   refinement: "Ready",
 };
 
-function autoGenerateTitle(ideaInput: string, sections: { title: string; content: string }[]): string {
-  if (sections.length > 0) {
-    const firstSection = sections[0].content.slice(0, 200);
-    const titleMatch = firstSection.match(/^#\s+(.+)/m);
-    if (titleMatch) return titleMatch[1].trim();
-    const nameMatch = firstSection.match(/(?:project|app|system|platform|tool|service)\s+(?:called|named)?\s*[‘"']?([A-Z][A-Za-z0-9\s]{2,40})/i);
-    if (nameMatch) return nameMatch[1].trim();
-  }
-  const words = ideaInput.split(/\s+/).slice(0, 8);
-  if (words.length <= 3) return ideaInput;
+function extractNameFromIdea(idea: string): string {
+  const cleaned = idea.replace(IDEA_LEADING_WORDS, "").trim();
+  if (!cleaned) return idea;
+  const words = cleaned.split(/\s+/);
+  if (words.length <= 4) return cleaned;
   return words.slice(0, 6).join(" ") + (words.length > 6 ? "..." : "");
 }
 
+function autoGenerateTitle(
+  ideaInput: string,
+  sections: { title: string; content: string }[],
+): string {
+  if (sections.length > 0) {
+    const firstSection = sections[0].content.slice(0, 200);
+    const titleMatch = firstSection.match(/^#\s+(.+)/m);
+    if (titleMatch) {
+      const heading = titleMatch[1].trim().toLowerCase();
+      if (!GENERIC_HEADINGS.has(heading)) {
+        return titleMatch[1].trim();
+      }
+    }
+    const nameMatch = firstSection.match(/(?:project|app|system|platform|tool|service)\s+(?:called|named)?\s*[‘"']?([A-Z][A-Za-z0-9\s]{2,40})/i);
+    if (nameMatch) return nameMatch[1].trim();
+  }
+  return extractNameFromIdea(ideaInput);
+}
+
 export function TopBar() {
+  const router = useRouter();
   const { phase, projectTitle, ideaInput, documentSections, selectedDirectionId, setProjectTitle, setSavedProjectId, savedProjectId } = useWorkspace();
   const stageLabel = PHASE_LABELS[phase] ?? "Workspace";
   const [isSaving, setIsSaving] = useState(false);
@@ -50,6 +76,16 @@ export function TopBar() {
       if (generated) setProjectTitle(generated);
     }
   }, [phase, documentSections, ideaInput, projectTitle, setProjectTitle]);
+
+  useEffect(() => {
+    if (!projectTitle && phase === "refinement" && ideaInput.trim()) {
+      api.generateTitle(ideaInput).then((res) => {
+        if (res?.title && res.title !== "Untitled Project") {
+          setProjectTitle(res.title);
+        }
+      }).catch(() => {});
+    }
+  }, [phase, ideaInput, projectTitle, setProjectTitle]);
 
   const startEditing = () => {
     setEditValue(projectTitle || "");
@@ -90,6 +126,7 @@ export function TopBar() {
       setSavedProjectId(saved.id);
       setProjectTitle(saved.title);
       toast.success("Saved", { description: `"${saved.title}" saved to your projects.` });
+      router.push("/dashboard");
     } catch {
       toast.error("Save failed", { description: "Could not save the specification. Please try again." });
     } finally {

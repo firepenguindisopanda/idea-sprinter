@@ -10,7 +10,7 @@ vi.mock('@/hooks/use-workspace', () => ({
   useWorkspace: vi.fn(),
 }));
 
-// Mock the API module — all methods reject by default (simulating backend down)
+// Mock the API module - all methods reject by default (simulating backend down)
 vi.mock('@/lib/api', () => ({
   api: {
     evaluateVagueness: vi.fn(() => Promise.reject(new Error('Backend unreachable'))),
@@ -24,7 +24,7 @@ import { useWorkspace } from '@/hooks/use-workspace';
 
 const mockUseWorkspace = useWorkspace as unknown as ReturnType<typeof vi.fn>;
 
-describe('API Error Handling — No Silent Fallback', () => {
+describe('API Error Handling - No Silent Fallback', () => {
   it('IdeaInput shows error when evaluateVagueness fails, does NOT transition to clarifying', async () => {
     const startClarifying = vi.fn();
     const setQuestions = vi.fn();

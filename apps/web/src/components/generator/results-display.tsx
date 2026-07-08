@@ -512,7 +512,7 @@ export default function ResultsDisplay({
                         />
                         <div className="flex justify-end">
                            <p className="text-[10px] font-mono text-muted-foreground uppercase">
-                             Editing mode — Markdown supported
+                             Editing mode - Markdown supported
                            </p>
                         </div>
                       </div>

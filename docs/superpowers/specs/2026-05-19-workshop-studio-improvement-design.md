@@ -1,7 +1,7 @@
 # Workshop Studio Improvement Design
 
 **Date:** 2026-05-19
-**Status:** Draft — Pending User Review
+**Status:** Draft - Pending User Review
 **Scope:** Frontend improvements to the Workshop Studio, backend vagueness evaluator, navigation restructuring
 
 ---
@@ -9,7 +9,7 @@
 ## 1. Problem Statement
 
 The current Workshop Studio has a solid two-column layout and component structure, but has several issues:
-- The `generateDocument()` API call expects JSON but the backend returns SSE (`text/event-stream`) — a communication mismatch
+- The `generateDocument()` API call expects JSON but the backend returns SSE (`text/event-stream`) - a communication mismatch
 - Clarifying questions are generic, not targeted to the vagueness of the user's idea
 - The landing page presents three equal paths (Ideation, Generate, Architecture) when the Workshop Studio should be the primary experience
 - Navigation is cluttered with legacy pages that are no longer the focus
@@ -58,7 +58,7 @@ The current Workshop Studio has a solid two-column layout and component structur
 idea_input → evaluating → clarifying_questions → direction_selection → generating → complete
 ```
 
-New phase: `evaluating` — shows vagueness report card in chat feed.
+New phase: `evaluating` - shows vagueness report card in chat feed.
 
 ### 2.3 SSE Streaming Fix
 
@@ -98,9 +98,9 @@ For free-form user messages during the clarifying phase. The LLM responds helpfu
 **Remove from nav:** `/ideation`, `/prd`, `/generate`
 **Keep:** `/` (Home), `/workspace` (Workshop), `/dashboard` (Dashboard)
 
-Old pages remain accessible via direct URL — no route deletion.
+Old pages remain accessible via direct URL - no route deletion.
 
-### 3.3 Dashboard — "The Relics" Section
+### 3.3 Dashboard - "The Relics" Section
 
 New section on dashboard page with muted/desaturated cards linking to:
 - PRD Agent (`/prd`)
@@ -152,7 +152,7 @@ Add to Zustand store:
 
 ---
 
-## 5. Implementation Order (Approach A — Incremental)
+## 5. Implementation Order (Approach A - Incremental)
 
 1. Fix SSE streaming in `api.ts` (critical bug)
 2. Add vagueness evaluator endpoint to backend (`workspace.py`)
@@ -170,19 +170,19 @@ Add to Zustand store:
 ## 6. Files to Modify
 
 ### Frontend
-- `apps/web/src/app/page.tsx` — Landing page rewrite
-- `apps/web/src/components/header.tsx` — Nav link removal
-- `apps/web/src/components/workspace/idea-input.tsx` — Add vagueness evaluation trigger
-- `apps/web/src/components/workspace/clarifying-questions.tsx` — Hybrid chat input
-- `apps/web/src/lib/api.ts` — SSE streaming fix, new evaluate endpoint
-- `apps/web/src/lib/workspace-store.ts` — New phases and state
-- `apps/web/src/hooks/use-workspace.ts` — Expose new state
-- `apps/web/src/app/dashboard/page.tsx` — "The Relics" section
-- `apps/web/src/components/workspace/vagueness-report.tsx` — **NEW**
-- `apps/web/src/hooks/use-stream-document.ts` — **NEW**
+- `apps/web/src/app/page.tsx` - Landing page rewrite
+- `apps/web/src/components/header.tsx` - Nav link removal
+- `apps/web/src/components/workspace/idea-input.tsx` - Add vagueness evaluation trigger
+- `apps/web/src/components/workspace/clarifying-questions.tsx` - Hybrid chat input
+- `apps/web/src/lib/api.ts` - SSE streaming fix, new evaluate endpoint
+- `apps/web/src/lib/workspace-store.ts` - New phases and state
+- `apps/web/src/hooks/use-workspace.ts` - Expose new state
+- `apps/web/src/app/dashboard/page.tsx` - "The Relics" section
+- `apps/web/src/components/workspace/vagueness-report.tsx` - **NEW**
+- `apps/web/src/hooks/use-stream-document.ts` - **NEW**
 
 ### Backend
-- `app/routers/workspace.py` — Add `/evaluate` endpoint
+- `app/routers/workspace.py` - Add `/evaluate` endpoint
 
 ---
 

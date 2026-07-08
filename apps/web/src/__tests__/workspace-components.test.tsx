@@ -10,7 +10,7 @@ vi.mock('@/hooks/use-workspace', () => ({
   useWorkspace: vi.fn(),
 }));
 
-// Mock the API module — reject by default to test fallback paths
+// Mock the API module - reject by default to test fallback paths
 vi.mock('@/lib/api', () => ({
   api: {
     getClarifyingQuestions: vi.fn(() => Promise.reject(new Error('API unavailable'))),

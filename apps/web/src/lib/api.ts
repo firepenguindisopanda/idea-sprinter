@@ -1,3 +1,4 @@
+import { streamSSEPost } from './sse';
 import type { User, UserPersona, UserPersonaInfo, ProjectRequest, GenerateResponse, Project, ProjectCreate, UsageMetrics, PRDStartResponse, PRDChatResponse, PRDStatusResponse, PRDDocumentResponse, ArchitectureSession, ArchitectureSessionCreate, ArchitectureSelectRequest, ArchitectureRefineRequest, ArchitectureComparison, ArchitectureOption } from '../types';
 
 interface JudgeReevaluateResponse {
@@ -182,6 +183,13 @@ class ApiClient {
     return this.request('/api/generate', {
       method: 'POST',
       body: JSON.stringify(data),
+    });
+  }
+
+  async generateTitle(description: string): Promise<{ title: string }> {
+    return this.request('/api/generate-title', {
+      method: 'POST',
+      body: JSON.stringify({ description }),
     });
   }
 
@@ -450,52 +458,16 @@ class ApiClient {
       order?: number;
     }) => void,
   ): Promise<void> {
-    const headers = new Headers();
-    headers.set('Content-Type', 'application/json');
+    const headers: Record<string, string> = {};
     if (this._token) {
-      headers.set('Authorization', `Bearer ${this._token}`);
+      headers['Authorization'] = `Bearer ${this._token}`;
     }
-
-    const response = await fetch(`${API_URL}/api/workspace/generate`, {
-      method: 'POST',
+    await streamSSEPost(
+      `${API_URL}/api/workspace/generate`,
+      { direction_id: directionId, brief },
+      onEvent,
       headers,
-      body: JSON.stringify({ direction_id: directionId, brief }),
-    });
-
-    if (!response.ok) {
-      throw new ApiError('api_error', 'Failed to start document generation', response.status);
-    }
-
-    if (!response.body) {
-      throw new ApiError('network_error', 'Response body is null', 0);
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          try {
-            const event = JSON.parse(line.slice(6));
-            onEvent(event);
-          } catch {
-            // Skip malformed events
-          }
-        }
-      }
-    } finally {
-      reader.releaseLock();
-    }
+    );
   }
 
   async refineSection(sectionId: string, prompt: string): Promise<WorkspaceRefineResponse> {

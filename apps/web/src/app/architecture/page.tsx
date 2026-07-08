@@ -5,13 +5,15 @@ import ProtectedRoute from "@/components/protected-route";
 import ArchitectureChat from "@/components/architecture/architecture-chat";
 import ArchitectureOptions from "@/components/architecture/architecture-options";
 import ArchitectureComparisonView from "@/components/architecture/comparison-matrix";
+import ImportPatternModal from "@/components/architecture/import-pattern-modal";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
+import { useSSE } from "@/hooks/useSSE";
 import type { ArchitectureSession } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Sparkles, Scale, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Sparkles, Scale, CheckCircle2, Library } from "lucide-react";
 import Link from "next/link";
 
 function ArchitecturePageContent() {
@@ -20,9 +22,19 @@ function ArchitecturePageContent() {
   
   const [session, setSession] = useState<ArchitectureSession | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isComparing, setIsComparing] = useState(false);
   const [activeView, setActiveView] = useState<'chat' | 'options' | 'compare'>('chat');
+  const [showPatternModal, setShowPatternModal] = useState(false);
+
+  const sse = useSSE<{ type: string }>({
+    onEvent: async (event) => {
+      if (event.type === 'option' && session) {
+        await loadSession(session.id);
+      }
+    },
+    onError: (err) => console.error("Failed to generate:", err),
+  });
+  const isGenerating = sse.isStreaming;
   
   // Form state for new session
   const [projectName, setProjectName] = useState("");
@@ -74,59 +86,12 @@ function ArchitecturePageContent() {
 
   const handleGenerate = async () => {
     if (!session) return;
-    
-    setIsGenerating(true);
     setActiveView('options');
-    
-    try {
-      // Use streaming endpoint
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/architecture/sessions/${session.id}/generate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ num_options: 3 }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Generation failed');
-      }
-
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-
-      if (!reader) {
-        throw new Error('No response body');
-      }
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
-        
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              if (data.type === 'option') {
-                // Reload session to get updated options
-                await loadSession(session.id);
-              } else if (data.type === 'done') {
-                setIsGenerating(false);
-              }
-            } catch {
-              // Skip invalid JSON
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Failed to generate:", error);
-    } finally {
-      setIsGenerating(false);
-    }
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+    await sse.startStream(
+      `${apiUrl}/architecture/sessions/${session.id}/generate`,
+      { num_options: 3 },
+    );
   };
 
   const handleCompare = async () => {
@@ -389,8 +354,36 @@ function ArchitecturePageContent() {
               )}
             </CardContent>
           </Card>
+
+          <Card className="border-primary/10">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-xs font-mono uppercase text-primary/60">Pattern Library</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground mb-3">
+                Import proven architecture patterns into your session.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPatternModal(true)}
+                className="w-full font-mono uppercase text-[10px]"
+              >
+                <Library className="h-3 w-3 mr-2" />
+                Browse Patterns
+              </Button>
+            </CardContent>
+          </Card>
         </aside>
       </div>
+
+      {showPatternModal && session && (
+        <ImportPatternModal
+          sessionId={session.id}
+          onClose={() => setShowPatternModal(false)}
+          onImported={() => loadSession(session.id)}
+        />
+      )}
     </div>
   );
 }

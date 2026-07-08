@@ -35,7 +35,7 @@ export default function Home() {
               specs<br />before<br /><span className="text-primary underline decoration-primary/30 underline-offset-8">code</span>
             </h1>
             <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-2xl/relaxed font-sans leading-relaxed">
-              Co-create software specifications with AI. Refine your idea through guided clarification, then generate a complete spec — all in one workspace.
+              Co-create software specifications with AI. Refine your idea through guided clarification, then generate a complete spec - all in one workspace.
             </p>
           </div>
 

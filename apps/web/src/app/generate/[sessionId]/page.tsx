@@ -51,16 +51,28 @@ export default function ResultsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Load results from draft store
   useEffect(() => {
+    if (isRedirecting) return;
+
     if (generationDraft && generationDraft.sessionId === sessionId) {
       if (generationDraft.partialResults) {
         setResults(generationDraft.partialResults);
         setProjectDescription(generationDraft.projectRequest.description);
-        // Extract project name from description (first line or first 50 chars)
+        // Use LLM-generated title from backend, or extract from description
+        const backendTitle = generationDraft.partialResults.project_title;
         const desc = generationDraft.projectRequest.description;
-        const name = desc.split('\n')[0].slice(0, 50).replace(/[^a-zA-Z0-9\s-]/g, '') || "project";
+        const isFallbackTitle = !backendTitle || backendTitle === "Untitled Project";
+        let name: string;
+        if (!isFallbackTitle) {
+          name = backendTitle;
+        } else {
+          const lines = desc.split('\n').filter(l => l.trim() && !l.trim().startsWith('#'));
+          const firstLine = lines[0] || desc.split('\n')[0];
+          name = firstLine.slice(0, 50).replace(/[^a-zA-Z0-9\s-]/g, '').trim() || "project";
+        }
         setProjectName(name);
       } else if (!generationDraft.isComplete) {
         // Generation not complete, redirect back to generate page
@@ -72,7 +84,7 @@ export default function ResultsPage() {
       // Session not found in draft store
       setNotFound(true);
     }
-  }, [generationDraft, sessionId, router]);
+  }, [generationDraft, sessionId, router, isRedirecting]);
 
   const handleSave = async (title: string, description: string) => {
     if (!results) return;
@@ -91,17 +103,13 @@ export default function ResultsPage() {
       });
       
       setIsSaveModalOpen(false);
-      
-      // Clear draft and redirect to dashboard
+      setIsRedirecting(true);
       clearGenerationDraft();
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 1500);
+      window.location.href = "/dashboard";
     } catch (error) {
       toast.error("Error", {
         description: error instanceof Error ? error.message : "Could not save the project. Please try again.",
       });
-    } finally {
       setIsSaving(false);
     }
   };
@@ -144,6 +152,7 @@ export default function ResultsPage() {
   };
 
   const handleNewGeneration = () => {
+    setIsRedirecting(true);
     clearGenerationDraft();
     router.push('/generate');
   };
@@ -361,10 +370,13 @@ export default function ResultsPage() {
 
       {/* Save Modal */}
       <SaveModal
+        key={`save-${isSaveModalOpen}-${projectName}`}
         open={isSaveModalOpen}
         onClose={() => setIsSaveModalOpen(false)}
         onSave={handleSave}
         isSaving={isSaving}
+        defaultTitle={projectName}
+        defaultDescription={projectDescription}
       />
 
       {/* Download Modal for Markdown Specs */}

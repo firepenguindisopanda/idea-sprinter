@@ -10,7 +10,7 @@ import type { NextRequest } from 'next/server';
  * 3. Allows public routes to be accessed without authentication
  */
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const token = request.cookies.get('auth_token');
   const { pathname } = request.nextUrl;
 

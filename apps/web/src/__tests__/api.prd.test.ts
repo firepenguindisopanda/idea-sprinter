@@ -10,7 +10,7 @@ describe('PRD API client', () => {
   it('prdChat should POST message and return agent response', async () => {
     const mockResponse = {
       session_id: 'sess-1',
-      agent_response: 'Got it — clarify the target user.',
+      agent_response: 'Got it - clarify the target user.',
       needs_more: true,
       phase: 'gathering',
       missing_requirements: { goals: true },
