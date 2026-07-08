@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { Save, Key, Cpu, Activity, User, RotateCcw, Database } from "lucide-react";
+import { Save, Key, Cpu, Activity, User, RotateCcw, Database, Loader2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,35 +29,25 @@ import { useAuthStore } from "@/lib/auth-store";
 import { api } from "@/lib/api";
 import { PersonaSelector } from "@/components/persona/persona-selector";
 
-const CHAT_MODELS = [
-  { value: "meta/llama3-70b-instruct", label: "Meta Llama 3 70B" },
-  { value: "meta/llama3-8b-instruct", label: "Meta Llama 3 8B" },
-  { value: "mistralai/mixtral-8x22b-instruct-v0.1", label: "Mistral Mixtral 8x22B" },
-  { value: "mistralai/mixtral-8x7b-instruct-v0.1", label: "Mistral Mixtral 8x7B" },
-  { value: "google/gemma-7b", label: "Google Gemma 7B" },
-  { value: "google/gemma-2b", label: "Google Gemma 2B" },
-  { value: "microsoft/phi-3-mini-128k-instruct", label: "Microsoft Phi-3 Mini" },
-  { value: "microsoft/phi-3-medium-4k-instruct", label: "Microsoft Phi-3 Medium" },
-  { value: "snowflake/arctic", label: "Snowflake Arctic" },
-  { value: "databricks/dbrx-instruct", label: "Databricks DBRX" },
-  { value: "nvidia/nemotron-4-340b-instruct", label: "NVIDIA Nemotron-4 340B" },
-];
-
-const EMBEDDING_MODELS = [
-  { value: "nvidia/nv-embed-qa-v1", label: "NVIDIA NV-Embed QA v1" },
-  { value: "snowflake/arctic-embed-l", label: "Snowflake Arctic Embed L" },
-  { value: "baai/bge-m3", label: "BAAI BGE-M3" },
-];
+interface AvailableModel {
+  id: string;
+  supports_tools: boolean;
+  supports_structured_output: boolean;
+}
 
 export default function ProfileForm() {
   const { user } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingPrefs, setIsLoadingPrefs] = useState(true);
   const [cacheHealth, setCacheHealth] = useState<{
     status: string;
     keys_tracked: number;
     ttl_seconds: number;
   } | null>(null);
   const [cacheLoading, setCacheLoading] = useState(false);
+  const [availableModels, setAvailableModels] = useState<AvailableModel[]>([]);
+  const [modelsLoading, setModelsLoading] = useState(true);
+  const [modelsError, setModelsError] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -65,9 +55,9 @@ export default function ProfileForm() {
     langsmithApiKey: "",
     langsmithProject: "specsbeforecode-dev",
     enableTracing: true,
-    chatModel: "nvidia/llama3-70b-instruct",
-    embeddingModel: "nvidia/nv-embed-qa-v1",
-    summaryModel: "nvidia/mixtral-8x22b-instruct",
+    chatModel: "",
+    embeddingModel: "",
+    summaryModel: "",
   });
 
   const fetchCacheHealth = useCallback(async () => {
@@ -78,6 +68,46 @@ export default function ProfileForm() {
       setCacheHealth({ status: "degraded", keys_tracked: 0, ttl_seconds: 300 });
     }
   }, []);
+
+  const fetchPreferences = useCallback(async () => {
+    try {
+      const res = await api.getPreferences();
+      const prefs = res.preferences ?? {};
+      setFormData((prev) => ({
+        ...prev,
+        langsmithApiKey: (prefs.langsmithApiKey as string) || "",
+        langsmithProject: (prefs.langsmithProject as string) || "specsbeforecode-dev",
+        enableTracing: prefs.enableTracing !== false,
+        chatModel: (prefs.chatModel as string) || "",
+        embeddingModel: (prefs.embeddingModel as string) || "",
+        summaryModel: (prefs.summaryModel as string) || "",
+      }));
+    } catch {
+      // Prefs unavailable — use defaults
+    } finally {
+      setIsLoadingPrefs(false);
+    }
+  }, []);
+
+  const fetchModels = useCallback(async () => {
+    setModelsLoading(true);
+    setModelsError(false);
+    try {
+      const res = await api.getAvailableModels();
+      setAvailableModels(res.models ?? []);
+    } catch {
+      setModelsError(true);
+      setAvailableModels([]);
+    } finally {
+      setModelsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCacheHealth();
+    fetchPreferences();
+    fetchModels();
+  }, [fetchCacheHealth, fetchPreferences, fetchModels]);
 
   const handleRefreshCache = async () => {
     setCacheLoading(true);
@@ -96,29 +126,32 @@ export default function ProfileForm() {
     }
   };
 
-  useEffect(() => {
-    fetchCacheHealth();
-  }, [fetchCacheHealth]);
-
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    toast.info("Coming Soon", {
-      description: "Custom API keys and model configuration will be available in the next update. Your settings have been saved locally for this session.",
-    });
-
-    // Invalidate cache so observability dashboard picks up fresh data
     try {
+      await api.updatePreferences({
+        langsmithApiKey: formData.langsmithApiKey,
+        langsmithProject: formData.langsmithProject,
+        enableTracing: formData.enableTracing,
+        chatModel: formData.chatModel || null,
+        embeddingModel: formData.embeddingModel || null,
+        summaryModel: formData.summaryModel || null,
+      });
+
+      toast.success("Settings saved", {
+        description: "Your preferences have been updated.",
+      });
+
       await api.invalidateUserCache();
     } catch {
-      // Non-blocking: cache invalidation is best-effort
+      toast.error("Save failed", {
+        description: "Could not save preferences. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   return (
@@ -227,69 +260,91 @@ export default function ProfileForm() {
             <CardHeader className="border-b border-primary/10 pb-4">
               <CardTitle className="font-mono uppercase tracking-widest text-sm">Model Configuration</CardTitle>
               <CardDescription className="font-sans italic text-xs">
-                Choose which AI models to use for each task.
+                Choose which AI models to use for each task. Models are fetched from NVIDIA NIM.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
-              <div className="space-y-3">
-                <Label htmlFor="chat-model" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Chat Model</Label>
-                <Select
-                  value={formData.chatModel}
-                  onValueChange={(value) => setFormData({ ...formData, chatModel: value })}
-                >
-                  <SelectTrigger id="chat-model" className="rounded-none border-primary/20 bg-background font-mono text-xs h-10">
-                    <SelectValue placeholder="Select Model" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-none border-primary/20">
-                    {CHAT_MODELS.map((model) => (
-                      <SelectItem key={model.value} value={model.value} className="font-mono text-[11px] uppercase">
-                        {model.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-[10px] italic font-sans text-muted-foreground font-medium">
-                  Used for code generation and multi-agent tasks.
-                </p>
-              </div>
+              {modelsLoading ? (
+                <div className="flex items-center gap-3 p-4 border border-primary/10 bg-primary/5">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Loading available models...</span>
+                </div>
+              ) : modelsError ? (
+                <div className="flex items-center gap-3 p-4 border border-amber-500/30 bg-amber-500/5">
+                  <AlertTriangle className="h-4 w-4 text-amber-500" />
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-amber-600">Could not fetch models. Using cached list.</span>
+                </div>
+              ) : null}
 
-              <div className="space-y-3">
-                <Label htmlFor="summary-model" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Summary Model</Label>
-                <Select
-                  value={formData.summaryModel}
-                  onValueChange={(value) => setFormData({ ...formData, summaryModel: value })}
-                >
-                  <SelectTrigger id="summary-model" className="rounded-none border-primary/20 bg-background font-mono text-xs h-10">
-                    <SelectValue placeholder="Select Model" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-none border-primary/20">
-                    {CHAT_MODELS.map((model) => (
-                      <SelectItem key={model.value} value={model.value} className="font-mono text-[11px] uppercase">
-                        {model.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {!modelsLoading && (
+                <>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="chat-model" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Chat Model</Label>
+                      <span className="text-[9px] font-mono text-muted-foreground">{availableModels.length} available</span>
+                    </div>
+                    <Select
+                      value={formData.chatModel || "__default__"}
+                      onValueChange={(value) => setFormData({ ...formData, chatModel: value === "__default__" ? "" : value })}
+                    >
+                      <SelectTrigger id="chat-model" className="rounded-none border-primary/20 bg-background font-mono text-xs h-10">
+                        <SelectValue placeholder="Use backend default" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-none border-primary/20 max-h-60">
+                        <SelectItem value="__default__" className="font-mono text-[11px] italic text-muted-foreground">Backend default</SelectItem>
+                        {availableModels.map((model) => (
+                          <SelectItem key={model.id} value={model.id} className="font-mono text-[11px]">
+                            {model.id}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[10px] italic font-sans text-muted-foreground font-medium">
+                      Used for code generation and multi-agent tasks.
+                    </p>
+                  </div>
 
-              <div className="space-y-3">
-                <Label htmlFor="embedding-model" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Embedding Model</Label>
-                <Select
-                  value={formData.embeddingModel}
-                  onValueChange={(value) => setFormData({ ...formData, embeddingModel: value })}
-                >
-                  <SelectTrigger id="embedding-model" className="rounded-none border-primary/20 bg-background font-mono text-xs h-10">
-                    <SelectValue placeholder="Select Model" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-none border-primary/20">
-                    {EMBEDDING_MODELS.map((model) => (
-                      <SelectItem key={model.value} value={model.value} className="font-mono text-[11px] uppercase">
-                        {model.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                  <div className="space-y-3">
+                    <Label htmlFor="summary-model" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Summary Model</Label>
+                    <Select
+                      value={formData.summaryModel || "__default__"}
+                      onValueChange={(value) => setFormData({ ...formData, summaryModel: value === "__default__" ? "" : value })}
+                    >
+                      <SelectTrigger id="summary-model" className="rounded-none border-primary/20 bg-background font-mono text-xs h-10">
+                        <SelectValue placeholder="Use backend default" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-none border-primary/20 max-h-60">
+                        <SelectItem value="__default__" className="font-mono text-[11px] italic text-muted-foreground">Backend default</SelectItem>
+                        {availableModels.filter((m) => m.supports_tools !== false).map((model) => (
+                          <SelectItem key={model.id} value={model.id} className="font-mono text-[11px]">
+                            {model.id}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label htmlFor="embedding-model" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Embedding Model</Label>
+                    <Select
+                      value={formData.embeddingModel || "__default__"}
+                      onValueChange={(value) => setFormData({ ...formData, embeddingModel: value === "__default__" ? "" : value })}
+                    >
+                      <SelectTrigger id="embedding-model" className="rounded-none border-primary/20 bg-background font-mono text-xs h-10">
+                        <SelectValue placeholder="Use backend default" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-none border-primary/20 max-h-60">
+                        <SelectItem value="__default__" className="font-mono text-[11px] italic text-muted-foreground">Backend default</SelectItem>
+                        {availableModels.filter((m) => m.id.includes("embed")).map((model) => (
+                          <SelectItem key={model.id} value={model.id} className="font-mono text-[11px]">
+                            {model.id}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

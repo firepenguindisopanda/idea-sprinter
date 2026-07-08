@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Plus, Loader2, Trash2, RefreshCw } from "lucide-react";
+import { Plus, Loader2, Trash2, RefreshCw, Activity } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import ProtectedRoute from "@/components/protected-route";
 import ProjectCard from "@/components/dashboard/project-card";
 import EmptyState from "@/components/dashboard/empty-state";
 import UsageStats from "@/components/dashboard/usage-stats";
+import { Badge } from "@/components/ui/badge";
 import { api, downloadProjectPdf } from "@/lib/api";
 import { useWorkspaceStore } from "@/lib/workspace-store";
 import { toast } from "sonner";
@@ -29,6 +30,7 @@ export default function DashboardPage() {
   const [cacheHealth, setCacheHealth] = useState<CacheHealth | null>(null);
   const [isClearingCache, setIsClearingCache] = useState(false);
   const [isLoadingCache, setIsLoadingCache] = useState(false);
+  const [lsPrefs, setLsPrefs] = useState<{ enableTracing: boolean; langsmithProject: string } | null>(null);
 
   const handleNewProject = useCallback(() => {
     useWorkspaceStore.getState().reset();
@@ -39,6 +41,7 @@ export default function DashboardPage() {
     loadProjects();
     loadMetrics();
     loadCacheHealth();
+    loadLangSmithStatus();
   }, []);
 
   const loadProjects = async () => {
@@ -65,6 +68,19 @@ export default function DashboardPage() {
       console.error("Failed to load metrics:", error);
     } finally {
       setIsLoadingMetrics(false);
+    }
+  };
+
+  const loadLangSmithStatus = async () => {
+    try {
+      const res = await api.getPreferences();
+      const p = res.preferences ?? {};
+      setLsPrefs({
+        enableTracing: p.enableTracing !== false,
+        langsmithProject: (p.langsmithProject as string) || "",
+      });
+    } catch {
+      setLsPrefs(null);
     }
   };
 
@@ -156,6 +172,35 @@ export default function DashboardPage() {
           <div className="absolute top-0 right-0 p-2 text-[10px] font-mono text-primary/20 select-none uppercase">Usage</div>
           <UsageStats stats={metrics} isLoading={isLoadingMetrics} />
         </div>
+
+        {/* LangSmith Status */}
+        {lsPrefs && (
+          <div className="border border-primary/10 p-4 bg-primary/5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Activity className="h-4 w-4 text-primary/60" />
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-primary/70">LangSmith Tracing</span>
+                  {lsPrefs.langsmithProject && (
+                    <p className="text-[9px] font-mono text-muted-foreground mt-0.5">
+                      Project: {lsPrefs.langsmithProject}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <Badge
+                variant="outline"
+                className={`rounded-none font-mono text-[10px] uppercase tracking-wider ${
+                  lsPrefs.enableTracing
+                    ? "border-green-500/50 text-green-600 bg-green-500/5"
+                    : "border-muted-foreground/30 text-muted-foreground"
+                }`}
+              >
+                {lsPrefs.enableTracing ? "Active" : "Disabled"}
+              </Badge>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-6">
           <div className="flex items-center gap-2 mb-4">
