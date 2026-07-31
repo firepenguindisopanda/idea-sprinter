@@ -1,5 +1,12 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "streamdown/styles.css";
+
+/* Streamdown ships Tailwind utility classes inside its compiled JS, which
+   Tailwind does not scan by default. Path is relative to this file and points
+   at the hoisted workspace root node_modules. */
+@source "../../../node_modules/streamdown/dist/*.js";
+@source "../../../node_modules/@streamdown/mermaid/dist/*.js";
 
 @custom-variant dark (&:where(.dark, .dark *));
 

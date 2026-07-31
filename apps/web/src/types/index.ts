@@ -64,7 +64,16 @@ export interface Project {
   user_id: number;
   title: string;
   description: string | null;
-  artifacts: Record<string, string>;
+  /**
+   * Agent role -> markdown output, plus `_`-prefixed metadata.
+   *
+   * Typed as unknown values rather than string because the workspace flow also
+   * writes nested objects and arrays here. Read it through the helpers in
+   * `lib/project-artifacts` rather than indexing it directly - they separate
+   * agent output from metadata, which is the distinction the dashboard depends
+   * on.
+   */
+  artifacts: Record<string, unknown>;
   created_at: string;
   updated_at: string | null;
 }
@@ -72,7 +81,32 @@ export interface Project {
 export interface ProjectCreate {
   title: string;
   description?: string | null;
-  artifacts: Record<string, string>;
+  /** Same shape as `Project.artifacts` - agent output plus `_`-prefixed metadata. */
+  artifacts: Record<string, unknown>;
+}
+
+export interface UsageStatsResponse {
+  window_days: number;
+  /** Exact figures for calls made since token recording was added. */
+  recorded: {
+    operations: number;
+    total_tokens: number;
+    cost_usd: number;
+    avg_latency_ms: number;
+  };
+  /** Full history from LangSmith, or null when it is unreachable. */
+  langsmith: {
+    run_count: number;
+    error_rate: number;
+    latency_p50_s: number;
+    latency_p99_s: number;
+    total_tokens: number;
+    prompt_tokens: number;
+    completion_tokens: number;
+    last_run_at: string | null;
+  } | null;
+  langsmith_project: string | null;
+  sources: { runs: string | null; tokens: string; cost: string };
 }
 
 export interface UsageMetrics {
@@ -141,6 +175,10 @@ export interface ArchitectureOption {
   diagram_description?: string;
   estimated_cost?: string;
   estimated_setup_time?: string;
+  /** Things the model assumed that the user never stated - contestable. */
+  assumptions?: string[];
+  best_when?: string;
+  avoid_when?: string;
 }
 
 export interface ArchitectureScore {
@@ -152,6 +190,91 @@ export interface ArchitectureScore {
   operational_complexity: number;
   vendor_lockin: number;
   performance: number;
+  /** dimension -> why that score, citing a stated requirement or constraint. */
+  justifications?: Record<string, string>;
+}
+
+/** The case against an option, from POST .../options/{id}/challenge */
+export interface AttackVector {
+  id: string;
+  category: string;
+  description: string;
+  severity: string;
+  impacted_dimension: string;
+  suggested_fix?: string;
+}
+
+/** Result of contesting an assumption - POST .../options/{id}/contest */
+export interface ContestOutcome {
+  option_id: string;
+  assumption: string;
+  correction: string;
+  assumption_was_wrong: boolean;
+  changes_recommendation: boolean;
+  /** Derived server-side from changes_recommendation. */
+  verdict: 'revised' | 'defended';
+  impact: string;
+  affected_dimensions: string[];
+  revised_assumption?: string | null;
+  still_recommended: boolean;
+  follow_up_question?: string | null;
+  error?: boolean;
+}
+
+/** An option that was considered and rejected, with the reason. */
+export interface DecisionAlternative {
+  name: string;
+  rejected_because: string;
+}
+
+/** Something the project now lives with as a result of the decision. */
+export interface DecisionConsequence {
+  consequence: string;
+  kind: 'accepted_cost' | 'benefit' | 'risk';
+  mitigation?: string | null;
+}
+
+/** A step-3 exchange, carried onto the record as evidence it was argued. */
+export interface ContestedPoint {
+  assumption: string;
+  correction: string;
+  verdict: 'revised' | 'defended';
+  impact: string;
+}
+
+/** The model's proposal - never persisted until the user sends it back. */
+export interface ArchitectureDecisionDraft {
+  title: string;
+  chosen_pattern: string;
+  context: string;
+  decision: string;
+  alternatives: DecisionAlternative[];
+  consequences: DecisionConsequence[];
+  contested: ContestedPoint[];
+}
+
+export interface ArchitectureDecisionSave extends ArchitectureDecisionDraft {
+  option_id: string;
+  edited_by_user: boolean;
+}
+
+export interface ArchitectureDecisionRecord extends ArchitectureDecisionSave {
+  id: string;
+  session_id: string;
+  project_name?: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OptionChallenge {
+  option_id: string;
+  option_name: string;
+  risk_level: string;
+  summary: string;
+  attack_vectors: AttackVector[];
+  assumptions_to_verify: string[];
+  counterpoint_reading: Array<{ book: string; excerpt: string }>;
 }
 
 export interface ArchitectureComparison {

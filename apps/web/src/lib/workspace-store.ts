@@ -23,6 +23,7 @@ interface WorkspaceActions {
   selectDirection: (directionId: string) => void;
   addDocSection: (section: DocSection) => void;
   updateDocSection: (sectionId: string, updates: Partial<DocSection>) => void;
+  appendDocSectionContent: (sectionId: string, delta: string) => void;
   applyRefinement: (action: RefinementAction) => void;
   undoRefinement: (sectionId: string) => void;
   setProjectTitle: (title: string) => void;
@@ -126,6 +127,16 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions & {
         set((state) => ({
           documentSections: state.documentSections.map((s) =>
             s.id === sectionId ? { ...s, ...updates } : s
+          ),
+        })),
+
+      // Streamed `chunk` events carry a token delta, not the full section body.
+      // The append must happen inside `set` so rapid-fire tokens cannot read a
+      // stale snapshot and drop content.
+      appendDocSectionContent: (sectionId, delta) =>
+        set((state) => ({
+          documentSections: state.documentSections.map((s) =>
+            s.id === sectionId ? { ...s, content: s.content + delta } : s
           ),
         })),
 

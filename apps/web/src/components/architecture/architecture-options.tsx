@@ -3,18 +3,23 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { ArchitectureOption } from "@/types";
+import { Markdown } from "@/components/markdown";
+import OptionChallenge from "./option-challenge";
 import { CheckCircle2, Layers, DollarSign, Clock } from "lucide-react";
 
 interface ArchitectureOptionsProps {
   options: ArchitectureOption[];
   selectedOptionId?: string;
   onSelect: (optionId: string) => void;
+  /** Enables the per-option adversarial challenge. */
+  sessionId?: string;
 }
 
-export default function ArchitectureOptions({ 
-  options, 
-  selectedOptionId, 
-  onSelect 
+export default function ArchitectureOptions({
+  options,
+  selectedOptionId,
+  onSelect,
+  sessionId,
 }: ArchitectureOptionsProps) {
   return (
     <div className="grid gap-6">
@@ -49,7 +54,21 @@ export default function ArchitectureOptions({
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">{option.description}</p>
-            
+
+            {/* Architecture diagram - the generator emits a ```mermaid block,
+                which Streamdown renders visually. Previously this field was
+                produced by the backend and never displayed at all. */}
+            {option.diagram_description && (
+              <div className="space-y-2">
+                <span className="text-xs font-mono uppercase text-primary/60">Diagram</span>
+                <div className="border border-primary/10 bg-primary/[0.02] p-3 overflow-x-auto">
+                  <Markdown enableDiagrams className="max-w-none text-xs">
+                    {option.diagram_description}
+                  </Markdown>
+                </div>
+              </div>
+            )}
+
             {/* Components */}
             <div className="space-y-2">
               <span className="text-xs font-mono uppercase text-primary/60">Components</span>
@@ -121,6 +140,33 @@ export default function ArchitectureOptions({
                 </div>
               )}
             </div>
+
+            {/* When this is / is not the right call - the shape of the
+                judgement, stated so it can be disagreed with. */}
+            {(option.best_when || option.avoid_when) && (
+              <div className="grid gap-2 sm:grid-cols-2 text-xs">
+                {option.best_when && (
+                  <div className="border border-green-600/20 bg-green-600/5 p-2">
+                    <span className="font-mono uppercase text-[10px] text-green-700">Right call when</span>
+                    <p className="text-muted-foreground mt-1">{option.best_when}</p>
+                  </div>
+                )}
+                {option.avoid_when && (
+                  <div className="border border-destructive/20 bg-destructive/5 p-2">
+                    <span className="font-mono uppercase text-[10px] text-destructive">Wrong call when</span>
+                    <p className="text-muted-foreground mt-1">{option.avoid_when}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {sessionId && (
+              <OptionChallenge
+                sessionId={sessionId}
+                optionId={option.id}
+                assumptions={option.assumptions}
+              />
+            )}
           </CardContent>
         </Card>
       ))}

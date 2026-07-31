@@ -1,5 +1,5 @@
 import { streamSSEPost } from './sse';
-import type { User, UserPersona, UserPersonaInfo, ProjectRequest, GenerateResponse, Project, ProjectCreate, UsageMetrics, PRDStartResponse, PRDChatResponse, PRDStatusResponse, PRDDocumentResponse, ArchitectureSession, ArchitectureSessionCreate, ArchitectureSelectRequest, ArchitectureRefineRequest, ArchitectureComparison, ArchitectureOption } from '../types';
+import type { ContestOutcome, OptionChallenge, User, UserPersona, UserPersonaInfo, ProjectRequest, GenerateResponse, Project, ProjectCreate, UsageMetrics, UsageStatsResponse, PRDStartResponse, PRDChatResponse, PRDStatusResponse, PRDDocumentResponse, ArchitectureSession, ArchitectureSessionCreate, ArchitectureSelectRequest, ArchitectureRefineRequest, ArchitectureComparison, ArchitectureOption, ArchitectureDecisionDraft, ArchitectureDecisionSave, ArchitectureDecisionRecord } from '../types';
 
 interface JudgeReevaluateResponse {
   session_id: string;
@@ -259,6 +259,17 @@ class ApiClient {
     return this.request('/health/metrics');
   }
 
+  /**
+   * Durable usage figures.
+   *
+   * `/health/metrics` counts in process memory and resets on every restart, so
+   * the dashboard showed near-zeros however much work had been done. This reads
+   * LangSmith plus the recorded token usage table instead.
+   */
+  async getUsageStats(windowDays = 30): Promise<UsageStatsResponse> {
+    return this.request(`/api/stats/usage?window_days=${windowDays}`);
+  }
+
   // Cache
   // Preferences
   async getPreferences(): Promise<{ preferences: Record<string, unknown> }> {
@@ -401,6 +412,56 @@ class ApiClient {
 
     // Return the response body as a readable stream
     return response.body as unknown as EventSource;
+  }
+
+  // Get the adversarial case against an option
+  async challengeArchitectureOption(sessionId: string, optionId: string): Promise<OptionChallenge> {
+    return this.request(`/architecture/sessions/${sessionId}/options/${optionId}/challenge`, {
+      method: 'POST',
+    });
+  }
+
+  // Push back on an assumption; the model must defend or revise
+  async contestAssumption(
+    sessionId: string,
+    optionId: string,
+    assumption: string,
+    correction: string,
+  ): Promise<ContestOutcome> {
+    return this.request(`/architecture/sessions/${sessionId}/options/${optionId}/contest`, {
+      method: 'POST',
+      body: JSON.stringify({ assumption, correction }),
+    });
+  }
+
+  // Ask for a proposed decision record. Saves nothing - the draft only exists
+  // in this response until the user reviews it and calls saveDecision.
+  async draftDecision(sessionId: string, optionId: string): Promise<ArchitectureDecisionDraft> {
+    return this.request(`/architecture/sessions/${sessionId}/decision/draft`, {
+      method: 'POST',
+      body: JSON.stringify({ option_id: optionId }),
+    });
+  }
+
+  // Commit the decision record the user has reviewed
+  async saveDecision(sessionId: string, record: ArchitectureDecisionSave): Promise<ArchitectureDecisionRecord> {
+    return this.request(`/architecture/sessions/${sessionId}/decision`, {
+      method: 'POST',
+      body: JSON.stringify(record),
+    });
+  }
+
+  async getDecision(sessionId: string): Promise<ArchitectureDecisionRecord | null> {
+    return this.request(`/architecture/sessions/${sessionId}/decision`);
+  }
+
+  // The user's decision history - basis for cross-project retrospectives
+  async listDecisions(params?: { limit?: number; chosenPattern?: string }): Promise<ArchitectureDecisionRecord[]> {
+    const query = new URLSearchParams();
+    if (params?.limit) query.set('limit', String(params.limit));
+    if (params?.chosenPattern) query.set('chosen_pattern', params.chosenPattern);
+    const suffix = query.toString() ? `?${query}` : '';
+    return this.request(`/architecture/decisions${suffix}`);
   }
 
   // Compare architecture options

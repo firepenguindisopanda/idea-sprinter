@@ -104,7 +104,12 @@ function GeneratePageContent() {
   const [currentPhase, setCurrentPhase] = useState(0);
   const [completedAgents, setCompletedAgents] = useState<string[]>([]);
   const [activeAgent, setActiveAgent] = useState<string | null>(null);
-  const [streamingContent, setStreamingContent] = useState<string>("");
+  /** Short lifecycle message for the pipeline panel ("Judging Product Owner..."). */
+  const [statusText, setStatusText] = useState<string>("");
+  /** Streamed document text, kept per agent so status messages can never clobber it. */
+  const [outputsByAgent, setOutputsByAgent] = useState<Record<string, string>>({});
+  /** Which agent's output the preview pane is showing. */
+  const [previewRole, setPreviewRole] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   
   const sse = useSSE<Record<string, unknown>>({
@@ -156,10 +161,12 @@ function GeneratePageContent() {
       setCurrentPhase(generationDraft.currentPhase);
       setCompletedAgents(generationDraft.completedAgents);
       if (generationDraft.partialResults?.markdown_outputs) {
-        setStreamingContent("Recovered partial results from your last session.");
+        setStatusText("Recovered partial results from your last session.");
         partialOutputsRef.current = {
           ...generationDraft.partialResults.markdown_outputs,
         };
+        setOutputsByAgent({ ...generationDraft.partialResults.markdown_outputs });
+        setPreviewRole(Object.keys(generationDraft.partialResults.markdown_outputs)[0] ?? null);
       }
       if (generationDraft.error) {
         setError(generationDraft.error);
@@ -173,64 +180,72 @@ function GeneratePageContent() {
     onComplete: (results: GenerateResponse) => void
   ) => {
     const eventType = event.type as string;
-    
+    const labelFor = (role: unknown) => AGENT_LABELS[role as string] || (role as string);
+
     switch (eventType) {
       case 'status':
-        setStreamingContent(event.message as string || '');
+        setStatusText(event.message as string || '');
         break;
-        
+
       case 'context_ready':
-        setStreamingContent('RAG context gathered, starting agents...');
+        setStatusText('RAG context gathered, starting agents...');
         break;
-        
-      case 'agent_start':
-        setActiveAgent(event.role as string);
-        setStreamingContent(`${AGENT_LABELS[event.role as string] || event.role} is working...`);
+
+      case 'agent_start': {
+        const role = event.role as string;
+        setActiveAgent(role);
+        setPreviewRole(role);
+        setStatusText(`${labelFor(role)} is working...`);
+        // Reset this role's buffer so a retry/re-prompt of the same agent
+        // starts clean instead of appending to the previous attempt.
+        setOutputsByAgent(prev => ({ ...prev, [role]: '' }));
+        partialOutputsRef.current = { ...partialOutputsRef.current, [role]: '' };
         break;
-        
-      case 'chunk':
-        // Update streaming content with chunk
-        if (event.chunk) {
-          const role = event.role as string;
-          const chunk = event.chunk as string;
-          setStreamingContent(prev => prev + chunk);
-          if (role) {
-            const nextContent = `${partialOutputsRef.current[role] ?? ""}${chunk}`;
-            partialOutputsRef.current = {
-              ...partialOutputsRef.current,
-              [role]: nextContent,
-            };
-            updateGenerationPartialResults({
-              markdown_outputs: {
-                [role]: nextContent,
-              },
-            });
-          }
-        }
+      }
+
+      case 'chunk': {
+        const role = event.role as string;
+        const chunk = event.chunk as string;
+        if (!role || !chunk) break;
+        setOutputsByAgent(prev => ({ ...prev, [role]: (prev[role] ?? '') + chunk }));
+        // Mirror into a ref for draft recovery. Persisting to the draft store
+        // happens on agent_complete, not per token - a localStorage write per
+        // token would jank the whole page.
+        partialOutputsRef.current = {
+          ...partialOutputsRef.current,
+          [role]: `${partialOutputsRef.current[role] ?? ''}${chunk}`,
+        };
         break;
-        
+      }
+
       case 'agent_complete': {
         const role = event.role as string;
-      setCompletedAgents(prev => {
-        if (!prev.includes(role)) {
-          return [...prev, role];
+        // The event carries the authoritative full text; adopt it so any
+        // dropped token self-heals.
+        const content = typeof event.content === 'string' ? event.content : undefined;
+        if (content !== undefined) {
+          setOutputsByAgent(prev => ({ ...prev, [role]: content }));
+          partialOutputsRef.current = { ...partialOutputsRef.current, [role]: content };
         }
-        return prev;
+        updateGenerationPartialResults({
+          markdown_outputs: { ...partialOutputsRef.current },
         });
+        setCompletedAgents(prev => (prev.includes(role) ? prev : [...prev, role]));
         setActiveAgent(null);
+        setStatusText(`${labelFor(role)} finished`);
         break;
       }
 
       case 'judge_start':
-        setStreamingContent(`Quality review for ${AGENT_LABELS[event.role as string] || event.role}...`);
+        setStatusText(`Quality review for ${labelFor(event.role)}...`);
         break;
 
       case 'critic_complete':
-        setStreamingContent(`Critic evaluation for ${AGENT_LABELS[event.role as string] || event.role} completed`);
+        setStatusText(`Critic evaluation for ${labelFor(event.role)} completed`);
         break;
 
       case 'skeptic_complete':
-        setStreamingContent(`Adversarial review for ${AGENT_LABELS[event.role as string] || event.role} completed`);
+        setStatusText(`Adversarial review for ${labelFor(event.role)} completed`);
         break;
 
       case 'judge_complete':
@@ -248,16 +263,16 @@ function GeneratePageContent() {
         break;
         
       case 'srs_assemble':
-        setStreamingContent(event.message as string || 'Assembling SRS...');
+        setStatusText(event.message as string || 'Assembling SRS...');
         break;
       case 'srs_complete':
-        setStreamingContent('SRS document assembled. Validating...');
+        setStatusText('SRS document assembled. Validating...');
         break;
       case 'cross_validate':
-        setStreamingContent(event.message as string || 'Validating SRS...');
+        setStatusText(event.message as string || 'Validating SRS...');
         break;
       case 'validation_report':
-        setStreamingContent('Validation complete.');
+        setStatusText('Validation complete.');
         break;
         
       case 'pipeline_complete':
@@ -283,7 +298,9 @@ function GeneratePageContent() {
     setCurrentPhase(1);
     setCompletedAgents([]);
     setActiveAgent(null);
-    setStreamingContent("");
+    setStatusText("");
+    setOutputsByAgent({});
+    setPreviewRole(null);
     setError(null);
     partialOutputsRef.current = {};
     finalResultsRef.current = null;
@@ -385,7 +402,9 @@ function GeneratePageContent() {
                 setCompletedAgents([]);
                 setCurrentPhase(0);
                 setActiveAgent(null);
-                setStreamingContent("");
+                setStatusText("");
+                setOutputsByAgent({});
+                setPreviewRole(null);
                 setError(null);
                 partialOutputsRef.current = {};
                 resumedFromDraft.current = false;
@@ -423,7 +442,7 @@ function GeneratePageContent() {
             currentPhase={currentPhase}
             completedAgents={completedAgents}
             activeAgent={activeAgent}
-            streamingContent={streamingContent}
+            statusText={statusText}
             error={error}
             phases={AGENT_PHASES}
             agentLabels={AGENT_LABELS}
@@ -437,8 +456,8 @@ function GeneratePageContent() {
         {/* Right: Live Preview */}
         <div className="flex flex-col h-full min-h-0 overflow-hidden border border-border/40 rounded-md bg-background/50 p-4 lg:col-span-1">
           <LivePreview
-            streamingContent={streamingContent}
-            activeAgent={activeAgent}
+            streamingContent={previewRole ? (outputsByAgent[previewRole] ?? '') : ''}
+            activeAgent={activeAgent ?? previewRole}
             currentPhase={currentPhase}
             isGenerating={isGenerating}
           />

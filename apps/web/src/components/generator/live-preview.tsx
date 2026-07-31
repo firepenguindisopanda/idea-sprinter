@@ -2,7 +2,7 @@
 
 import { useState, useLayoutEffect, useRef } from "react";
 import { FileText, Code, Database, Lock, Layout, TestTube, Server, Settings } from "lucide-react";
-import ReactMarkdown from "react-markdown";
+import { Markdown } from "@/components/markdown";
 import { cn } from "@/lib/utils";
 
 export interface PreviewSection {
@@ -31,16 +31,19 @@ export function LivePreview({
   const contentRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
-  // Auto-scroll to bottom when new content arrives
+  // Auto-scroll to bottom when new content arrives - but only when the user is
+  // already near the bottom. Previously this force-scrolled on every token while
+  // `isGenerating`, which made it impossible to scroll up and read earlier output
+  // mid-generation.
   useLayoutEffect(() => {
     if (contentRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
       const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
-      
-      if (isNearBottom || isGenerating) {
+
+      if (isNearBottom) {
         contentRef.current.scrollTop = scrollHeight;
       }
-      
+
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowScrollButton(scrollHeight > clientHeight && scrollTop < scrollHeight - clientHeight);
     }
@@ -95,7 +98,7 @@ export function LivePreview({
   const activeSection = displayTabs.find(tab => tab.id === activeTab) || displayTabs[0];
 
   return (
-    <div className="bg-background border-2 border-primary/20 p-6 rounded-none space-y-4">
+    <div className="flex flex-col h-full min-h-0 bg-background border-2 border-primary/20 p-6 rounded-none space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -136,7 +139,7 @@ export function LivePreview({
       </div>
 
       {/* Content Area */}
-      <div className="relative">
+      <div className="relative flex-1 min-h-0 flex flex-col">
         {/* Scroll to bottom button */}
         {showScrollButton && (
           <button
@@ -155,20 +158,25 @@ export function LivePreview({
         <div
           ref={contentRef}
           className={cn(
-            "h-64 overflow-y-auto font-mono text-xs",
+            "flex-1 min-h-64 overflow-y-auto",
             "bg-primary/5 border border-primary/10 rounded p-4",
             "scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent"
           )}
         >
           {activeSection.content ? (
             activeTab === 'preview' ? (
-              <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:font-mono prose-headings:text-primary prose-code:text-primary prose-code:bg-primary/5 prose-code:px-1 prose-code:rounded prose-pre:bg-primary/5 prose-pre:border prose-pre:border-primary/10 prose-a:text-primary prose-strong:text-primary/90 prose-li:marker:text-primary/50">
-                <ReactMarkdown>{activeSection.content}</ReactMarkdown>
-              </div>
+              <Markdown
+                isStreaming={isGenerating}
+                enableDiagrams
+                className="max-w-none [&_h1]:font-mono [&_h1]:text-primary [&_h2]:font-mono [&_h2]:text-primary [&_h3]:font-mono [&_h3]:text-primary [&_a]:text-primary [&_strong]:text-primary/90"
+              >
+                {activeSection.content}
+              </Markdown>
             ) : (
-              <pre className="whitespace-pre-wrap text-muted-foreground">{activeSection.content}</pre>
+              <pre className="whitespace-pre-wrap font-mono text-xs text-muted-foreground">{activeSection.content}</pre>
             )
           ) : (
+
             <div className="text-muted-foreground/50 italic">
               {isGenerating ? (
                 <span className="flex items-center gap-2">

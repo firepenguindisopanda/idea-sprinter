@@ -11,7 +11,10 @@ interface ArchitectureComparisonViewProps {
   onSelect: (optionId: string) => void;
 }
 
-const SCORE_LABELS: Record<keyof ArchitectureScore, string> = {
+/** The eight numeric ATAM dimensions - excludes the `justifications` map. */
+type ScoreDimension = Exclude<keyof ArchitectureScore, "justifications">;
+
+const SCORE_LABELS: Record<ScoreDimension, string> = {
   scalability: "Scalability",
   development_speed: "Dev Speed",
   cost_initial: "Initial Cost",
@@ -22,7 +25,7 @@ const SCORE_LABELS: Record<keyof ArchitectureScore, string> = {
   performance: "Performance",
 };
 
-const SCORE_WEIGHTS: Record<keyof ArchitectureScore, number> = {
+const SCORE_WEIGHTS: Record<ScoreDimension, number> = {
   scalability: 1.0,
   development_speed: 1.0,
   cost_initial: 1.5,
@@ -44,7 +47,7 @@ export default function ArchitectureComparisonView({
   selectedOptionId,
   onSelect 
 }: ArchitectureComparisonViewProps) {
-  const scoreKeys = Object.keys(SCORE_LABELS) as (keyof ArchitectureScore)[];
+  const scoreKeys = Object.keys(SCORE_LABELS) as ScoreDimension[];
   
   // Calculate weighted scores
   const weightedScores = Object.entries(comparison.scores).map(([optionId, scores]) => {
@@ -105,11 +108,22 @@ export default function ArchitectureComparisonView({
                 </td>
                 {comparison.options.map(option => {
                   const score = comparison.scores[option.id]?.[key] || 0;
+                  // Why this number. A bare score is not something a user can
+                  // reason about or disagree with.
+                  const why = comparison.scores[option.id]?.justifications?.[key];
                   return (
-                    <td key={option.id} className="p-3">
-                      <div className={`inline-flex items-center justify-center px-2 py-1 rounded text-sm font-mono ${getScoreColor(score)}`}>
+                    <td key={option.id} className="p-3 align-top">
+                      <div
+                        className={`inline-flex items-center justify-center px-2 py-1 rounded text-sm font-mono ${getScoreColor(score)}`}
+                        title={why || undefined}
+                      >
                         {score.toFixed(1)}
                       </div>
+                      {why && (
+                        <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground max-w-[22rem]">
+                          {why}
+                        </p>
+                      )}
                     </td>
                   );
                 })}

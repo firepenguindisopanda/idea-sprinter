@@ -21,7 +21,8 @@ export interface AgentPipelineProgressProps {
   currentPhase: number;
   completedAgents: string[];
   activeAgent: string | null;
-  streamingContent: string;
+  /** Short lifecycle message, e.g. "Product Owner is working...". Not document content. */
+  statusText: string;
   error: string | null;
   phases: PhaseInfo[];
   agentLabels: Record<string, string>;
@@ -33,7 +34,7 @@ export function AgentPipelineProgress({
   currentPhase,
   completedAgents,
   activeAgent,
-  streamingContent,
+  statusText,
   error,
   phases,
   agentLabels,
@@ -135,14 +136,14 @@ export function AgentPipelineProgress({
       </div>
 
       {/* Current Status */}
-      {isGenerating && streamingContent && (
+      {isGenerating && statusText && (
         <div className="border-t border-primary/10 pt-4 animate-in fade-in slide-in-from-top-2" role="status" aria-live="polite" aria-atomic="true">
           <div className="text-[10px] font-mono text-primary uppercase mb-2 flex items-center gap-2">
             <span className="h-2 w-2 bg-primary rounded-full animate-pulse" />
             Current Activity
           </div>
           <p className="text-xs text-muted-foreground font-mono line-clamp-3 animate-pulse">
-            {streamingContent}
+            {statusText}
           </p>
         </div>
       )}

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { FileText, Loader2, Check, Copy, Download, Send, Code } from "lucide-react";
 import { toast } from "sonner";
-import ReactMarkdown from "react-markdown";
+import { Markdown } from "@/components/markdown";
 import { api } from "@/lib/api";
 import { useDraftStore } from "@/lib/draft-store";
 import type { ProjectRequest, PRDStatusResponse } from "@/types";
@@ -264,9 +264,7 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
 
           {/* PRD Content - scrollable */}
           <div className="text-xs">
-            <div className="prose prose-xs prose-amber max-w-none">
-              <ReactMarkdown>{prdContent}</ReactMarkdown>
-            </div>
+            <Markdown enableDiagrams className="max-w-none">{prdContent}</Markdown>
           </div>
 
           {/* Judge score display */}

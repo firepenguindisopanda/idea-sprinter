@@ -1,90 +1,123 @@
 "use client";
 
-import { TrendingUp, Zap, DollarSign, Activity } from "lucide-react";
-
-interface UsageStats {
-  readonly specsbeforecode_tokens_used_monthly?: number;
-  readonly specsbeforecode_budget_remaining?: number;
-  readonly specsbeforecode_cost_estimate_total?: number;
-  readonly specsbeforecode_requests_total?: number;
-  // Legacy format support
-  readonly monthly_tokens_used?: number;
-  readonly budget_remaining?: number;
-  readonly total_cost_estimate?: number;
-  readonly requests_total?: number;
-}
+import { Activity, AlertTriangle, DollarSign, Timer, Zap } from "lucide-react";
+import type { UsageStatsResponse } from "@/types";
 
 interface UsageStatsProps {
-  readonly stats: UsageStats | null;
+  readonly stats: UsageStatsResponse | null;
   readonly isLoading?: boolean;
 }
 
+function Tile({
+  label,
+  value,
+  caption,
+  icon,
+  muted = false,
+}: {
+  readonly label: string;
+  readonly value: string;
+  readonly caption: string;
+  readonly icon: React.ReactNode;
+  readonly muted?: boolean;
+}) {
+  return (
+    <div className="group relative border-2 border-primary/20 bg-background/50 p-4 transition-colors hover:border-primary/40">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-primary/60">
+          {label}
+        </span>
+        {icon}
+      </div>
+      <div className={`font-mono text-2xl font-bold ${muted ? "text-muted-foreground" : ""}`}>
+        {value}
+      </div>
+      <div className="mt-1 font-mono text-[9px] uppercase text-muted-foreground">{caption}</div>
+    </div>
+  );
+}
+
+/**
+ * Usage tiles.
+ *
+ * Each figure names its source, because two sources with different coverage feed
+ * this panel: LangSmith holds the full run history, while cost is computed at
+ * call time and stored locally - LangSmith has no price map for the
+ * NVIDIA-hosted models, so its own cost total is always zero.
+ *
+ * The previous version read `/health/metrics`, whose counters live in process
+ * memory and reset on every restart, so it showed near-zeros regardless of
+ * activity. Its "budget used" bar was computed against a hardcoded 1,000,000
+ * denominator. Both are gone.
+ */
 export default function UsageStats({ stats, isLoading = false }: UsageStatsProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-24 bg-primary/5 animate-pulse border-2 border-primary/10" />
+          <div key={i} className="h-24 animate-pulse border-2 border-primary/10 bg-primary/5" />
         ))}
       </div>
     );
   }
 
-  if (!stats) {
-    return null;
-  }
+  if (!stats) return null;
 
-  // Support both API formats
-  const requestsTotal = stats.specsbeforecode_requests_total ?? stats.requests_total ?? 0;
-  const tokensUsed = stats.specsbeforecode_tokens_used_monthly ?? stats.monthly_tokens_used ?? 0;
-  const costEstimate = stats.specsbeforecode_cost_estimate_total ?? stats.total_cost_estimate ?? 0;
-  const budgetRemaining = stats.specsbeforecode_budget_remaining ?? stats.budget_remaining ?? 0;
-
-  const budgetUsedPercentage = budgetRemaining > 0
-    ? ((1000000 - budgetRemaining) / 1000000) * 100
-    : 0;
+  const { langsmith, recorded, window_days: windowDays } = stats;
+  const nf = new Intl.NumberFormat();
+  const successRate =
+    langsmith !== null ? `${((1 - langsmith.error_rate) * 100).toFixed(1)}%` : "-";
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div className="border-2 border-primary/20 bg-background/50 p-4 relative group hover:border-primary/40 transition-colors">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary/60">Requests</span>
-          <Activity className="h-3 w-3 text-primary/40" />
-        </div>
-        <div className="text-2xl font-mono font-bold">{requestsTotal.toLocaleString()}</div>
-        <div className="mt-1 text-[9px] font-mono text-muted-foreground uppercase">Total API Requests</div>
+    <div className="space-y-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Tile
+          label="Runs"
+          value={langsmith ? nf.format(langsmith.run_count) : "-"}
+          caption={langsmith ? `Last ${windowDays} days` : "LangSmith unavailable"}
+          icon={<Activity className="h-3 w-3 text-primary/40" />}
+          muted={!langsmith}
+        />
+        <Tile
+          label="Tokens"
+          value={nf.format(langsmith ? langsmith.total_tokens : recorded.total_tokens)}
+          caption={langsmith ? `Last ${windowDays} days` : "Recorded locally"}
+          icon={<Zap className="h-3 w-3 text-primary/40" />}
+        />
+        <Tile
+          label="Cost"
+          value={`$${recorded.cost_usd.toFixed(4)}`}
+          caption={
+            recorded.operations === 0
+              ? "No calls recorded yet"
+              : `Est. over ${nf.format(recorded.operations)} recorded call${recorded.operations === 1 ? "" : "s"}`
+          }
+          icon={<DollarSign className="h-3 w-3 text-primary/40" />}
+        />
+        <Tile
+          label="Success"
+          value={successRate}
+          caption={
+            langsmith
+              ? `p50 ${langsmith.latency_p50_s.toFixed(2)}s · p99 ${langsmith.latency_p99_s.toFixed(0)}s`
+              : "LangSmith unavailable"
+          }
+          icon={
+            langsmith && langsmith.error_rate > 0.1 ? (
+              <AlertTriangle className="h-3 w-3 text-destructive/60" />
+            ) : (
+              <Timer className="h-3 w-3 text-primary/40" />
+            )
+          }
+          muted={!langsmith}
+        />
       </div>
 
-      <div className="border-2 border-primary/20 bg-background/50 p-4 relative group hover:border-primary/40 transition-colors">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary/60">Tokens</span>
-          <Zap className="h-3 w-3 text-primary/40" />
-        </div>
-        <div className="text-2xl font-mono font-bold">{tokensUsed.toLocaleString()}</div>
-        <div className="mt-1 text-[9px] font-mono text-muted-foreground uppercase">Monthly Tokens Used</div>
-      </div>
-
-      <div className="border-2 border-primary/20 bg-background/50 p-4 relative group hover:border-primary/40 transition-colors">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary/60">Cost</span>
-          <DollarSign className="h-3 w-3 text-primary/40" />
-        </div>
-        <div className="text-2xl font-mono font-bold">${costEstimate.toFixed(2)}</div>
-        <div className="mt-1 text-[9px] font-mono text-muted-foreground uppercase">Estimated Cost</div>
-      </div>
-
-      <div className="border-2 border-primary/20 bg-background/50 p-4 relative group hover:border-primary/40 transition-colors">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary/60">Budget</span>
-          <TrendingUp className="h-3 w-3 text-primary/40" />
-        </div>
-        <div className="space-y-2">
-          <div className="text-lg font-mono font-bold">{budgetUsedPercentage.toFixed(1)}% <span className="text-[10px] text-muted-foreground uppercase font-normal">used</span></div>
-          <div className="w-full h-1 bg-primary/10 rounded-none overflow-hidden">
-            <div className="h-full bg-primary" style={{ width: `${budgetUsedPercentage}%` }} />
-          </div>
-        </div>
-      </div>
+      <p className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+        {langsmith
+          ? `Runs and tokens from LangSmith${stats.langsmith_project ? ` · ${stats.langsmith_project}` : ""} · cost estimated at call time`
+          : "LangSmith unreachable - showing locally recorded figures only"}
+      </p>
     </div>
   );
 }

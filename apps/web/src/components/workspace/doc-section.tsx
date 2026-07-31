@@ -6,6 +6,7 @@ import type { DocSection as DocSectionType } from "@/types/workspace";
 import { Button } from "@/components/ui/button";
 import { Wand2, Undo2 } from "lucide-react";
 import { api } from "@/lib/api";
+import { Markdown } from "@/components/markdown";
 
 interface DocSectionProps {
   section: DocSectionType;
@@ -36,7 +37,7 @@ export function DocSection({ section, isRefinementMode }: DocSectionProps) {
         applied: true,
       });
     } catch {
-      setError("Unable to connect to the backend at localhost:5001. Make sure the server is running.");
+      setError("Could not reach the server. Check your connection and try again.");
     }
 
     setIsRefining(false);
@@ -106,9 +107,13 @@ export function DocSection({ section, isRefinementMode }: DocSectionProps) {
       </div>
 
       {section.content ? (
-        <div className="prose prose-sm sm:prose-base max-w-none text-muted-foreground leading-relaxed whitespace-pre-wrap">
+        <Markdown
+          isStreaming={section.status === "generating"}
+          enableDiagrams
+          className="max-w-none text-muted-foreground"
+        >
           {section.content}
-        </div>
+        </Markdown>
       ) : section.status === "generating" ? (
         <div className="space-y-3">
           <div className="h-4 w-full bg-muted/50 rounded animate-pulse" />

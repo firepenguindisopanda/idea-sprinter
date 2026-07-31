@@ -83,7 +83,7 @@ export default function ProfileForm() {
         summaryModel: (prefs.summaryModel as string) || "",
       }));
     } catch {
-      // Prefs unavailable — use defaults
+      // Prefs unavailable - use defaults
     } finally {
       setIsLoadingPrefs(false);
     }

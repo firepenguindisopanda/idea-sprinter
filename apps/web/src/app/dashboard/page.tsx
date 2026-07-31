@@ -13,7 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { api, downloadProjectPdf } from "@/lib/api";
 import { useWorkspaceStore } from "@/lib/workspace-store";
 import { toast } from "sonner";
-import type { Project, UsageMetrics } from "@/types";
+import type { Project, UsageStatsResponse } from "@/types";
+import { displayOutputs } from "@/lib/project-artifacts";
 
 interface CacheHealth {
   status: string;
@@ -25,7 +26,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [metrics, setMetrics] = useState<UsageMetrics | null>(null);
+  const [metrics, setMetrics] = useState<UsageStatsResponse | null>(null);
   const [isLoadingMetrics, setIsLoadingMetrics] = useState(true);
   const [cacheHealth, setCacheHealth] = useState<CacheHealth | null>(null);
   const [isClearingCache, setIsClearingCache] = useState(false);
@@ -61,7 +62,7 @@ export default function DashboardPage() {
   const loadMetrics = async () => {
     setIsLoadingMetrics(true);
     try {
-      const data = await api.getMetrics();
+      const data = await api.getUsageStats();
       setMetrics(data);
     } catch (error) {
       // Silently fail metrics loading - it's not critical
@@ -130,7 +131,7 @@ export default function DashboardPage() {
 
   const handleDownloadPdf = async (project: Project) => {
     try {
-      await downloadProjectPdf(project.description || project.title, project.artifacts);
+      await downloadProjectPdf(project.description || project.title, displayOutputs(project.artifacts));
       
       toast.success("PDF Downloaded!", {
         description: "Your project specification has been downloaded.",

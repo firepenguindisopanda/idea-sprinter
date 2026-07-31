@@ -2,6 +2,7 @@
 
 import type { ChatMessage } from "@/types/workspace";
 import { Bot, User } from "lucide-react";
+import { Markdown } from "@/components/markdown";
 
 interface ChatMessageProps {
   message: ChatMessage;
@@ -32,7 +33,12 @@ export function ChatMessageItem({ message }: ChatMessageProps) {
             : "bg-muted/50 text-foreground"
         }`}
       >
-        <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+        {isUser ? (
+          // User input is not markdown - render it verbatim.
+          <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+        ) : (
+          <Markdown>{message.content}</Markdown>
+        )}
       </div>
     </div>
   );

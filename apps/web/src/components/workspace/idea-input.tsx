@@ -93,7 +93,7 @@ export function IdeaInput() {
 
       setError("Received empty questions from the server. Please try again.");
     } catch {
-      setError("Unable to connect to the backend at localhost:5001. Make sure the server is running.");
+      setError("Could not reach the server. Check your connection and try again.");
     }
 
     setIsSubmitting(false);

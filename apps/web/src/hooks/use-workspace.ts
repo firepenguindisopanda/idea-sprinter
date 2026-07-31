@@ -37,6 +37,7 @@ export function useWorkspace() {
     selectDirection: store.selectDirection,
     addDocSection: store.addDocSection,
     updateDocSection: store.updateDocSection,
+    appendDocSectionContent: store.appendDocSectionContent,
     applyRefinement: store.applyRefinement,
     undoRefinement: store.undoRefinement,
     setPhase: store.setPhase,

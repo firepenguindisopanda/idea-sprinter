@@ -28,6 +28,18 @@ import {
   type TechOption,
 } from "@/lib/tech-options";
 import type { ProjectRequest } from "@/types";
+import ExampleLibrary from "@/components/examples/example-library";
+import {
+  briefForGenerate,
+  type SystemDesignExample,
+} from "@/lib/system-design-examples";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface ProjectFormProps {
   onSubmit: (data: ProjectRequest) => void;
@@ -35,7 +47,6 @@ interface ProjectFormProps {
   initialDescription?: string;
 }
 
-const EXAMPLE_DESCRIPTION = `Offline-first, mobile-first practice-testing app for university courses. A mobile-first, offline-capable app that lets students take course-specific practice tests, track progress, and compare performance on per-course leaderboards. Lecturers can author and manage questions, monitor student performance with detailed metrics, and sync data to a central server when reliable connectivity is available, addressing the university's unreliable Wi-Fi. This project is an offline-first mobile application designed to support student practice and formative assessment in environments with unreliable campus Wi-Fi. Students register, enroll the courses they take, and download practice question sets for offline completion. Each attempt records timestamps, answers, scores and metadata locally; when connectivity is available the app securely synchronizes attempts and updates a central server. Students can view personal progress and course leaderboards (updated after sync) to compare relative performance. Lecturers register separately, create and manage course content (questions, correct answers, explanations, metadata such as difficulty and tags), and access per-course dashboards with leaderboards plus additional metrics (engagement, time-on-question, mastery over topics, attempt distributions). The app prioritizes low bandwidth, progressive synchronization, conflict-safe merges, and data privacy suitable for academic use.`;
 
 export default function ProjectForm({ onSubmit, isLoading = false, initialDescription = "" }: Readonly<ProjectFormProps>) {
   const [formData, setFormData] = useState<ProjectRequest>({
@@ -54,6 +65,7 @@ export default function ProjectForm({ onSubmit, isLoading = false, initialDescri
 
   const [errors, setErrors] = useState<{ description?: string }>({});
   const [isExampleLoaded, setIsExampleLoaded] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [isAdvancedMode, setIsAdvancedMode] = useState(false);
 
   // Dynamic Options State
@@ -200,8 +212,9 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
     }
   };
 
-  const handleLoadExample = () => {
-    updateField("description", EXAMPLE_DESCRIPTION);
+  const handlePickExample = (example: SystemDesignExample) => {
+    updateField("description", briefForGenerate(example));
+    setPickerOpen(false);
     setIsExampleLoaded(true);
     setTimeout(() => setIsExampleLoaded(false), 2000);
   };
@@ -222,18 +235,18 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
             type="button"
             variant="ghost"
             size="sm"
-            onClick={handleLoadExample}
+            onClick={() => setPickerOpen(true)}
             className="h-7 text-[10px] font-mono uppercase tracking-widest text-primary/40 hover:text-primary transition-colors"
           >
             {isExampleLoaded ? (
               <>
                 <Check className="mr-1.5 h-3 w-3" />
-                Example Loaded
+                Starter Loaded
               </>
             ) : (
               <>
                 <Lightbulb className="mr-1.5 h-3 w-3" />
-                Load Example
+                Browse Starters
               </>
             )}
           </Button>
@@ -504,6 +517,21 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
           </div>
         )}
       </Button>
+
+      <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+        <DialogContent className="max-h-[85vh] max-w-6xl overflow-y-auto rounded-none border-2">
+          <DialogHeader>
+            <DialogTitle className="font-mono text-sm uppercase tracking-tighter">
+              Pick a starter
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Well-known systems, each with one feature the original does not have. The
+              extra feature is what makes the design decisions non-obvious.
+            </DialogDescription>
+          </DialogHeader>
+          <ExampleLibrary onSelect={handlePickExample} actionLabel="Use this brief" />
+        </DialogContent>
+      </Dialog>
     </form>
   );
 }

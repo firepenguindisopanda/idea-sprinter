@@ -5,6 +5,22 @@ import { DocSection } from '@/components/workspace/doc-section';
 import { TopBar } from '@/components/workspace/top-bar';
 import type { DocSection as DocSectionType } from '@/types/workspace';
 
+// TopBar calls useRouter, which throws "invariant expected app router to be
+// mounted" outside a Next app tree. Without this the three TopBar tests failed
+// for want of a mock rather than for anything about TopBar.
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  usePathname: () => '/workspace',
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 // Mock the workspace hook
 vi.mock('@/hooks/use-workspace', () => ({
   useWorkspace: vi.fn(),
@@ -81,9 +97,11 @@ describe('IdeaInput', () => {
     fireEvent.click(screen.getByRole('button', { name: /Start Crafting/i }));
 
     await waitFor(() => {
-      expect(setError).toHaveBeenCalledWith(
-        expect.stringContaining('Unable to connect')
-      );
+      // Asserts an error was surfaced, not its wording. These tests exist to
+      // prove the component fails loudly instead of falling back to fake data;
+      // pinning the copy made them break when the message stopped naming
+      // localhost, which production users should never have seen.
+      expect(setError).toHaveBeenCalledWith(expect.stringMatching(/\S/));
       expect(startClarifying).not.toHaveBeenCalled();
       expect(setQuestions).not.toHaveBeenCalled();
     });
@@ -199,9 +217,11 @@ describe('DocSection', () => {
     fireEvent.click(screen.getByText('Apply'));
 
     await waitFor(() => {
-      expect(setError).toHaveBeenCalledWith(
-        expect.stringContaining('Unable to connect')
-      );
+      // Asserts an error was surfaced, not its wording. These tests exist to
+      // prove the component fails loudly instead of falling back to fake data;
+      // pinning the copy made them break when the message stopped naming
+      // localhost, which production users should never have seen.
+      expect(setError).toHaveBeenCalledWith(expect.stringMatching(/\S/));
       expect(applyRefinement).not.toHaveBeenCalled();
     });
   });

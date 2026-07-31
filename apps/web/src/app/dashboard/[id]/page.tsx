@@ -20,6 +20,12 @@ import DownloadModal from "@/components/generator/download-modal";
 import { api, downloadProjectPdf } from "@/lib/api";
 import { toast } from "sonner";
 import type { Project } from "@/types";
+import {
+  displayLabels,
+  displayOutputs,
+  projectSummaryBadge,
+  supportsInlineEditing,
+} from "@/lib/project-artifacts";
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -58,7 +64,7 @@ export default function ProjectDetailPage() {
 
     setIsDownloading(true);
     try {
-      await downloadProjectPdf(project.description || project.title, project.artifacts);
+      await downloadProjectPdf(project.description || project.title, displayOutputs(project.artifacts));
       
       toast.success("PDF Downloaded!", {
         description: "Your project specification has been downloaded.",
@@ -149,6 +155,12 @@ export default function ProjectDetailPage() {
     return null;
   }
 
+  // Was `Object.keys(project.artifacts).length` labelled "Sections", which
+  // counted workspace metadata keys for workspace specs.
+  const sectionCountLabel = projectSummaryBadge(project.artifacts);
+  const labels = displayLabels(project.artifacts);
+  const canEdit = supportsInlineEditing(project.artifacts);
+
   return (
     <ProtectedRoute>
       <div className="container mx-auto p-6 max-w-7xl space-y-8">
@@ -182,7 +194,7 @@ export default function ProjectDetailPage() {
                   Timestamp: {formatDate(project.created_at)}
                 </div>
                 <div className="bg-primary/5 border border-primary/10 px-2 py-0.5 text-primary/70">
-                  {Object.keys(project.artifacts).length} Sections
+                  {sectionCountLabel}
                 </div>
               </div>
             </div>
@@ -224,12 +236,13 @@ export default function ProjectDetailPage() {
         <div className="grid grid-cols-1">
           <ResultsDisplay
             results={{
-              markdown_outputs: project.artifacts,
+              markdown_outputs: displayOutputs(project.artifacts),
               judge_results: {},
             }}
             onSave={undefined}
             onDownloadPdf={handleDownloadPdf}
-            onArtifactUpdate={handleArtifactUpdate}
+            onArtifactUpdate={canEdit ? handleArtifactUpdate : undefined}
+            outputLabels={labels}
             isSaving={false}
             isDownloading={isDownloading}
             hideActions
@@ -271,7 +284,7 @@ export default function ProjectDetailPage() {
         isOpen={isDownloadModalOpen}
         onClose={() => setIsDownloadModalOpen(false)}
         results={{
-          markdown_outputs: project.artifacts,
+          markdown_outputs: displayOutputs(project.artifacts),
           judge_results: {},
           project_description: project.description || "",
         }}

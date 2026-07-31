@@ -37,9 +37,9 @@ export function DirectionSelector() {
             break;
           }
           case "chunk": {
-            store.updateDocSection(event.section_id!, {
-              content: event.content ?? "",
-            });
+            // `event.content` is a token delta - append it, don't replace the
+            // section body, or the reader sees one word at a time flickering.
+            store.appendDocSectionContent(event.section_id!, event.content ?? "");
             break;
           }
           case "section_complete": {
@@ -56,7 +56,7 @@ export function DirectionSelector() {
         }
       });
     } catch {
-      setError("Unable to connect to the backend at localhost:5001. Make sure the server is running.");
+      setError("Could not reach the server. Check your connection and try again.");
       useWorkspaceStore.getState().setPhase("idea_input");
     }
   };

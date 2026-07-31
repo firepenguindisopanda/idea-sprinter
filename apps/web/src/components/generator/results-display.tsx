@@ -5,8 +5,32 @@ import { Copy, Check, Download, Save, Loader2, Edit, X, ChevronRight, List, Chev
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import ReactMarkdown from "react-markdown";
+import { Markdown } from "@/components/markdown";
+import { cn } from "@/lib/utils";
 import type { GenerateResponse, JudgeResult } from "@/types";
+
+/** Shared heading treatment; must stay in sync with the section nav's scroll targets. */
+const HEADING_BASE =
+  "font-mono uppercase tracking-tighter border-l-4 border-primary/20 pl-3 scroll-mt-20";
+
+/** Flatten a rendered heading back to text so its anchor id matches parseSections(). */
+function headingText(node: React.ReactNode): string {
+  if (node === null || node === undefined || typeof node === "boolean") return "";
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(headingText).join("");
+  if (typeof node === "object" && "props" in node) {
+    return headingText((node as { props?: { children?: React.ReactNode } }).props?.children);
+  }
+  return "";
+}
+
+/** Mirrors the slug rule used by parseSections() and getSectionContent(). */
+function slugify(node: React.ReactNode): string {
+  return headingText(node)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
 
 interface ResultsDisplayProps {
   results: GenerateResponse | null;
@@ -16,6 +40,8 @@ interface ResultsDisplayProps {
   isSaving?: boolean;
   isDownloading?: boolean;
   hideActions?: boolean;
+  /** Labels for output keys that are not agent roles, e.g. workspace section ids. */
+  outputLabels?: Record<string, string>;
 }
 
 interface Section {
@@ -24,7 +50,13 @@ interface Section {
   text: string;
 }
 
+// Must stay in step with the orchestrator's phases. `project_refiner` runs first
+// in Phase 1 and was missing here, so its output was silently dropped from every
+// results view. Anything not in this list is still rendered (see availableAgents)
+// rather than discarded, so a future addition degrades to a derived label instead
+// of vanishing.
 const AGENT_ROLES = [
+  { key: "project_refiner", label: "Project Refiner", id: "PR-00" },
   { key: "product_owner", label: "Product Owner", id: "PO-01" },
   { key: "business_analyst", label: "Business Analyst", id: "BA-02" },
   { key: "solution_architect", label: "Solution Architect", id: "SA-03" },
@@ -165,43 +197,29 @@ function MarkdownViewer({ content, agentKey: _agentKey }: { content: string; age
         </div>
       )}
       <div ref={contentRef} className="flex-1 min-w-0">
-        <div
-          className="prose prose-sm dark:prose-invert max-w-none font-sans leading-relaxed text-muted-foreground/90
-            prose-headings:font-mono prose-headings:uppercase prose-headings:tracking-tighter
-            prose-headings:border-l-4 prose-headings:border-primary/20 prose-headings:pl-3
-            prose-headings:scroll-mt-20
-            prose-th:font-mono prose-th:text-[10px] prose-th:uppercase prose-th:bg-primary/5 prose-th:p-2
-            prose-td:p-2 prose-td:border-b prose-td:border-primary/5
-            prose-code:text-primary prose-code:bg-primary/5 prose-code:px-1 prose-code:rounded
-            prose-pre:bg-primary/5 prose-pre:border prose-pre:border-primary/10"
+        <Markdown
+          enableDiagrams
+          className="max-w-none font-sans text-muted-foreground/90
+            [&_th]:font-mono [&_th]:text-[10px] [&_th]:uppercase [&_th]:bg-primary/5 [&_th]:p-2
+            [&_td]:p-2 [&_td]:border-b [&_td]:border-primary/5
+            [&_code]:text-primary"
+          components={{
+            h1: ({ children }) => (
+              <h1 id={slugify(children)} className={cn(HEADING_BASE, "text-xl font-bold mt-8 mb-4")}>{children}</h1>
+            ),
+            h2: ({ children }) => (
+              <h2 id={slugify(children)} className={cn(HEADING_BASE, "text-lg font-semibold mt-6 mb-3")}>{children}</h2>
+            ),
+            h3: ({ children }) => (
+              <h3 id={slugify(children)} className={cn(HEADING_BASE, "text-base font-medium mt-4 mb-2")}>{children}</h3>
+            ),
+            h4: ({ children }) => (
+              <h4 id={slugify(children)} className={cn(HEADING_BASE, "text-sm font-medium mt-3 mb-2")}>{children}</h4>
+            ),
+          }}
         >
-          <ReactMarkdown
-            components={{
-              h1: ({ children }) => {
-                const text = String(children);
-                const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-                return <h1 id={id} className="text-xl font-bold mt-8 mb-4">{children}</h1>;
-              },
-              h2: ({ children }) => {
-                const text = String(children);
-                const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-                return <h2 id={id} className="text-lg font-semibold mt-6 mb-3">{children}</h2>;
-              },
-              h3: ({ children }) => {
-                const text = String(children);
-                const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-                return <h3 id={id} className="text-base font-medium mt-4 mb-2">{children}</h3>;
-              },
-              h4: ({ children }) => {
-                const text = String(children);
-                const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-                return <h4 id={id} className="text-sm font-medium mt-3 mb-2">{children}</h4>;
-              },
-            }}
-          >
-            {content || ''}
-          </ReactMarkdown>
-        </div>
+          {content || ''}
+        </Markdown>
       </div>
     </div>
   );
@@ -243,6 +261,7 @@ export default function ResultsDisplay({
   isSaving = false,
   isDownloading = false,
   hideActions = false,
+  outputLabels,
 }: Readonly<ResultsDisplayProps>) {
   const [copiedAgent, setCopiedAgent] = useState<string | null>(null);
   const [editingAgentKey, setEditingAgentKey] = useState<string | null>(null);
@@ -276,9 +295,26 @@ export default function ResultsDisplay({
 
   const { markdown_outputs, judge_results } = results;
   
-  const availableAgents = AGENT_ROLES.filter(
-    (agent) => markdown_outputs[agent.key]
-  );
+  // Render everything that has content. Filtering to AGENT_ROLES alone meant any
+  // key outside the hardcoded list was dropped without trace - which is why a
+  // saved workspace spec showed an empty detail page.
+  const knownKeys = new Set(AGENT_ROLES.map((agent) => agent.key));
+  const availableAgents = [
+    ...AGENT_ROLES.filter((agent) => markdown_outputs[agent.key]),
+    ...Object.keys(markdown_outputs)
+      .filter((key) => !knownKeys.has(key) && markdown_outputs[key])
+      .map((key, index) => ({
+        key,
+        label:
+          outputLabels?.[key] ??
+          key
+            .replace(/^sec-/, "")
+            .replaceAll("-", " ")
+            .replaceAll("_", " ")
+            .replace(/\b\w/g, (c) => c.toUpperCase()),
+        id: `DOC-${String(index + 1).padStart(2, "0")}`,
+      })),
+  ];
 
   const copyToClipboard = async (text: string, agentKey: string) => {
     try {

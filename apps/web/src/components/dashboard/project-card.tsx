@@ -14,6 +14,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import type { Project } from "@/types";
+import {
+  agentRoles,
+  formatRole,
+  isWorkspaceSpec,
+  projectSummaryBadge,
+} from "@/lib/project-artifacts";
 
 interface ProjectCardProps {
   readonly project: Project;
@@ -42,7 +48,12 @@ export default function ProjectCard({ project, onDelete, onDownloadPdf }: Projec
     });
   };
 
-  const agentCount = Object.keys(project.artifacts).length;
+  // Counting every key here labelled workspace metadata as agents - a spec with
+  // {type, direction_id, brief, sections} reported "4 Agents". Count only real
+  // agent outputs, and say something true when there are none.
+  const roles = agentRoles(project.artifacts);
+  const summaryBadge = projectSummaryBadge(project.artifacts);
+  const sourceLabel = isWorkspaceSpec(project.artifacts) ? "Workspace" : "Pipeline";
 
   return (
     <>
@@ -56,8 +67,13 @@ export default function ProjectCard({ project, onDelete, onDownloadPdf }: Projec
             <h3 className="font-mono font-bold text-xl uppercase tracking-tighter line-clamp-2 leading-tight">
               {project.title}
             </h3>
-            <div className="font-mono text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-1 shrink-0 uppercase">
-              {agentCount} Agents
+            <div className="flex shrink-0 flex-col items-end gap-1">
+              <div className="font-mono text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-1 uppercase">
+                {summaryBadge}
+              </div>
+              <div className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
+                {sourceLabel}
+              </div>
             </div>
           </div>
           
@@ -73,18 +89,20 @@ export default function ProjectCard({ project, onDelete, onDownloadPdf }: Projec
               Created: {formatDate(project.created_at)}
             </div>
 
-            <div className="flex flex-wrap gap-2 pt-2 border-t border-primary/10">
-              {Object.keys(project.artifacts).slice(0, 3).map((agentRole) => (
-                <span key={agentRole} className="text-[9px] font-mono text-primary/70 uppercase border border-primary/10 px-1.5 py-0.5 bg-primary/5">
-                  {agentRole.replaceAll('_', ' ')}
-                </span>
-              ))}
-              {Object.keys(project.artifacts).length > 3 && (
-                <span className="text-[9px] font-mono text-muted-foreground uppercase px-1.5 py-0.5">
-                  +{Object.keys(project.artifacts).length - 3} OTHERS
-                </span>
-              )}
-            </div>
+            {roles.length > 0 && (
+              <div className="flex flex-wrap gap-2 pt-2 border-t border-primary/10">
+                {roles.slice(0, 3).map((agentRole) => (
+                  <span key={agentRole} className="text-[9px] font-mono text-primary/70 uppercase border border-primary/10 px-1.5 py-0.5 bg-primary/5">
+                    {formatRole(agentRole)}
+                  </span>
+                ))}
+                {roles.length > 3 && (
+                  <span className="text-[9px] font-mono text-muted-foreground uppercase px-1.5 py-0.5">
+                    +{roles.length - 3} OTHERS
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
         

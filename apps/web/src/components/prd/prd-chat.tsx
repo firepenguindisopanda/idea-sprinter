@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
+import { Markdown } from "@/components/markdown";
 import type { PRDChatResponse, PRDStartResponse } from "@/types";
 
 interface Message {
@@ -198,7 +199,11 @@ export default function PrdChat({ initialSessionId, prefill: prefillProp, onPhas
             <div className="text-[11px] font-mono uppercase text-primary/60 mb-1">
               {m.author === "user" ? "You" : "PRD Agent"}
             </div>
-            <div className="whitespace-pre-wrap text-sm">{m.text}</div>
+            {m.author === "user" ? (
+              <div className="whitespace-pre-wrap text-sm">{m.text}</div>
+            ) : (
+              <Markdown>{m.text}</Markdown>
+            )}
             {m.isComplete && (
               <div className="mt-2 text-[10px] font-mono text-green-500">✓ PRD Complete</div>
             )}
