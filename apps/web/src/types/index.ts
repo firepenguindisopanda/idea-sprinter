@@ -96,7 +96,7 @@ export interface UsageStatsResponse {
   };
   /** Full history from LangSmith, or null when it is unreachable. */
   langsmith: {
-    run_count: number;
+    llm_calls: number;
     error_rate: number;
     latency_p50_s: number;
     latency_p99_s: number;
@@ -106,7 +106,7 @@ export interface UsageStatsResponse {
     last_run_at: string | null;
   } | null;
   langsmith_project: string | null;
-  sources: { runs: string | null; tokens: string; cost: string };
+  sources: { llm_calls: string | null; tokens: string; cost: string };
 }
 
 export interface UsageMetrics {

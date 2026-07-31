@@ -72,8 +72,8 @@ export default function UsageStats({ stats, isLoading = false }: UsageStatsProps
     <div className="space-y-3">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Tile
-          label="Runs"
-          value={langsmith ? nf.format(langsmith.run_count) : "-"}
+          label="LLM calls"
+          value={langsmith ? nf.format(langsmith.llm_calls) : "-"}
           caption={langsmith ? `Last ${windowDays} days` : "LangSmith unavailable"}
           icon={<Activity className="h-3 w-3 text-primary/40" />}
           muted={!langsmith}
@@ -115,7 +115,7 @@ export default function UsageStats({ stats, isLoading = false }: UsageStatsProps
 
       <p className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
         {langsmith
-          ? `Runs and tokens from LangSmith${stats.langsmith_project ? ` · ${stats.langsmith_project}` : ""} · cost estimated at call time`
+          ? `Model calls and tokens from LangSmith${stats.langsmith_project ? ` · ${stats.langsmith_project}` : ""} · cost estimated at call time`
           : "LangSmith unreachable - showing locally recorded figures only"}
       </p>
     </div>
