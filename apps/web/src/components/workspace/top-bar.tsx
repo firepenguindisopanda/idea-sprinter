@@ -5,7 +5,17 @@ import { useRouter } from "next/navigation";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { ExportDropdown } from "./export-dropdown";
 import { Button } from "@/components/ui/button";
-import { Save, Loader2, PencilLine, Check, X } from "lucide-react";
+import { Save, Loader2, PencilLine, Check, X, FilePlus2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -56,7 +66,21 @@ function autoGenerateTitle(
 
 export function TopBar() {
   const router = useRouter();
-  const { phase, projectTitle, ideaInput, documentSections, selectedDirectionId, setProjectTitle, setSavedProjectId, savedProjectId } = useWorkspace();
+  const { phase, projectTitle, ideaInput, documentSections, selectedDirectionId, setProjectTitle, setSavedProjectId, savedProjectId, reset } = useWorkspace();
+  const [confirmNewOpen, setConfirmNewOpen] = useState(false);
+
+  // Once a document exists there was no way back to a blank workspace, and
+  // nothing said one was possible - the only route was reloading the page.
+  const canStartNew = phase === "generating" || phase === "refinement";
+  // Optional-chained: this runs on every render, unlike the effects below
+  // which are phase-guarded, and the store may not be fully populated yet.
+  const hasUnsavedWork = (documentSections?.length ?? 0) > 0 && !savedProjectId;
+
+  const startNewProject = () => {
+    reset();
+    setConfirmNewOpen(false);
+    toast.success("Started a new project");
+  };
   const stageLabel = PHASE_LABELS[phase] ?? "Workspace";
   const [isSaving, setIsSaving] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -197,9 +221,38 @@ export function TopBar() {
               <span className="hidden sm:inline">{isSaving ? "Saving..." : "Save"}</span>
             </Button>
           )}
+          {canStartNew && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 text-xs"
+              onClick={() => (hasUnsavedWork ? setConfirmNewOpen(true) : startNewProject())}
+            >
+              <FilePlus2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">New project</span>
+            </Button>
+          )}
           <ExportDropdown />
         </div>
       </div>
+
+      <AlertDialog open={confirmNewOpen} onOpenChange={setConfirmNewOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Start a new project?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This document has not been saved. Starting a new project clears it from
+              the workspace and it will not appear in your dashboard.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep working</AlertDialogCancel>
+            <AlertDialogAction onClick={startNewProject}>
+              Discard and start new
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </header>
   );
 }

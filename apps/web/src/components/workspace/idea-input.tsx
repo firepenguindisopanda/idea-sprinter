@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
 import { Sparkles, ArrowRight, CheckCircle2, ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
 import { api } from "@/lib/api";
-import { EXAMPLE_PROMPTS } from "@/lib/example-prompts";
+import {
+  ALL_EXAMPLE_PROMPTS,
+  EXAMPLE_CATEGORIES,
+} from "@/lib/example-prompts";
 import type { ClarifyingQuestion, VaguenessScores, VaguenessDimension } from "@/types/workspace";
 import { VaguenessReport } from "./vagueness-report";
 
@@ -25,6 +28,23 @@ export function IdeaInput() {
   } = useWorkspace();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showExamples, setShowExamples] = useState(false);
+  const [exampleQuery, setExampleQuery] = useState("");
+  const [exampleCategory, setExampleCategory] = useState<string>("All");
+
+  // Six examples fit in a list; thirty-seven need filtering, so the panel gained
+  // a search box and category chips rather than growing into a wall of cards.
+  const visibleExamples = useMemo(() => {
+    const q = exampleQuery.trim().toLowerCase();
+    return ALL_EXAMPLE_PROMPTS.filter((ex) => {
+      if (exampleCategory !== "All" && ex.category !== exampleCategory) return false;
+      if (!q) return true;
+      return (
+        ex.title.toLowerCase().includes(q) ||
+        ex.prompt.toLowerCase().includes(q) ||
+        ex.category.toLowerCase().includes(q)
+      );
+    });
+  }, [exampleQuery, exampleCategory]);
 
   const handleSubmit = async () => {
     if (!ideaInput.trim()) return;
@@ -158,13 +178,54 @@ export function IdeaInput() {
         </div>
 
         {showExamples && (
-          <div className="space-y-2 pt-1">
-            <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-              <Lightbulb className="h-3 w-3" />
-              Try one of these example prompts
-            </p>
-            <div className="grid gap-2">
-              {EXAMPLE_PROMPTS.map((ex) => (
+          <div className="space-y-3 pt-1">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                <Lightbulb className="h-3 w-3" />
+                Pick one to start from, then edit it
+              </p>
+              <p className="text-[11px] text-muted-foreground/60">
+                {visibleExamples.length} of {ALL_EXAMPLE_PROMPTS.length}
+              </p>
+            </div>
+
+            <input
+              type="search"
+              value={exampleQuery}
+              onChange={(e) => setExampleQuery(e.target.value)}
+              placeholder="Search examples"
+              aria-label="Search examples"
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-xs placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter by category">
+              {(["All", ...EXAMPLE_CATEGORIES] as const).map((cat) => {
+                const active = exampleCategory === cat;
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setExampleCategory(cat)}
+                    aria-pressed={active}
+                    className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
+                      active
+                        ? "border-primary/40 bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/30 hover:text-foreground"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+            </div>
+
+            {visibleExamples.length === 0 ? (
+              <p className="rounded-lg border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
+                Nothing matches &ldquo;{exampleQuery}&rdquo;. Clear the search or pick another category.
+              </p>
+            ) : (
+            <div className="grid max-h-[22rem] gap-2 overflow-y-auto pr-1">
+              {visibleExamples.map((ex) => (
                 <button
                   key={ex.id}
                   onClick={() => setIdeaInput(ex.prompt)}
@@ -183,6 +244,7 @@ export function IdeaInput() {
                 </button>
               ))}
             </div>
+            )}
           </div>
         )}
       </div>

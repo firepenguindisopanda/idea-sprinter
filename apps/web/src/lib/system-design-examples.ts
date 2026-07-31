@@ -488,7 +488,12 @@ export function briefForGenerate(example: SystemDesignExample): string {
  * title, fall back to a truncation.
  */
 export function twistHeadline(example: SystemDesignExample): string {
-  const head = example.twist.split("-")[0].trim().replace(/[.,]$/, "");
+  // Split only on a dash used as punctuation - surrounded by whitespace. A bare
+  // `split("-")` cuts at the first hyphen anywhere, so "A cross-channel
+  // attention budget" became "A cross" and "Server-side cheat detection"
+  // became "Server". Em dash, en dash and hyphen are all accepted because the
+  // source text has been normalised between them.
+  const head = example.twist.split(/\s[-–-]\s/)[0].trim().replace(/[.,]$/, "");
   if (head.length > 0 && head.length <= 55) return head;
   return `${example.twist.slice(0, 52).trimEnd()}…`;
 }
