@@ -1,7 +1,17 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Plus, Loader2, Trash2, RefreshCw, Activity } from "lucide-react";
+import {
+  Plus,
+  Loader2,
+  Trash2,
+  RefreshCw,
+  Activity,
+  Lightbulb,
+  Zap,
+  FileText,
+  Network,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -257,7 +267,7 @@ export default function DashboardPage() {
                 className="group flex items-center gap-3 p-4 rounded-lg border border-primary/10 bg-background/50 hover:border-primary/30 hover:bg-primary/5 transition-all opacity-70 hover:opacity-100"
               >
                 <div className="h-8 w-8 rounded-md bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
-                  <span className="text-sm">💡</span>
+                  <Lightbulb className="h-4 w-4" aria-hidden />
                 </div>
                 <div>
                   <div className="text-xs font-mono font-bold uppercase text-muted-foreground group-hover:text-primary transition-colors">Ideation</div>
@@ -270,7 +280,7 @@ export default function DashboardPage() {
                 className="group flex items-center gap-3 p-4 rounded-lg border border-primary/10 bg-background/50 hover:border-primary/30 hover:bg-primary/5 transition-all opacity-70 hover:opacity-100"
               >
                 <div className="h-8 w-8 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                  <span className="text-sm">⚡</span>
+                  <Zap className="h-4 w-4" aria-hidden />
                 </div>
                 <div>
                   <div className="text-xs font-mono font-bold uppercase text-muted-foreground group-hover:text-primary transition-colors">Generator</div>
@@ -283,7 +293,7 @@ export default function DashboardPage() {
                 className="group flex items-center gap-3 p-4 rounded-lg border border-primary/10 bg-background/50 hover:border-primary/30 hover:bg-primary/5 transition-all opacity-70 hover:opacity-100"
               >
                 <div className="h-8 w-8 rounded-md bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
-                  <span className="text-sm">📄</span>
+                  <FileText className="h-4 w-4" aria-hidden />
                 </div>
                 <div>
                   <div className="text-xs font-mono font-bold uppercase text-muted-foreground group-hover:text-primary transition-colors">PRD Agent</div>
@@ -296,7 +306,7 @@ export default function DashboardPage() {
                 className="group flex items-center gap-3 p-4 rounded-lg border border-primary/10 bg-background/50 hover:border-primary/30 hover:bg-primary/5 transition-all opacity-70 hover:opacity-100"
               >
                 <div className="h-8 w-8 rounded-md bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500">
-                  <span className="text-sm">🏗️</span>
+                  <Network className="h-4 w-4" aria-hidden />
                 </div>
                 <div>
                   <div className="text-xs font-mono font-bold uppercase text-muted-foreground group-hover:text-primary transition-colors">Architecture</div>

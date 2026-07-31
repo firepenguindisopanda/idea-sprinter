@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -205,7 +206,10 @@ export default function PrdChat({ initialSessionId, prefill: prefillProp, onPhas
               <Markdown>{m.text}</Markdown>
             )}
             {m.isComplete && (
-              <div className="mt-2 text-[10px] font-mono text-green-500">✓ PRD Complete</div>
+              <div className="mt-2 flex items-center gap-1 text-[10px] font-mono text-green-500">
+                <Check className="h-3 w-3" aria-hidden />
+                PRD Complete
+              </div>
             )}
           </div>
         ))}

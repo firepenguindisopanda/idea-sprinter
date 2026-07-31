@@ -70,8 +70,8 @@ Linting and type checks are also available:
 ```bash
 # From apps/web folder
 cd apps/web
-npm run lint      # ESLint with warnings allowed
-npm run lint:fix  # Auto-fix lint issues
+npm run lint # ESLint with warnings allowed
+npm run lint:fix # Auto-fix lint issues
 npm run check-types
 ```
 
@@ -88,7 +88,7 @@ The UI shows per-agent progress and judge results (Approved / Needs Revision) wi
 ```
 srs-doc-sprinter/
 ├── apps/
-│   ├── web/         # Frontend application (Next.js)
+│ ├── web/ # Frontend application (Next.js)
 ```
 
 ## Available Scripts

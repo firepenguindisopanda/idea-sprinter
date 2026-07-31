@@ -6,6 +6,31 @@ import { useAuthStore } from "@/lib/auth-store";
 import type { UserPersona, UserPersonaInfo } from "@/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  Lightbulb,
+  ClipboardList,
+  Code2,
+  Target,
+  CircleDot,
+  type LucideIcon,
+} from "lucide-react";
+
+// The API sends an icon *name* rather than an emoji, so the client can render a
+// real icon: consistent sizing and colour, and no dependence on the platform's
+// emoji font. Unknown names fall back to a neutral glyph rather than rendering
+// nothing.
+const PERSONA_ICONS: Record<string, LucideIcon> = {
+  lightbulb: Lightbulb,
+  "clipboard-list": ClipboardList,
+  code: Code2,
+  target: Target,
+};
+
+function PersonaIcon({ name }: { readonly name?: string }) {
+  const Icon = (name && PERSONA_ICONS[name]) || CircleDot;
+  return <Icon className="h-6 w-6 shrink-0 text-primary" aria-hidden />;
+}
+
 
 interface PersonaSelectorProps {
   onSelect?: (persona: UserPersona) => void;
@@ -80,7 +105,7 @@ export function PersonaSelector({
             onClick={() => handleSelect(persona.id)}
           >
             <div className="flex items-start gap-3">
-              <span className="text-2xl">{persona.icon}</span>
+              <PersonaIcon name={persona.icon} />
               <div className="space-y-1">
                 <h3 className="font-semibold leading-none tracking-tight">
                   {persona.name}

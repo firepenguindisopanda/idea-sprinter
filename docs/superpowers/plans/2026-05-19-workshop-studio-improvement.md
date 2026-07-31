@@ -1591,7 +1591,7 @@ Add this section after the projects grid in `dashboard/page.tsx`. Insert it afte
                 className="group flex items-center gap-3 p-4 rounded-lg border border-primary/10 bg-background/50 hover:border-primary/30 hover:bg-primary/5 transition-all opacity-70 hover:opacity-100"
               >
                 <div className="h-8 w-8 rounded-md bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
-                  <span className="text-sm">💡</span>
+                  <span className="text-sm"></span>
                 </div>
                 <div>
                   <div className="text-xs font-mono font-bold uppercase text-muted-foreground group-hover:text-primary transition-colors">Ideation</div>
@@ -1604,7 +1604,7 @@ Add this section after the projects grid in `dashboard/page.tsx`. Insert it afte
                 className="group flex items-center gap-3 p-4 rounded-lg border border-primary/10 bg-background/50 hover:border-primary/30 hover:bg-primary/5 transition-all opacity-70 hover:opacity-100"
               >
                 <div className="h-8 w-8 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                  <span className="text-sm">⚡</span>
+                  <span className="text-sm"></span>
                 </div>
                 <div>
                   <div className="text-xs font-mono font-bold uppercase text-muted-foreground group-hover:text-primary transition-colors">Generator</div>
@@ -1617,7 +1617,7 @@ Add this section after the projects grid in `dashboard/page.tsx`. Insert it afte
                 className="group flex items-center gap-3 p-4 rounded-lg border border-primary/10 bg-background/50 hover:border-primary/30 hover:bg-primary/5 transition-all opacity-70 hover:opacity-100"
               >
                 <div className="h-8 w-8 rounded-md bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
-                  <span className="text-sm">📄</span>
+                  <span className="text-sm"></span>
                 </div>
                 <div>
                   <div className="text-xs font-mono font-bold uppercase text-muted-foreground group-hover:text-primary transition-colors">PRD Agent</div>
@@ -1630,7 +1630,7 @@ Add this section after the projects grid in `dashboard/page.tsx`. Insert it afte
                 className="group flex items-center gap-3 p-4 rounded-lg border border-primary/10 bg-background/50 hover:border-primary/30 hover:bg-primary/5 transition-all opacity-70 hover:opacity-100"
               >
                 <div className="h-8 w-8 rounded-md bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500">
-                  <span className="text-sm">🏗️</span>
+                  <span className="text-sm"></span>
                 </div>
                 <div>
                   <div className="text-xs font-mono font-bold uppercase text-muted-foreground group-hover:text-primary transition-colors">Architecture</div>
@@ -1810,7 +1810,7 @@ Return ONLY the JSON object."""
 
 The workspace router is already included in `main.py` at line 303:
 ```python
-app.include_router(workspace_router)  # Workshop Studio endpoints
+app.include_router(workspace_router) # Workshop Studio endpoints
 ```
 
 No changes needed to `main.py`.
