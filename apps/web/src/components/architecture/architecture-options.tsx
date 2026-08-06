@@ -45,7 +45,7 @@ export default function ArchitectureOptions({
                   variant="outline"
                   size="sm"
                   onClick={() => onSelect(option.id)}
-                  className="font-mono uppercase text-[10px]"
+                  className="label-xs"
                 >
                   Select
                 </Button>
@@ -60,8 +60,8 @@ export default function ArchitectureOptions({
                 produced by the backend and never displayed at all. */}
             {option.diagram_description && (
               <div className="space-y-2">
-                <span className="text-xs font-mono uppercase text-primary/60">Diagram</span>
-                <div className="border border-primary/10 bg-primary/[0.02] p-3 overflow-x-auto">
+                <span className="text-xs font-mono uppercase text-primary/80">Diagram</span>
+                <div className="bg-primary/[0.02] p-3 overflow-x-auto">
                   <Markdown enableDiagrams className="max-w-none text-xs">
                     {option.diagram_description}
                   </Markdown>
@@ -71,12 +71,12 @@ export default function ArchitectureOptions({
 
             {/* Components */}
             <div className="space-y-2">
-              <span className="text-xs font-mono uppercase text-primary/60">Components</span>
+              <span className="text-xs font-mono uppercase text-primary/80">Components</span>
               <div className="flex flex-wrap gap-2">
                 {option.components.map((comp, idx) => (
                   <span 
                     key={idx}
-                    className="px-2 py-1 bg-primary/5 border border-primary/20 text-xs font-mono"
+                    className="px-2 py-1 bg-primary/5 text-xs font-mono"
                   >
                     {comp}
                   </span>
@@ -86,11 +86,11 @@ export default function ArchitectureOptions({
 
             {/* Tech Stack */}
             <div className="space-y-2">
-              <span className="text-xs font-mono uppercase text-primary/60">Tech Stack</span>
+              <span className="text-xs font-mono uppercase text-primary/80">Tech Stack</span>
               <div className="grid grid-cols-2 gap-2">
                 {Object.entries(option.tech_stack || {}).map(([key, value]) => (
                   <div key={key} className="flex items-center gap-2 text-xs">
-                    <span className="text-primary/60">{key}:</span>
+                    <span className="text-primary/80">{key}:</span>
                     <span className="font-mono">{value}</span>
                   </div>
                 ))}
@@ -100,25 +100,25 @@ export default function ArchitectureOptions({
             {/* Pros & Cons */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <span className="text-xs font-mono uppercase text-green-600/70 flex items-center gap-1">
+                <span className="text-xs font-mono uppercase text-tertiary flex items-center gap-1">
                   <Layers className="h-3 w-3" /> Pros
                 </span>
                 <ul className="mt-1 space-y-1">
                   {option.pros.map((pro, idx) => (
-                    <li key={idx} className="text-xs text-green-700/70 flex items-start gap-1">
-                      <span className="text-green-500">+</span> {pro}
+                    <li key={idx} className="text-xs text-tertiary flex items-start gap-1">
+                      <span className="text-tertiary">+</span> {pro}
                     </li>
                   ))}
                 </ul>
               </div>
               <div>
-                <span className="text-xs font-mono uppercase text-red-600/70 flex items-center gap-1">
+                <span className="text-xs font-mono uppercase text-destructive flex items-center gap-1">
                   <Layers className="h-3 w-3" /> Cons
                 </span>
                 <ul className="mt-1 space-y-1">
                   {option.cons.map((con, idx) => (
-                    <li key={idx} className="text-xs text-red-700/70 flex items-start gap-1">
-                      <span className="text-red-500">-</span> {con}
+                    <li key={idx} className="text-xs text-destructive flex items-start gap-1">
+                      <span className="text-destructive">-</span> {con}
                     </li>
                   ))}
                 </ul>
@@ -146,14 +146,14 @@ export default function ArchitectureOptions({
             {(option.best_when || option.avoid_when) && (
               <div className="grid gap-2 sm:grid-cols-2 text-xs">
                 {option.best_when && (
-                  <div className="border border-green-600/20 bg-green-600/5 p-2">
-                    <span className="font-mono uppercase text-[10px] text-green-700">Right call when</span>
+                  <div className="accent-note border-tertiary bg-tertiary/5 p-2">
+                    <span className="label-xs text-tertiary">Right call when</span>
                     <p className="text-muted-foreground mt-1">{option.best_when}</p>
                   </div>
                 )}
                 {option.avoid_when && (
-                  <div className="border border-destructive/20 bg-destructive/5 p-2">
-                    <span className="font-mono uppercase text-[10px] text-destructive">Wrong call when</span>
+                  <div className="accent-note border-destructive bg-destructive/5 p-2">
+                    <span className="label-xs text-destructive">Wrong call when</span>
                     <p className="text-muted-foreground mt-1">{option.avoid_when}</p>
                   </div>
                 )}

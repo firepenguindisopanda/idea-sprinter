@@ -183,7 +183,7 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
     return (
       <div className="flex flex-col h-full min-h-0 bg-background border-2 border-primary/10 p-4">
         <div className="shrink-0 pb-2 border-b border-primary/10">
-          <h3 className="text-xs font-mono uppercase text-primary/60">PRD Document</h3>
+          <h3 className="text-xs font-mono uppercase text-primary/80">PRD Document</h3>
         </div>
         <div className="flex-1 flex items-center justify-center">
           <p className="text-sm text-muted-foreground">
@@ -202,9 +202,9 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
       {/* Sticky action row */}
       <div className="sticky top-0 bg-background z-10 pb-2 border-b border-primary/10 px-4 pt-4 shrink-0">
         <div className="flex items-center justify-between">
-          <h3 className="text-xs font-mono uppercase text-primary/60">PRD Document</h3>
+          <h3 className="text-xs font-mono uppercase text-primary/80">PRD Document</h3>
           {autoLoaded && (
-            <span className="text-[10px] font-mono uppercase text-green-600 border border-green-500/30 bg-green-500/10 px-2 py-0.5">
+            <span className="label-xs text-tertiary border border-tertiary/30 bg-tertiary/10 px-2 py-0.5">
               Auto-loaded
             </span>
           )}
@@ -216,7 +216,7 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
         {!prdContent && !loading && (
           <button
             onClick={handleFetchDoc}
-            className="w-full text-[10px] font-mono uppercase bg-amber-500/10 py-2 px-3 border border-amber-500/20 rounded-none hover:bg-amber-500/20 transition-colors"
+            className="label-xs w-full bg-warning/10 py-2 px-3 border border-warning/20 rounded-none hover:bg-warning/20 transition-colors"
           >
             Fetch PRD
           </button>
@@ -224,17 +224,17 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
 
       {loading && (
         <div className="flex items-center justify-center py-4">
-          <Loader2 className="w-4 h-4 animate-spin text-amber-500" />
+          <Loader2 className="w-4 h-4 animate-spin text-warning" />
           <span className="text-xs text-muted-foreground ml-2">Loading...</span>
         </div>
       )}
 
       {error && (
         <div className="space-y-2">
-          <p className="text-xs text-red-500">{error}</p>
+          <p className="text-xs text-destructive">{error}</p>
           <button
             onClick={handleFetchDoc}
-            className="text-[10px] font-mono uppercase border border-primary/10 py-1 px-2 hover:bg-primary/5 transition-colors"
+            className="label-xs border border-primary/10 py-1 px-2 hover:bg-primary/5 transition-colors"
           >
             Retry
           </button>
@@ -246,7 +246,7 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
           <div className="flex gap-2 border-b border-primary/10 pb-2">
             <button
               onClick={() => setViewMode("markdown")}
-              className={`flex items-center gap-1 text-[10px] font-mono uppercase px-2 py-1 transition-colors ${
+              className={`label-xs flex items-center gap-1 px-2 py-1 transition-colors ${
                 viewMode === "markdown" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -255,9 +255,9 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
             </button>
             <button
               onClick={handleCopy}
-              className="ml-auto flex items-center gap-1 text-[10px] font-mono uppercase px-2 py-1 text-muted-foreground hover:text-foreground transition-colors"
+              className="label-xs ml-auto flex items-center gap-1 px-2 py-1 text-muted-foreground hover:text-foreground transition-colors"
             >
-              {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+              {copied ? <Check className="w-3 h-3 text-tertiary" /> : <Copy className="w-3 h-3" />}
               {copied ? "Copied" : "Copy"}
             </button>
           </div>
@@ -269,9 +269,9 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
 
           {/* Judge score display */}
           {prdStatus?.phase === "complete" && (
-            <div className="flex items-center justify-between text-[10px] font-mono uppercase border border-primary/10 p-2">
+            <div className="label-xs flex items-center justify-between border border-primary/10 p-2">
               <span className="text-muted-foreground">Judge Score:</span>
-              <span className={prdStatus?.judge_approved ? "text-green-600" : "text-amber-600"}>
+              <span className={prdStatus?.judge_approved ? "text-tertiary" : "text-warning"}>
                 {prdStatus?.judge_score || "?"}/10
               </span>
             </div>
@@ -283,7 +283,7 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
               <button
                 onClick={() => handleDownload("markdown")}
                 disabled={downloading}
-                className="flex-1 flex items-center justify-center gap-1 text-[10px] font-mono uppercase py-2 px-2 border border-primary/10 rounded-none hover:bg-primary/5 transition-colors disabled:opacity-50"
+                className="label-xs flex-1 flex items-center justify-center gap-1 py-2 px-2 border border-primary/10 rounded-none hover:bg-primary/5 transition-colors disabled:opacity-50"
               >
                 <Download className="w-3 h-3" />
                 MD
@@ -291,7 +291,7 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
               <button
                 onClick={() => handleDownload("pdf")}
                 disabled={downloading}
-                className="flex-1 flex items-center justify-center gap-1 text-[10px] font-mono uppercase py-2 px-2 border border-primary/10 rounded-none hover:bg-primary/5 transition-colors disabled:opacity-50"
+                className="label-xs flex-1 flex items-center justify-center gap-1 py-2 px-2 border border-primary/10 rounded-none hover:bg-primary/5 transition-colors disabled:opacity-50"
               >
                 <FileText className="w-3 h-3" />
                 PDF
@@ -301,11 +301,11 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
             <button
               onClick={handleUseAsProjectDescription}
               disabled={usedAsProject || !prdContent || prdContent.includes("PRD not yet generated")}
-              className="w-full flex items-center justify-center gap-2 text-[10px] font-mono uppercase py-2 px-3 border border-primary/10 rounded-none hover:bg-primary/5 transition-colors disabled:opacity-50"
+              className="label-xs w-full flex items-center justify-center gap-2 py-2 px-3 border border-primary/10 rounded-none hover:bg-primary/5 transition-colors disabled:opacity-50"
             >
               {usedAsProject ? (
                 <>
-                  <Check className="w-3 h-3 text-green-500" />
+                  <Check className="w-3 h-3 text-tertiary" />
                   Ready
                 </>
               ) : (
@@ -319,12 +319,12 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
             <button
               onClick={handleSendToPipeline}
               disabled={sentToPipeline || !prdContent || prdContent.includes("PRD not yet generated")}
-              className="w-full flex items-center justify-center gap-2 text-[10px] font-mono uppercase py-2 px-3 bg-amber-500/10 border border-amber-500/20 rounded-none hover:bg-amber-500/20 transition-colors disabled:opacity-50"
+              className="label-xs w-full flex items-center justify-center gap-2 py-2 px-3 bg-warning/10 border border-warning/20 rounded-none hover:bg-warning/20 transition-colors disabled:opacity-50"
               title="Send PRD to SRS pipeline on the Generate page"
             >
               {sentToPipeline ? (
                 <>
-                  <Check className="w-3 h-3 text-green-500" />
+                  <Check className="w-3 h-3 text-tertiary" />
                   Ready to Generate
                 </>
               ) : (

@@ -38,7 +38,6 @@ interface AvailableModel {
 export default function ProfileForm() {
   const { user } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingPrefs, setIsLoadingPrefs] = useState(true);
   const [cacheHealth, setCacheHealth] = useState<{
     status: string;
     keys_tracked: number;
@@ -84,8 +83,6 @@ export default function ProfileForm() {
       }));
     } catch {
       // Prefs unavailable - use defaults
-    } finally {
-      setIsLoadingPrefs(false);
     }
   }, []);
 
@@ -168,33 +165,33 @@ export default function ProfileForm() {
               className="h-full w-full object-cover grayscale opacity-80"
             />
           ) : (
-            <div className="h-full w-full flex items-center justify-center text-3xl font-mono font-bold text-primary/40">
+            <div className="h-full w-full flex items-center justify-center text-3xl font-mono font-bold text-primary/80">
               {user?.full_name?.[0] || "?"}
             </div>
           )}
         </div>
         <div className="space-y-1">
-          <div className="text-[10px] font-mono text-primary/60 uppercase tracking-widest leading-none">Account</div>
-          <h2 className="text-3xl font-mono font-bold uppercase tracking-tighter">{user?.full_name}</h2>
+          <div className="label-xs text-primary/80">Account</div>
+          <h2 className="text-3xl font-bold tracking-[-0.03em]">{user?.full_name}</h2>
           <p className="text-sm font-mono text-muted-foreground uppercase opacity-70">{user?.email}</p>
         </div>
       </div>
 
       <Tabs defaultValue="api-keys" className="w-full">
         <TabsList className="grid w-full grid-cols-4 h-12 bg-primary/5 rounded-none border-2 border-primary/10 p-1">
-          <TabsTrigger value="api-keys" className="rounded-none font-mono uppercase text-[10px] tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsTrigger value="api-keys" className="label-xs rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <Key className="mr-2 h-3.5 w-3.5" />
             API Keys
           </TabsTrigger>
-          <TabsTrigger value="persona" className="rounded-none font-mono uppercase text-[10px] tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsTrigger value="persona" className="label-xs rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <User className="mr-2 h-3.5 w-3.5" />
             Persona
           </TabsTrigger>
-          <TabsTrigger value="models" className="rounded-none font-mono uppercase text-[10px] tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsTrigger value="models" className="label-xs rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <Cpu className="mr-2 h-3.5 w-3.5" />
             Models
           </TabsTrigger>
-          <TabsTrigger value="observability" className="rounded-none font-mono uppercase text-[10px] tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsTrigger value="observability" className="label-xs rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <Activity className="mr-2 h-3.5 w-3.5" />
             Telemetry
           </TabsTrigger>
@@ -204,14 +201,14 @@ export default function ProfileForm() {
         <TabsContent value="api-keys" className="mt-6">
           <Card className="rounded-none border-2 border-primary/20 bg-background/50">
             <CardHeader className="border-b border-primary/10 pb-4">
-              <CardTitle className="font-mono uppercase tracking-widest text-sm">API Keys</CardTitle>
-              <CardDescription className="font-sans italic text-xs">
+              <CardTitle className="label-sm">API Keys</CardTitle>
+              <CardDescription className="font-sans text-xs">
                 Manage your API keys for accessing AI services.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 pt-6">
               <div className="space-y-3">
-                <Label htmlFor="nvidia-key" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">NVIDIA API Key</Label>
+                <Label htmlFor="nvidia-key" className="label-xs text-primary/80">NVIDIA API Key</Label>
                 <Input
                   id="nvidia-key"
                   type="password"
@@ -220,7 +217,7 @@ export default function ProfileForm() {
                   onChange={(e) => setFormData({ ...formData, nvidiaApiKey: e.target.value })}
                   className="rounded-none border-primary/20 bg-background font-mono text-sm focus-visible:ring-primary/30 h-10"
                 />
-                <p className="text-[10px] italic font-sans text-muted-foreground">
+                <p className="text-xs font-sans text-muted-foreground">
                   Your personal NVIDIA NIM API key for AI model access.
                 </p>
               </div>
@@ -232,8 +229,8 @@ export default function ProfileForm() {
         <TabsContent value="persona" className="mt-6">
           <Card className="rounded-none border-2 border-primary/20 bg-background/50">
             <CardHeader className="border-b border-primary/10 pb-4">
-              <CardTitle className="font-mono uppercase tracking-widest text-sm">Your Persona</CardTitle>
-              <CardDescription className="font-sans italic text-xs">
+              <CardTitle className="label-sm">Your Persona</CardTitle>
+              <CardDescription className="font-sans text-xs">
                 Choose how the PRD agent interacts with you. This affects the types of questions asked.
               </CardDescription>
             </CardHeader>
@@ -258,21 +255,21 @@ export default function ProfileForm() {
         <TabsContent value="models" className="mt-6">
           <Card className="rounded-none border-2 border-primary/20 bg-background/50">
             <CardHeader className="border-b border-primary/10 pb-4">
-              <CardTitle className="font-mono uppercase tracking-widest text-sm">Model Configuration</CardTitle>
-              <CardDescription className="font-sans italic text-xs">
+              <CardTitle className="label-sm">Model Configuration</CardTitle>
+              <CardDescription className="font-sans text-xs">
                 Choose which AI models to use for each task. Models are fetched from NVIDIA NIM.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
               {modelsLoading ? (
-                <div className="flex items-center gap-3 p-4 border border-primary/10 bg-primary/5">
+                <div className="flex items-center gap-3 p-4 bg-primary/5">
                   <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Loading available models...</span>
+                  <span className="label-xs text-muted-foreground">Loading available models...</span>
                 </div>
               ) : modelsError ? (
-                <div className="flex items-center gap-3 p-4 border border-amber-500/30 bg-amber-500/5">
-                  <AlertTriangle className="h-4 w-4 text-amber-500" />
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-amber-600">Could not fetch models. Using cached list.</span>
+                <div className="accent-note flex items-center gap-3 p-4 border-warning bg-warning/5">
+                  <AlertTriangle className="h-4 w-4 text-warning" />
+                  <span className="label-xs text-warning">Could not fetch models. Using cached list.</span>
                 </div>
               ) : null}
 
@@ -280,8 +277,8 @@ export default function ProfileForm() {
                 <>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="chat-model" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Chat Model</Label>
-                      <span className="text-[9px] font-mono text-muted-foreground">{availableModels.length} available</span>
+                      <Label htmlFor="chat-model" className="label-xs text-primary/80">Chat Model</Label>
+                      <span className="text-xs font-mono text-muted-foreground">{availableModels.length} available</span>
                     </div>
                     <Select
                       value={formData.chatModel || "__default__"}
@@ -291,21 +288,21 @@ export default function ProfileForm() {
                         <SelectValue placeholder="Use backend default" />
                       </SelectTrigger>
                       <SelectContent className="rounded-none border-primary/20 max-h-60">
-                        <SelectItem value="__default__" className="font-mono text-[11px] italic text-muted-foreground">Backend default</SelectItem>
+                        <SelectItem value="__default__" className="font-mono text-xs text-muted-foreground">Backend default</SelectItem>
                         {availableModels.map((model) => (
-                          <SelectItem key={model.id} value={model.id} className="font-mono text-[11px]">
+                          <SelectItem key={model.id} value={model.id} className="font-mono text-xs">
                             {model.id}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <p className="text-[10px] italic font-sans text-muted-foreground font-medium">
+                    <p className="text-xs font-sans text-muted-foreground font-medium">
                       Used for code generation and multi-agent tasks.
                     </p>
                   </div>
 
                   <div className="space-y-3">
-                    <Label htmlFor="summary-model" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Summary Model</Label>
+                    <Label htmlFor="summary-model" className="label-xs text-primary/80">Summary Model</Label>
                     <Select
                       value={formData.summaryModel || "__default__"}
                       onValueChange={(value) => setFormData({ ...formData, summaryModel: value === "__default__" ? "" : value })}
@@ -314,9 +311,9 @@ export default function ProfileForm() {
                         <SelectValue placeholder="Use backend default" />
                       </SelectTrigger>
                       <SelectContent className="rounded-none border-primary/20 max-h-60">
-                        <SelectItem value="__default__" className="font-mono text-[11px] italic text-muted-foreground">Backend default</SelectItem>
+                        <SelectItem value="__default__" className="font-mono text-xs text-muted-foreground">Backend default</SelectItem>
                         {availableModels.filter((m) => m.supports_tools !== false).map((model) => (
-                          <SelectItem key={model.id} value={model.id} className="font-mono text-[11px]">
+                          <SelectItem key={model.id} value={model.id} className="font-mono text-xs">
                             {model.id}
                           </SelectItem>
                         ))}
@@ -325,7 +322,7 @@ export default function ProfileForm() {
                   </div>
 
                   <div className="space-y-3">
-                    <Label htmlFor="embedding-model" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Embedding Model</Label>
+                    <Label htmlFor="embedding-model" className="label-xs text-primary/80">Embedding Model</Label>
                     <Select
                       value={formData.embeddingModel || "__default__"}
                       onValueChange={(value) => setFormData({ ...formData, embeddingModel: value === "__default__" ? "" : value })}
@@ -334,9 +331,9 @@ export default function ProfileForm() {
                         <SelectValue placeholder="Use backend default" />
                       </SelectTrigger>
                       <SelectContent className="rounded-none border-primary/20 max-h-60">
-                        <SelectItem value="__default__" className="font-mono text-[11px] italic text-muted-foreground">Backend default</SelectItem>
+                        <SelectItem value="__default__" className="font-mono text-xs text-muted-foreground">Backend default</SelectItem>
                         {availableModels.filter((m) => m.id.includes("embed")).map((model) => (
-                          <SelectItem key={model.id} value={model.id} className="font-mono text-[11px]">
+                          <SelectItem key={model.id} value={model.id} className="font-mono text-xs">
                             {model.id}
                           </SelectItem>
                         ))}
@@ -353,16 +350,16 @@ export default function ProfileForm() {
         <TabsContent value="observability" className="mt-6">
           <Card className="rounded-none border-2 border-primary/20 bg-background/50">
             <CardHeader className="border-b border-primary/10 pb-4">
-              <CardTitle className="font-mono uppercase tracking-widest text-sm">LangSmith Tracing</CardTitle>
-              <CardDescription className="font-sans italic text-xs">
+              <CardTitle className="label-sm">LangSmith Tracing</CardTitle>
+              <CardDescription className="font-sans text-xs">
                 Configure LangSmith for monitoring and debugging.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
-              <div className="flex items-center justify-between p-4 border border-primary/10 bg-primary/5">
+              <div className="flex items-center justify-between p-4 bg-primary/5">
                 <Label htmlFor="tracing-enabled" className="flex flex-col space-y-1 cursor-pointer">
-                  <span className="font-mono uppercase text-[11px] font-bold tracking-widest">Enable Tracing</span>
-                  <span className="font-normal text-[10px] text-muted-foreground uppercase">
+                  <span className="label-sm">Enable Tracing</span>
+                  <span className="font-normal text-xs text-muted-foreground uppercase">
                     Enable LangSmith monitoring
                   </span>
                 </Label>
@@ -375,7 +372,7 @@ export default function ProfileForm() {
               </div>
 
               <div className="space-y-3">
-                <Label htmlFor="langsmith-key" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">LangSmith API Key</Label>
+                <Label htmlFor="langsmith-key" className="label-xs text-primary/80">LangSmith API Key</Label>
                 <Input
                   id="langsmith-key"
                   type="password"
@@ -388,7 +385,7 @@ export default function ProfileForm() {
               </div>
 
               <div className="space-y-3">
-                <Label htmlFor="project-name" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Project Name</Label>
+                <Label htmlFor="project-name" className="label-xs text-primary/80">Project Name</Label>
                 <Input
                   id="project-name"
                   placeholder="e.g. my-specs-project"
@@ -404,34 +401,34 @@ export default function ProfileForm() {
           <div className="mt-6">
             <Card className="rounded-none border-2 border-primary/20 bg-background/50">
               <CardHeader className="border-b border-primary/10 pb-4">
-                <CardTitle className="font-mono uppercase tracking-widest text-sm">Cache &amp; Data</CardTitle>
-                <CardDescription className="font-sans italic text-xs">
+                <CardTitle className="label-sm">Cache &amp; Data</CardTitle>
+                <CardDescription className="font-sans text-xs">
                   Monitor and manage the observability data cache.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pt-6">
                 {/* Health indicator row */}
-                <div className="flex items-center justify-between p-4 border border-primary/10 bg-primary/5">
+                <div className="flex items-center justify-between p-4 bg-primary/5">
                   <div className="flex items-center gap-3">
                     <Database className="h-4 w-4 text-primary/60" />
                     <div className="flex flex-col">
-                      <span className="font-mono uppercase text-[11px] font-bold tracking-widest">Cache Health</span>
+                      <span className="label-sm">Cache Health</span>
                       {cacheHealth ? (
-                        <span className="text-[10px] text-muted-foreground uppercase">
+                        <span className="text-xs text-muted-foreground uppercase">
                           {cacheHealth.keys_tracked} key{cacheHealth.keys_tracked !== 1 ? "s" : ""} tracked &middot; {cacheHealth.ttl_seconds}s TTL
                         </span>
                       ) : (
-                        <span className="text-[10px] text-muted-foreground uppercase">Checking...</span>
+                        <span className="text-xs text-muted-foreground uppercase">Checking...</span>
                       )}
                     </div>
                   </div>
                   {cacheHealth ? (
                     <Badge
                       variant="outline"
-                      className={`rounded-none font-mono text-[10px] uppercase tracking-wider ${
+                      className={`label-xs rounded-none ${
                         cacheHealth.status === "ok"
-                          ? "border-green-500/50 text-green-600 bg-green-500/5"
-                          : "border-amber-500/50 text-amber-600 bg-amber-500/5"
+                          ? "border-tertiary/50 text-tertiary bg-tertiary/5"
+                          : "border-warning/50 text-warning bg-warning/5"
                       }`}
                     >
                       {cacheHealth.status === "ok" ? "Connected" : "Degraded"}
@@ -447,7 +444,7 @@ export default function ProfileForm() {
                   variant="outline"
                   disabled={cacheLoading}
                   onClick={handleRefreshCache}
-                  className="w-full rounded-none border-primary/20 font-mono text-[10px] uppercase tracking-widest h-10"
+                  className="label-xs w-full rounded-none border-primary/20 h-10"
                 >
                   <RotateCcw className={`mr-2 h-3.5 w-3.5 ${cacheLoading ? "animate-spin" : ""}`} />
                   {cacheLoading ? "Clearing..." : "Refresh Data"}
@@ -462,7 +459,8 @@ export default function ProfileForm() {
         <Button 
           type="submit" 
           disabled={isLoading}
-          className="rounded-none font-mono uppercase text-[11px] tracking-[0.2em] px-10 py-6 border-2 border-primary/50 bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
+          size="xl"
+          className="px-10 py-6"
         >
           {isLoading ? (
             <>Saving...</>

@@ -37,6 +37,7 @@ vi.mock('@/lib/api', () => ({
 }));
 
 import { useWorkspace } from '@/hooks/use-workspace';
+import { api } from '@/lib/api';
 
 const mockUseWorkspace = useWorkspace as unknown as ReturnType<typeof vi.fn>;
 
@@ -181,7 +182,7 @@ describe('DocSection', () => {
   it('shows pending message when pending', () => {
     const pendingSection = { ...baseSection, status: 'pending' as const, content: '' };
     render(<DocSection section={pendingSection} isRefinementMode={false} />);
-    expect(screen.getByText('Waiting to generate...')).toBeDefined();
+    expect(screen.getByText('Queued')).toBeDefined();
   });
 
   it('shows refine button on hover in refinement mode', () => {
@@ -223,6 +224,33 @@ describe('DocSection', () => {
       // localhost, which production users should never have seen.
       expect(setError).toHaveBeenCalledWith(expect.stringMatching(/\S/));
       expect(applyRefinement).not.toHaveBeenCalled();
+    });
+  });
+
+  it('sends the section content with the refine request', async () => {
+    // The backend's RefineRequest requires `content`; sending only
+    // {section_id, prompt} 422'd every call, and the catch reported it as a
+    // network error - so the marquee refine interaction had never worked.
+    mockUseWorkspace.mockReturnValue({
+      applyRefinement: vi.fn(),
+      undoRefinement: vi.fn(),
+      refinementHistory: [],
+      setError: vi.fn(),
+    });
+    render(<DocSection section={baseSection} isRefinementMode={true} />);
+
+    fireEvent.click(screen.getByTitle('Refine section'));
+    fireEvent.change(screen.getByPlaceholderText(/Make this more technical/i), {
+      target: { value: 'Add pricing details' },
+    });
+    fireEvent.click(screen.getByText('Apply'));
+
+    await waitFor(() => {
+      expect(api.refineSection).toHaveBeenCalledWith(
+        baseSection.id,
+        baseSection.content,
+        'Add pricing details',
+      );
     });
   });
 });

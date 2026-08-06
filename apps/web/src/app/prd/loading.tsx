@@ -7,7 +7,7 @@ export default function PrdLoading() {
           <div className="h-10 w-72 bg-muted rounded animate-pulse" />
           <div className="h-4 w-96 bg-muted/50 rounded animate-pulse" />
         </div>
-        <div className="h-10 w-40 bg-primary/10 border border-primary/20 rounded animate-pulse" />
+        <div className="h-10 w-40 bg-primary/10 rounded animate-pulse" />
       </div>
 
       {/* Content skeleton */}
@@ -20,7 +20,7 @@ export default function PrdLoading() {
               {/* Chat messages skeleton */}
               {[...Array(4)].map((_, i) => (
                 <div key={i} className={`flex ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
-                  <div className={`h-20 ${i % 2 === 0 ? 'w-3/4' : 'w-1/2'} bg-primary/10 rounded-lg animate-pulse`} />
+                  <div className={`h-20 ${i % 2 === 0 ? 'w-3/4' : 'w-1/2'} bg-primary/10 rounded-sm animate-pulse`} />
                 </div>
               ))}
             </div>

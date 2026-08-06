@@ -18,6 +18,7 @@ export function parseSSEDataLine<T = unknown>(line: string): T | null {
 export async function readSSEStream<T = unknown>(
   response: Response,
   onEvent: (event: T) => void,
+  signal?: AbortSignal,
 ): Promise<void> {
   if (!response.body) {
     throw new Error('Streaming response has no body');
@@ -27,8 +28,16 @@ export async function readSSEStream<T = unknown>(
   const decoder = new TextDecoder();
   let buffer = '';
 
+  // Callers that already have a Response (the architecture page reads one
+  // handed back by the API client) had no way to stop reading it, so a stream
+  // outlived the page that started it and kept calling back into an unmounted
+  // component.
+  const onAbort = () => void reader.cancel().catch(() => {});
+  signal?.addEventListener('abort', onAbort, { once: true });
+
   try {
     while (true) {
+      if (signal?.aborted) break;
       const { done, value } = await reader.read();
       if (done) break;
 
@@ -44,6 +53,7 @@ export async function readSSEStream<T = unknown>(
       }
     }
   } finally {
+    signal?.removeEventListener('abort', onAbort);
     reader.releaseLock();
   }
 }
@@ -75,5 +85,5 @@ export async function streamSSEPost<T = unknown>(
     throw new Error(`SSE request failed: ${response.status} ${response.statusText}`);
   }
 
-  return readSSEStream<T>(response, onEvent);
+  return readSSEStream<T>(response, onEvent, signal);
 }

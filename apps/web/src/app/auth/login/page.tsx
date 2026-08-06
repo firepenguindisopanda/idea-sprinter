@@ -21,28 +21,24 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4 relative blueprint-grid">
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background pointer-events-none" />
-      
-      <Card className="w-full max-w-md rounded-none border-2 border-primary/20 bg-background/80 backdrop-blur-md relative z-10">
-        <div className="absolute -top-3 -left-3 h-6 w-6 border-l-2 border-t-2 border-primary" />
-        <div className="absolute -bottom-3 -right-3 h-6 w-6 border-r-2 border-b-2 border-primary" />
-        
-        <CardHeader className="text-center pb-8 border-b border-primary/10">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <span className="h-1.5 w-1.5 bg-primary rounded-full animate-pulse" />
-            <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-primary/60">Sign In</span>
-          </div>
-          <CardTitle className="text-3xl font-mono font-bold uppercase tracking-tight">Sign In</CardTitle>
-          <CardDescription className="font-sans italic text-sm mt-2">
-            Sign in to start building software specifications.
+    <div className="flex min-h-full items-center justify-center p-4">
+      <Card className="reticle w-full max-w-md rounded-none border border-primary/25 bg-card/80 backdrop-blur-md">
+        <CardHeader className="border-b border-primary/15 pb-6 text-center">
+          <span className="label-xs mb-4 block text-primary">Workshop Studio</span>
+          <CardTitle className="text-2xl font-bold tracking-tight">
+            Sign in to start drafting
+          </CardTitle>
+          <CardDescription className="mt-2 text-sm leading-relaxed">
+            Your drafts, saved specifications and architecture comparisons are
+            tied to your account.
           </CardDescription>
         </CardHeader>
-        
-        <CardContent className="flex flex-col gap-6 pt-8">
-          <Button 
-            className="w-full rounded-none h-14 font-mono uppercase tracking-widest border-2 border-primary/50 bg-primary text-primary-foreground hover:bg-primary/90 transition-all group" 
-            onClick={handleLogin} 
+
+        <CardContent className="flex flex-col gap-6 pt-6">
+          <Button
+            size="xl"
+            className="group w-full"
+            onClick={handleLogin}
             disabled={isLoading}
           >
             {isLoading ? (
@@ -58,14 +54,11 @@ export default function LoginPage() {
                 <span>Sign in with Google</span>
               </div>
             )}
-            <span className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity"> {">"} </span>
           </Button>
-          
-          <div className="text-center">
-            <p className="text-[10px] font-mono uppercase text-muted-foreground tracking-tighter">
-              By continuing, you agree to our terms of service.
-            </p>
-          </div>
+
+          <p className="label-xs text-center leading-relaxed text-muted-foreground">
+            By continuing, you agree to our terms of service.
+          </p>
         </CardContent>
       </Card>
     </div>

@@ -71,37 +71,37 @@ export default function ExamplesModal({ open, onOpenChange, request = null, isLo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         id="gen-ex-modal"
-        className="w-[90vw] max-w-6xl max-h-[85vh] overflow-y-auto rounded-none border-2 border-primary/20 bg-background/95 backdrop-blur-xl blueprint-grid"
+        className="w-[90vw] max-w-6xl max-h-[85vh] overflow-y-auto rounded-none border border-primary/25 bg-popover/95 backdrop-blur-xl"
         onEscapeKeyDown={() => onOpenChange(false)}
       >
         <DialogHeader className="border-b border-primary/10 pb-6">
           <div className="flex items-center gap-2 mb-2">
             <span className="h-2 w-2 bg-primary animate-pulse" />
-            <DialogTitle className="font-mono uppercase tracking-[0.2em] text-xl">Generated_Mockups</DialogTitle>
+            <DialogTitle className="label-lg text-xl">Generated_Mockups</DialogTitle>
           </div>
-          <DialogDescription className="font-sans italic text-muted-foreground">
+          <DialogDescription className="font-sans text-muted-foreground">
             Select an architectural template to initialize the project specification. 
             All mockups are AI-generated based on current system parameters.
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-wrap items-center justify-between gap-6 py-4 border-b border-primary/5">
-          <div className="flex items-center gap-4 bg-primary/5 px-4 py-2 border border-primary/10">
+          <div className="flex items-center gap-4 bg-primary/5 px-4 py-2">
             <div className="flex items-center gap-2">
               <Switch aria-label="Stream" id="stream-mode" checked={useStream} onCheckedChange={(v) => setUseStream(Boolean(v))} className="data-[state=checked]:bg-primary" />
-              <Label htmlFor="stream-mode" className="text-[10px] font-mono uppercase tracking-widest cursor-pointer">Live_Stream</Label>
+              <Label htmlFor="stream-mode" className="label-xs cursor-pointer">Live_Stream</Label>
             </div>
             {useStream && gen.isLoading && (
-              <span className="flex items-center gap-1.5 text-[10px] font-mono uppercase text-primary animate-pulse">
+              <span className="label-xs flex items-center gap-1.5 text-primary animate-pulse">
                 <Loader2 className="h-3 w-3 animate-spin" /> Receiving_Packets...
               </span>
             )}
           </div>
           <div className="flex items-center gap-3">
             <Button
-              variant="outline"
+              variant="plate"
               size="sm"
-              className="rounded-none font-mono uppercase text-[10px] tracking-widest border-2 border-primary/20 hover:bg-primary/5"
+              className="label-xs"
               onClick={() => {
                 generatedKeyRef.current = null;
                 gen.reset();
@@ -119,22 +119,22 @@ export default function ExamplesModal({ open, onOpenChange, request = null, isLo
               Regenerate_Database
             </Button>
             <DialogClose asChild>
-              <Button variant="ghost" size="sm" className="rounded-none font-mono uppercase text-[10px] tracking-widest">Abort_View</Button>
+              <Button variant="ghost" size="sm" className="label-xs rounded-none">Abort_View</Button>
             </DialogClose>
           </div>
         </div>
 
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 auto-rows-fr pb-8">
           {(isLoading || gen.isLoading) && (
-            <div className="md:col-span-2 font-mono text-xs uppercase text-primary/60 p-12 border-2 border-dashed border-primary/20 flex flex-col items-center justify-center gap-4">
+            <div className="md:col-span-2 font-mono text-xs uppercase text-primary/80 p-12 border-2 border-dashed border-primary/20 flex flex-col items-center justify-center gap-4">
               <Loader2 className="h-8 w-8 animate-spin" />
               <div className="text-center max-w-md">
                 {gen.examples && gen.examples.length > 0 ? (
                   <div className="space-y-1">
-                    <p className="font-mono text-[10px] uppercase text-primary/70">
+                    <p className="label-xs text-primary/80">
                       Parsed concepts received: {gen.examples.length}
                     </p>
-                    <ul className="text-[10px] font-mono text-muted-foreground text-left">
+                    <ul className="text-xs font-mono text-muted-foreground text-left">
                       {gen.examples.slice(0, 3).map((ex) => (
                         <li key={ex.id}>• {ex.title}</li>
                       ))}
@@ -155,16 +155,16 @@ export default function ExamplesModal({ open, onOpenChange, request = null, isLo
 
           {!gen.isLoading && displayItems.length > 0 ? (
             displayItems.map((ex, idx) => (
-              <Card key={ex.id ?? `example-${idx}`} className="rounded-none bg-background/40 border-[3px] border-primary/10 hover:border-primary/40 transition-all flex flex-col group relative overflow-hidden">
+              <Card key={ex.id ?? `example-${idx}`} className="stamp-hover rounded-none bg-background/40 border border-primary/20 hover:border-primary/40 flex flex-col group relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-100 transition-opacity">
-                   <span className="text-[8px] font-mono uppercase font-bold text-primary">ENTITY_0{idx + 1}</span>
+                   <span className="label-xs text-primary font-bold">ENTITY_0{idx + 1}</span>
                 </div>
-                <CardHeader className="border-b border-primary/10 bg-primary/[0.02]">
-                  <CardTitle className="font-mono uppercase tracking-tight text-lg line-clamp-1">{ex.title}</CardTitle>
-                  <CardDescription className="text-[10px] font-mono uppercase tracking-tighter text-primary/60 line-clamp-1">Ref: {ex.one_line}</CardDescription>
+                <CardHeader className="bg-primary/[0.02]">
+                  <CardTitle className="label-lg text-lg line-clamp-1">{ex.title}</CardTitle>
+                  <CardDescription className="label-xs text-primary/80 line-clamp-1">Ref: {ex.one_line}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 space-y-4 p-6 font-sans">
-                  <ul className="text-xs space-y-2 text-muted-foreground italic">
+                  <ul className="text-xs space-y-2 text-muted-foreground ">
                     {(ex.scope_bullets ?? []).slice(0, 3).map((b, idx) => (
                       <li key={`${ex.id}-${idx}`} className="flex items-start gap-2">
                         <span className="text-primary mt-1">»</span>
@@ -173,7 +173,7 @@ export default function ExamplesModal({ open, onOpenChange, request = null, isLo
                     ))}
                   </ul>
                   {ex.full_text && (
-                    <div className="text-[11px] font-mono leading-relaxed text-primary/80 border border-primary/10 p-4 bg-primary/[0.03] max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20">
+                    <div className="text-xs font-mono leading-relaxed text-primary/80 p-4 bg-primary/[0.03] max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20">
                       {ex.full_text}
                     </div>
                   )}
@@ -182,7 +182,7 @@ export default function ExamplesModal({ open, onOpenChange, request = null, isLo
                   <div className="flex gap-2">
                     <Button 
                       size="sm" 
-                      className="rounded-none font-mono uppercase text-[10px] tracking-widest px-4 h-8 bg-primary/20 text-primary hover:bg-primary hover:text-white transition-all border border-primary/30" 
+                      className="label-xs rounded-none px-4 h-8 bg-primary/20 text-primary hover:bg-primary hover:text-primary-foreground transition-all border border-primary/30" 
                       onClick={() => handleSelect(buildExampleText(ex))}
                     >
                       Initialize_Node
@@ -190,7 +190,7 @@ export default function ExamplesModal({ open, onOpenChange, request = null, isLo
                     <Button 
                       size="sm" 
                       variant="ghost" 
-                      className="rounded-none font-mono uppercase text-[10px] tracking-widest px-4 h-8" 
+                      className="label-xs rounded-none px-4 h-8" 
                       onClick={() => handleCopy(buildExampleText(ex))}
                     >
                       <Copy className="mr-2 h-3 w-3" /> Copy_Data
@@ -198,7 +198,7 @@ export default function ExamplesModal({ open, onOpenChange, request = null, isLo
                   </div>
                   <div className="flex gap-1 overflow-hidden">
                     {(ex.tags ?? []).slice(0, 2).map(tag => (
-                      <span key={tag} className="text-[8px] font-mono uppercase bg-primary/10 px-1 py-0.5 border border-primary/10 text-primary/70">{tag}</span>
+                      <span key={tag} className="label-xs bg-primary/10 px-1 py-0.5 text-primary/80">{tag}</span>
                     ))}
                   </div>
                 </CardFooter>

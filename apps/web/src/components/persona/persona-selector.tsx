@@ -107,7 +107,7 @@ export function PersonaSelector({
             <div className="flex items-start gap-3">
               <PersonaIcon name={persona.icon} />
               <div className="space-y-1">
-                <h3 className="font-semibold leading-none tracking-tight">
+                <h3 className="font-bold leading-none tracking-tight">
                   {persona.name}
                 </h3>
                 <p className="text-sm text-muted-foreground">

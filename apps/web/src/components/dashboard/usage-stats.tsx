@@ -22,17 +22,17 @@ function Tile({
   readonly muted?: boolean;
 }) {
   return (
-    <div className="group relative border-2 border-primary/20 bg-background/50 p-4 transition-colors hover:border-primary/40">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-primary/60">
-          {label}
-        </span>
+    <div className="stamp-hover group relative border border-primary/20 bg-card/50 p-4 hover:border-primary/40">
+      <div className="mb-3 flex items-center justify-between">
+        <span className="label-xs text-primary/80">{label}</span>
         {icon}
       </div>
-      <div className={`font-mono text-2xl font-bold ${muted ? "text-muted-foreground" : ""}`}>
+      <div
+        className={`font-mono text-2xl font-bold tabular-nums ${muted ? "text-muted-foreground" : ""}`}
+      >
         {value}
       </div>
-      <div className="mt-1 font-mono text-[9px] uppercase text-muted-foreground">{caption}</div>
+      <div className="label-xs mt-2 leading-relaxed text-muted-foreground">{caption}</div>
     </div>
   );
 }
@@ -55,7 +55,7 @@ export default function UsageStats({ stats, isLoading = false }: UsageStatsProps
     return (
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-24 animate-pulse border-2 border-primary/10 bg-primary/5" />
+          <div key={i} className="h-28 animate-pulse bg-primary/5" />
         ))}
       </div>
     );
@@ -113,7 +113,7 @@ export default function UsageStats({ stats, isLoading = false }: UsageStatsProps
         />
       </div>
 
-      <p className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+      <p className="label-xs leading-relaxed text-muted-foreground">
         {langsmith
           ? `Model calls and tokens from LangSmith${stats.langsmith_project ? ` · ${stats.langsmith_project}` : ""} · cost estimated at call time`
           : "LangSmith unreachable - showing locally recorded figures only"}

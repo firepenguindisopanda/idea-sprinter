@@ -15,6 +15,7 @@ import {
   RotateCcw,
   Package
 } from "lucide-react";
+import { IconTile } from "@/components/ui/icon-tile";
 import ProtectedRoute from "@/components/protected-route";
 import ResultsDisplay from "@/components/generator/results-display";
 import SaveModal from "@/components/generator/save-modal";
@@ -180,9 +181,9 @@ export default function ResultsPage() {
       <ProtectedRoute>
         <div className="w-full max-w-4xl mx-auto px-6 py-16 text-center">
           <div className="border-2 border-dashed border-primary/20 p-12 space-y-6">
-            <AlertTriangle className="h-16 w-16 text-amber-500 mx-auto" />
+            <IconTile tone="warning" size="lg" className="mx-auto" ><AlertTriangle /></IconTile>
             <div className="space-y-2">
-              <h1 className="text-2xl font-mono font-bold uppercase">Session Not Found</h1>
+              <h1 className="text-2xl font-bold tracking-[-0.03em]">Session Not Found</h1>
               <p className="text-muted-foreground text-sm font-mono">
                 The generation session &quot;{sessionId}&quot; could not be found or has expired.
               </p>
@@ -190,7 +191,7 @@ export default function ResultsPage() {
             <div className="flex justify-center gap-4">
               <Button
                 onClick={() => router.push('/generate')}
-                className="rounded-none font-mono uppercase text-[10px] tracking-widest"
+                className="label-xs rounded-none"
               >
                 <RotateCcw className="h-4 w-4 mr-2" />
                 New Generation
@@ -198,7 +199,7 @@ export default function ResultsPage() {
               <Button
                 variant="outline"
                 onClick={() => router.push('/dashboard')}
-                className="rounded-none font-mono uppercase text-[10px] tracking-widest"
+                className="label-xs rounded-none"
               >
                 <Home className="h-4 w-4 mr-2" />
                 Go to Dashboard
@@ -216,7 +217,7 @@ export default function ResultsPage() {
       <ProtectedRoute>
         <div className="w-full max-w-4xl mx-auto px-6 py-16 text-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <p className="mt-4 text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
+          <p className="label-xs mt-4 text-muted-foreground">
             Loading Results...
           </p>
         </div>
@@ -231,12 +232,12 @@ export default function ResultsPage() {
         <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-primary/20 pb-6 gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-              <span className="text-[10px] font-mono text-green-500 uppercase tracking-widest">
+              <CheckCircle2 className="h-4 w-4 text-tertiary" />
+              <span className="label-xs text-tertiary">
                 Generation Complete
               </span>
             </div>
-            <h1 className="text-4xl font-mono font-bold uppercase tracking-tighter">
+            <h1 className="text-4xl font-bold tracking-[-0.03em]">
               Generated <span className="text-primary">Specifications</span>
             </h1>
             <p className="text-muted-foreground font-sans text-sm max-w-xl">
@@ -247,26 +248,26 @@ export default function ResultsPage() {
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-3">
             <Button
-              variant="outline"
+              variant="plate"
               onClick={handleNewGeneration}
-              className="rounded-none font-mono uppercase text-[10px] tracking-widest h-10 px-4 border-2 border-primary/20"
+              className="label-xs h-10 px-4"
             >
               <RotateCcw className="h-4 w-4 mr-2" />
               New Generation
             </Button>
             <Button
-              variant="outline"
+              variant="plateActive"
               onClick={() => setIsDownloadModalOpen(true)}
-              className="rounded-none font-mono uppercase text-[10px] tracking-widest h-10 px-4 border-2 border-primary bg-primary/5 hover:bg-primary/10"
+              className="label-xs h-10 px-4"
             >
               <Package className="h-4 w-4 mr-2" />
               Download Specs
             </Button>
             <Button
-              variant="outline"
+              variant="plate"
               onClick={handleDownloadPdf}
               disabled={isDownloading}
-              className="rounded-none font-mono uppercase text-[10px] tracking-widest h-10 px-4 border-2 border-primary/20"
+              className="label-xs h-10 px-4"
             >
               {isDownloading ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -278,7 +279,7 @@ export default function ResultsPage() {
             <Button
               onClick={() => setIsSaveModalOpen(true)}
               disabled={isSaving}
-              className="rounded-none font-mono uppercase text-[10px] tracking-widest h-10 px-4"
+              className="label-xs rounded-none h-10 px-4"
             >
               {isSaving ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -294,7 +295,7 @@ export default function ResultsPage() {
         {qualitySummary && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="border border-primary/20 p-4 bg-background/50">
-              <div className="text-[10px] font-mono text-muted-foreground uppercase mb-1">
+              <div className="label-xs text-muted-foreground mb-1">
                 Documents Generated
               </div>
               <div className="text-2xl font-mono font-bold text-primary">
@@ -302,7 +303,7 @@ export default function ResultsPage() {
               </div>
             </div>
             <div className="border border-primary/20 p-4 bg-background/50">
-              <div className="text-[10px] font-mono text-muted-foreground uppercase mb-1">
+              <div className="label-xs text-muted-foreground mb-1">
                 Average Quality Score
               </div>
               <div className="text-2xl font-mono font-bold text-primary">
@@ -310,7 +311,7 @@ export default function ResultsPage() {
               </div>
             </div>
             <div className="border border-primary/20 p-4 bg-background/50">
-              <div className="text-[10px] font-mono text-muted-foreground uppercase mb-1">
+              <div className="label-xs text-muted-foreground mb-1">
                 Approved by Judge
               </div>
               <div className="text-2xl font-mono font-bold text-primary">
@@ -322,10 +323,10 @@ export default function ResultsPage() {
 
         {/* Project Description Preview */}
         {projectDescription && (
-          <div className="border border-primary/10 p-4 bg-primary/5">
+          <div className="p-4 bg-primary/5">
             <div className="flex items-center gap-2 mb-2">
               <FileText className="h-4 w-4 text-primary/60" />
-              <span className="text-[10px] font-mono text-primary/60 uppercase tracking-widest">
+              <span className="label-xs text-primary/80">
                 Project Description
               </span>
             </div>
@@ -352,7 +353,7 @@ export default function ResultsPage() {
         <div className="flex justify-between items-center pt-8 border-t border-primary/10">
           <Link 
             href="/generate"
-            className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors"
+            className="label-xs flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
           >
             <ArrowLeft className="h-3 w-3" />
             Back to Generator
@@ -360,7 +361,7 @@ export default function ResultsPage() {
           
           <Link 
             href="/dashboard"
-            className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors"
+            className="label-xs flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
           >
             <Home className="h-3 w-3" />
             Go to Dashboard

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Sparkles, SkipForward, Copy, Check, Loader2, FileText } from "lucide-react";
+import { IconTile } from "@/components/ui/icon-tile";
 import ProtectedRoute from "@/components/protected-route";
 import IdeationWizard from "@/components/generator/ideation-wizard";
 import { ConceptSkeletonCard } from "@/components/generator/concept-skeleton";
@@ -148,13 +149,13 @@ export default function IdeationPage() {
         <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-primary/20 pb-6 gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 bg-amber-500 animate-pulse" />
-              <span className="text-[10px] font-mono text-amber-500/80 uppercase tracking-widest">
+              <span className="h-2 w-2 bg-primary animate-pulse" />
+              <span className="label-xs text-primary/80">
                 Ideation Module Active
               </span>
             </div>
-            <h1 className="text-4xl font-mono font-bold uppercase tracking-tighter">
-              Project <span className="text-amber-500">Ideation</span>
+            <h1 className="text-4xl font-bold tracking-[-0.03em]">
+              Project <span className="text-primary">Ideation</span>
             </h1>
             <p className="text-muted-foreground font-sans text-sm max-w-xl">
               Not sure what to build? Start with just describing your problem or vague idea, and we&apos;ll help you refine it.
@@ -164,18 +165,18 @@ export default function IdeationPage() {
           {/* Skip to Generation */}
           <div className="flex gap-2">
             <Button
-              variant="outline"
+              variant="plate"
               onClick={handleCreatePrdFromForm}
               disabled={!formData.problemStatement && !formData.title}
-              className="font-mono text-[10px] uppercase tracking-widest rounded-none h-10 px-4 border-2 border-amber-500/30 hover:bg-amber-500/10 text-amber-600"
+              className="label-xs h-10 px-4 text-primary"
             >
               <FileText className="h-4 w-4 mr-2" />
               Create PRD
             </Button>
             <Button
-              variant="outline"
+              variant="plate"
               onClick={handleSkipToGeneration}
-              className="font-mono text-[10px] uppercase tracking-widest rounded-none h-10 px-6 border-2 border-primary/20 hover:bg-primary/5"
+              className="label-xs h-10 px-6"
             >
               <SkipForward className="h-4 w-4 mr-2" />
               Skip to Generation
@@ -185,18 +186,18 @@ export default function IdeationPage() {
 
         {/* Ideation Wizard */}
         <div className="relative group">
-          <div className="absolute -left-4 top-0 bottom-0 w-1 bg-amber-500/20 group-hover:bg-amber-500/40 transition-colors" />
+          <div className="absolute -left-4 top-0 bottom-0 w-1 bg-primary/20 group-hover:bg-primary/40 transition-colors" />
           <div className="mb-6">
-            <h2 className="text-xl font-mono font-bold uppercase flex items-center gap-2">
-              <span className="text-amber-500">[01]</span> Define Your Concept
+            <h2 className="text-xl font-bold tracking-[-0.03em] flex items-center gap-2">
+              <span className="text-primary">[01]</span> Define Your Concept
             </h2>
             <p className="text-xs text-muted-foreground font-mono mt-1">
               Follow the steps below to brainstorm and refine your project idea.
             </p>
           </div>
 
-          <div className="bg-background border-2 border-amber-500/20 p-6 rounded-none relative">
-            <div className="absolute top-0 right-0 p-2 text-[8px] font-mono text-amber-500/30 select-none">
+          <div className="bg-background border-2 border-primary/20 p-6 rounded-none relative">
+            <div className="absolute top-0 right-0 p-2 text-xs font-mono text-primary/80 select-none">
               NVIDIA_NIM_ENDPOINT
             </div>
             <IdeationWizard
@@ -210,10 +211,10 @@ export default function IdeationPage() {
 
         {/* Generated Examples */}
         <div className="relative group">
-          <div className="absolute -left-4 top-0 bottom-0 w-1 bg-amber-500/20 group-hover:bg-amber-500/40 transition-colors" />
+          <div className="absolute -left-4 top-0 bottom-0 w-1 bg-primary/20 group-hover:bg-primary/40 transition-colors" />
           <div className="mb-6">
-            <h2 className="text-xl font-mono font-bold uppercase flex items-center gap-2">
-              <span className="text-amber-500">[02]</span> AI-Generated Concepts
+            <h2 className="text-xl font-bold tracking-[-0.03em] flex items-center gap-2">
+              <span className="text-primary">[02]</span> AI-Generated Concepts
             </h2>
             <p className="text-xs text-muted-foreground font-mono mt-1">
               Select a concept to use as your project description, or copy and modify.
@@ -228,19 +229,19 @@ export default function IdeationPage() {
                 {gen.examples && gen.examples.length > 0 && gen.examples.map((example, idx) => (
                   <Card 
                     key={example.id ?? `example-${idx}`} 
-                    className="rounded-none bg-background/40 border-2 border-amber-500/20 hover:border-amber-500/50 transition-all flex flex-col group relative overflow-hidden"
+                    className="stamp-hover rounded-none bg-background/40 border border-primary/20 hover:border-primary/50 flex flex-col group relative overflow-hidden"
                   >
                     <div className="absolute top-0 right-0 p-2 opacity-30 group-hover:opacity-100 transition-opacity">
-                      <span className="text-[8px] font-mono uppercase font-bold text-amber-500">
+                      <span className="label-xs text-primary font-bold">
                         CONCEPT_0{idx + 1}
                       </span>
                     </div>
                     
-                    <CardHeader className="border-b border-amber-500/10 bg-amber-500/[0.02]">
-                      <CardTitle className="font-mono uppercase tracking-tight text-lg line-clamp-1">
+                    <CardHeader className="bg-primary/[0.02]">
+                      <CardTitle className="label-lg text-lg line-clamp-1">
                         {example.title}
                       </CardTitle>
-                      <CardDescription className="text-[10px] font-mono uppercase tracking-tighter text-amber-500/60 line-clamp-1">
+                      <CardDescription className="label-xs text-primary/80 line-clamp-1">
                         {example.one_line}
                       </CardDescription>
                     </CardHeader>
@@ -249,21 +250,21 @@ export default function IdeationPage() {
                       <ul className="text-xs space-y-2 text-muted-foreground">
                         {(example.scope_bullets ?? []).slice(0, 4).map((bullet, bidx) => (
                           <li key={`${example.id}-bullet-${bidx}`} className="flex items-start gap-2">
-                            <span className="text-amber-500 mt-0.5">»</span>
+                            <span className="text-primary mt-0.5">»</span>
                             <span>{bullet}</span>
                           </li>
                         ))}
                       </ul>
                       
                       {example.full_text && (
-                        <div className="text-[11px] font-mono leading-relaxed text-muted-foreground/80 border border-amber-500/10 p-4 bg-amber-500/[0.02] max-h-24 overflow-hidden">
+                        <div className="text-xs font-mono leading-relaxed text-muted-foreground p-4 bg-primary/[0.02] max-h-24 overflow-hidden">
                           {example.full_text.slice(0, 200)}...
                         </div>
                       )}
                     </CardContent>
                     
-                    <CardFooter className="p-4 pt-0 border-t border-amber-500/10 bg-amber-500/[0.01] flex justify-between items-center gap-4 opacity-50 pointer-events-none">
-                      <div className="text-[10px] font-mono text-amber-500 uppercase flex items-center gap-2">
+                    <CardFooter className="p-4 pt-0 border-t border-primary/10 bg-primary/[0.01] flex justify-between items-center gap-4 opacity-50 pointer-events-none">
+                      <div className="label-xs text-primary flex items-center gap-2">
                         <Loader2 className="h-3 w-3 animate-spin" /> Generating...
                       </div>
                     </CardFooter>
@@ -287,7 +288,7 @@ export default function IdeationPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => gen.reset()}
-                  className="mt-4 rounded-none font-mono text-[10px] uppercase"
+                  className="label-xs mt-4 rounded-none"
                 >
                   Dismiss
                 </Button>
@@ -297,8 +298,8 @@ export default function IdeationPage() {
             {/* Empty State */}
             {!gen.isLoading && !gen.error && (!gen.examples || gen.examples.length === 0) && (
               <div className="border-2 border-dashed border-primary/20 p-12 text-center">
-                <Sparkles className="h-12 w-12 text-amber-500/30 mx-auto mb-4" />
-                <p className="font-mono text-xs uppercase text-muted-foreground tracking-widest">
+                <IconTile size="lg" className="mx-auto mb-4"><Sparkles /></IconTile>
+                <p className="label-sm text-muted-foreground">
                   Fill out the form above and click &quot;Initialize_Concepts&quot; to generate ideas.
                 </p>
               </div>
@@ -310,20 +311,20 @@ export default function IdeationPage() {
                 {gen.examples.map((example, idx) => (
                   <Card 
                     key={example.id ?? `example-${idx}`} 
-                    className="rounded-none bg-background/40 border-2 border-amber-500/20 hover:border-amber-500/50 transition-all flex flex-col group relative overflow-hidden"
+                    className="stamp-hover rounded-none bg-background/40 border border-primary/20 hover:border-primary/50 flex flex-col group relative overflow-hidden"
                   >
                     {/* Entity Badge */}
                     <div className="absolute top-0 right-0 p-2 opacity-30 group-hover:opacity-100 transition-opacity">
-                      <span className="text-[8px] font-mono uppercase font-bold text-amber-500">
+                      <span className="label-xs text-primary font-bold">
                         CONCEPT_0{idx + 1}
                       </span>
                     </div>
                     
-                    <CardHeader className="border-b border-amber-500/10 bg-amber-500/[0.02]">
-                      <CardTitle className="font-mono uppercase tracking-tight text-lg line-clamp-1">
+                    <CardHeader className="bg-primary/[0.02]">
+                      <CardTitle className="label-lg text-lg line-clamp-1">
                         {example.title}
                       </CardTitle>
-                      <CardDescription className="text-[10px] font-mono uppercase tracking-tighter text-amber-500/60 line-clamp-1">
+                      <CardDescription className="label-xs text-primary/80 line-clamp-1">
                         {example.one_line}
                       </CardDescription>
                     </CardHeader>
@@ -333,7 +334,7 @@ export default function IdeationPage() {
                       <ul className="text-xs space-y-2 text-muted-foreground">
                         {(example.scope_bullets ?? []).slice(0, 4).map((bullet, bidx) => (
                           <li key={`${example.id}-bullet-${bidx}`} className="flex items-start gap-2">
-                            <span className="text-amber-500 mt-0.5">»</span>
+                            <span className="text-primary mt-0.5">»</span>
                             <span>{bullet}</span>
                           </li>
                         ))}
@@ -341,18 +342,18 @@ export default function IdeationPage() {
                       
                       {/* Full Text Preview */}
                       {example.full_text && (
-                        <div className="text-[11px] font-mono leading-relaxed text-muted-foreground/80 border border-amber-500/10 p-4 bg-amber-500/[0.02] max-h-24 overflow-hidden">
+                        <div className="text-xs font-mono leading-relaxed text-muted-foreground p-4 bg-primary/[0.02] max-h-24 overflow-hidden">
                           {example.full_text.slice(0, 200)}...
                         </div>
                       )}
                     </CardContent>
                     
-                    <CardFooter className="p-4 pt-0 border-t border-amber-500/10 bg-amber-500/[0.01] flex justify-between items-center gap-4">
+                    <CardFooter className="p-4 pt-0 border-t border-primary/10 bg-primary/[0.01] flex justify-between items-center gap-4">
                       <div className="flex gap-2">
                         <Button
                           size="sm"
                           onClick={() => handleSelectExample(example)}
-                          className="rounded-none font-mono uppercase text-[10px] tracking-widest px-4 h-8 bg-amber-500/20 text-amber-600 hover:bg-amber-500 hover:text-white transition-all border border-amber-500/30"
+                          className="label-xs rounded-none px-4 h-8 bg-primary/20 text-primary hover:bg-primary hover:text-primary-foreground transition-all border border-primary/30"
                         >
                           Use This
                           <ArrowRight className="h-3 w-3 ml-2" />
@@ -361,7 +362,7 @@ export default function IdeationPage() {
                           size="sm"
                           variant="outline"
                           onClick={() => handleCreatePrdFromExample(example)}
-                          className="rounded-none font-mono uppercase text-[10px] tracking-widest px-3 h-8 border-amber-500/30 text-amber-600 hover:bg-amber-500/10"
+                          className="label-xs rounded-none px-3 h-8 border-primary/30 text-primary hover:bg-primary/10"
                         >
                           <FileText className="h-3 w-3 mr-1" />
                           PRD
@@ -370,11 +371,11 @@ export default function IdeationPage() {
                           size="sm"
                           variant="ghost"
                           onClick={() => handleCopyExample(example)}
-                          className="rounded-none font-mono uppercase text-[10px] tracking-widest px-4 h-8"
+                          className="label-xs rounded-none px-4 h-8"
                         >
                           {copiedId === example.id ? (
                             <>
-                              <Check className="h-3 w-3 mr-2 text-green-500" />
+                              <Check className="h-3 w-3 mr-2 text-tertiary" />
                               Copied
                             </>
                           ) : (
@@ -391,7 +392,7 @@ export default function IdeationPage() {
                         {(example.tags ?? []).slice(0, 2).map((tag) => (
                           <span 
                             key={tag} 
-                            className="text-[8px] font-mono uppercase bg-amber-500/10 px-1.5 py-0.5 border border-amber-500/20 text-amber-600/70"
+                            className="label-xs bg-primary/10 px-1.5 py-0.5 text-primary/80"
                           >
                             {tag}
                           </span>
@@ -407,12 +408,12 @@ export default function IdeationPage() {
             {!gen.isLoading && gen.examples && gen.examples.length > 0 && (
               <div className="flex justify-center pt-4">
                 <Button
-                  variant="outline"
+                  variant="plate"
                   onClick={() => {
                     gen.reset();
                     gen.generate(formData, { stream: true });
                   }}
-                  className="font-mono text-[10px] uppercase tracking-widest rounded-none border-2 border-amber-500/30 hover:bg-amber-500/10"
+                  className="label-xs"
                 >
                   <Sparkles className="h-4 w-4 mr-2" />
                   Regenerate Concepts
@@ -426,14 +427,14 @@ export default function IdeationPage() {
         <div className="flex justify-between items-center pt-8 border-t border-primary/10">
           <Link 
             href="/"
-            className="text-[10px] font-mono text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors"
+            className="label-xs text-muted-foreground hover:text-primary transition-colors"
           >
             ← Back to Home
           </Link>
           
           <Link 
             href="/generate"
-            className="text-[10px] font-mono text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors flex items-center gap-2"
+            className="label-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
           >
             Go to Generation
             <ArrowRight className="h-3 w-3" />

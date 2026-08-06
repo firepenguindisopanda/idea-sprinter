@@ -28,7 +28,11 @@ export function DocSection({ section, isRefinementMode }: DocSectionProps) {
     setIsRefining(true);
 
     try {
-      const response = await api.refineSection(section.id, refinePrompt.trim());
+      const response = await api.refineSection(
+        section.id,
+        section.content,
+        refinePrompt.trim(),
+      );
       applyRefinement({
         sectionId: section.id,
         prompt: refinePrompt.trim(),
@@ -48,16 +52,16 @@ export function DocSection({ section, isRefinementMode }: DocSectionProps) {
   const statusIcon = (() => {
     if (section.status === "generating") {
       return (
-        <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse" />
+        <span className="pulse-rule inline-block h-2 w-2 bg-primary" />
       );
     }
     if (section.status === "pending") {
       return (
-        <span className="inline-block w-2 h-2 rounded-full bg-muted-foreground/30" />
+        <span className="inline-block h-2 w-2 border border-muted-foreground/40" />
       );
     }
     return (
-      <span className="inline-block w-2 h-2 rounded-full bg-emerald-500" />
+      <span className="inline-block h-2 w-2 bg-tertiary" />
     );
   })();
 
@@ -80,7 +84,7 @@ export function DocSection({ section, isRefinementMode }: DocSectionProps) {
             variant="outline"
             size="icon"
             onClick={() => setShowRefine(true)}
-            className="h-8 w-8 rounded-full shadow-sm bg-background"
+            className="h-8 w-8 rounded-sm bg-card"
             title="Refine section"
           >
             <Wand2 className="h-4 w-4 text-muted-foreground" />
@@ -90,7 +94,7 @@ export function DocSection({ section, isRefinementMode }: DocSectionProps) {
               variant="outline"
               size="icon"
               onClick={() => undoRefinement(section.id)}
-              className="h-8 w-8 rounded-full shadow-sm bg-background"
+              className="h-8 w-8 rounded-sm bg-card"
               title="Undo refinement"
             >
               <Undo2 className="h-4 w-4 text-muted-foreground" />
@@ -100,7 +104,7 @@ export function DocSection({ section, isRefinementMode }: DocSectionProps) {
       )}
 
       <div className="mb-4">
-        <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
+        <h2 className="flex items-center gap-3 text-2xl font-bold tracking-tight text-foreground">
           {statusIcon}
           {section.title}
         </h2>
@@ -116,18 +120,16 @@ export function DocSection({ section, isRefinementMode }: DocSectionProps) {
         </Markdown>
       ) : section.status === "generating" ? (
         <div className="space-y-3">
-          <div className="h-4 w-full bg-muted/50 rounded animate-pulse" />
-          <div className="h-4 w-5/6 bg-muted/50 rounded animate-pulse" />
-          <div className="h-4 w-4/6 bg-muted/50 rounded animate-pulse" />
+          <div className="h-3 w-full animate-pulse bg-muted/60" />
+          <div className="h-3 w-5/6 animate-pulse bg-muted/60" />
+          <div className="h-3 w-4/6 animate-pulse bg-muted/60" />
         </div>
       ) : (
-        <div className="text-sm text-muted-foreground/30 italic">
-          Waiting to generate...
-        </div>
+        <div className="label-xs text-muted-foreground">Queued</div>
       )}
 
       {isRefinementMode && showRefine && (
-        <div className="mt-6 p-4 rounded-xl border border-border bg-muted/30 space-y-3">
+        <div className="mt-6 space-y-3 rounded-sm border border-primary/25 bg-card p-4">
           <p className="text-xs font-medium text-muted-foreground">
             How would you like to refine this section?
           </p>
@@ -137,7 +139,7 @@ export function DocSection({ section, isRefinementMode }: DocSectionProps) {
               onChange={(e) => setRefinePrompt(e.target.value)}
               placeholder="e.g., Make this more technical, Add pricing details, Simplify the language..."
               rows={2}
-              className="flex-1 resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
+              className="flex-1 resize-none rounded-sm border border-input bg-surface-sunken/60 px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
             />
             <div className="flex flex-col gap-1">
               <Button
@@ -169,7 +171,7 @@ export function DocSection({ section, isRefinementMode }: DocSectionProps) {
                 <button
                   key={suggestion}
                   onClick={() => setRefinePrompt(suggestion)}
-                  className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-background border border-border text-muted-foreground hover:bg-muted transition-colors"
+                  className="label-xs rounded-xs border border-border bg-card px-2 py-1 text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
                 >
                   {suggestion}
                 </button>

@@ -63,14 +63,14 @@ export default function ArchitectureChat({
             key={idx} 
             className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
           >
-            <div className={`p-2 rounded-full ${msg.role === 'user' ? 'bg-primary/10' : 'bg-amber-500/10'}`}>
+            <div className={`p-2 ${msg.role === 'user' ? 'bg-primary/10' : 'bg-secondary'}`}>
               {msg.role === 'user' ? (
                 <User className="h-4 w-4 text-primary" />
               ) : (
-                <Bot className="h-4 w-4 text-amber-500" />
+                <Bot className="h-4 w-4 text-warning" />
               )}
             </div>
-            <div className={`flex-1 p-3 ${msg.role === 'user' ? 'bg-primary/5 text-right' : 'bg-amber-500/5'} border border-primary/10`}>
+            <div className={`flex-1 p-3 ${msg.role === 'user' ? 'bg-primary/5 text-right' : 'bg-warning/5'} border border-primary/10`}>
               <p className="text-sm">{msg.content}</p>
             </div>
           </div>
@@ -98,7 +98,7 @@ export default function ArchitectureChat({
           <Button 
             onClick={handleRefine}
             disabled={isRefining || !message.trim()}
-            className="font-mono uppercase text-[10px]"
+            className="label-xs"
           >
             {isRefining ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>

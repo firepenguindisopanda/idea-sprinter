@@ -143,19 +143,19 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
             <div key={s.id} className="flex items-center">
               <div className="flex items-center gap-2">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
+                  className={`flex h-10 w-10 items-center justify-center border transition-colors ${
                     isActive
-                      ? "border-amber-500 bg-amber-500 text-white"
+                      ? "border-primary bg-primary text-primary-foreground"
                       : isCompleted
-                      ? "border-green-500 bg-green-500 text-white"
+                      ? "border-tertiary bg-tertiary text-tertiary-foreground"
                       : "border-muted bg-muted/30 text-muted-foreground"
                   }`}
                 >
                   <Icon className="w-5 h-5" />
                 </div>
                 <span
-                  className={`text-sm font-mono uppercase tracking-wider ${
-                    isActive ? "text-amber-500" : isCompleted ? "text-green-500" : "text-muted-foreground"
+                  className={`label-sm ${
+                    isActive ? "text-primary" : isCompleted ? "text-tertiary" : "text-muted-foreground"
                   }`}
                 >
                   {s.label}
@@ -170,16 +170,16 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
       </div>
 
       {step === "problem" && (
-        <Card className="border-amber-500/20 animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <Card className="border-primary/20 animate-in fade-in slide-in-from-bottom-2 duration-500">
           <CardHeader>
             <CardTitle className="text-xl font-mono uppercase flex items-center gap-2">
-              <Target className="w-5 h-5 text-amber-500" />
+              <Target className="w-5 h-5 text-primary" />
               Describe your problem or idea
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+              <Label className="label-sm text-muted-foreground">
                 Don&apos;t worry about structure - just describe what you&apos;re thinking
               </Label>
               <Textarea
@@ -190,12 +190,12 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
               />
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>{charCount} characters</span>
-                <span className="text-amber-500/60">No title needed - just describe!</span>
+                <span className="text-primary/80">No title needed - just describe!</span>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+              <Label className="label-sm text-muted-foreground">
                 Stuck? Try one of these:
               </Label>
               <div className="flex flex-wrap gap-2">
@@ -203,7 +203,7 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
                   <Badge
                     key={i}
                     variant="outline"
-                    className="cursor-pointer rounded-none border-dashed border-amber-500/30 hover:bg-amber-500/10 text-xs font-mono"
+                    className="cursor-pointer rounded-none border-dashed border-primary/30 hover:bg-primary/10 text-xs font-mono"
                     onClick={() => setRawInput(suggestion)}
                   >
                     {suggestion.slice(0, 35)}...
@@ -216,23 +216,23 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
       )}
 
       {step === "refine" && (
-        <Card className="border-amber-500/20 animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <Card className="border-primary/20 animate-in fade-in slide-in-from-bottom-2 duration-500">
           <CardHeader>
             <CardTitle className="text-xl font-mono uppercase flex items-center gap-2">
-              <Lightbulb className="w-5 h-5 text-amber-500" />
+              <Lightbulb className="w-5 h-5 text-primary" />
               {isExtracting ? "Analyzing your idea..." : "We extracted this from your description"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="bg-amber-500/5 border border-amber-500/20 p-4 rounded-md">
-              <p className="text-xs font-mono uppercase text-amber-500 mb-2">Original description:</p>
-              <p className="text-sm italic text-muted-foreground">&quot;{rawInput.slice(0, 200)}{rawInput.length > 200 ? "..." : ""}&quot;</p>
+            <div className="bg-primary/5 p-4 rounded-sm">
+              <p className="text-xs font-mono uppercase text-primary mb-2">Original description:</p>
+              <p className="text-sm text-muted-foreground">&quot;{rawInput.slice(0, 200)}{rawInput.length > 200 ? "..." : ""}&quot;</p>
             </div>
 
             {isExtracting ? (
               <div className="flex items-center justify-center py-8">
                 <div className="flex flex-col items-center gap-3">
-                  <RotateCcw className="w-8 h-8 text-amber-500 animate-spin" />
+                  <RotateCcw className="w-8 h-8 text-primary animate-spin" />
                   <p className="text-xs font-mono text-muted-foreground">Extracting suggestions...</p>
                 </div>
               </div>
@@ -240,7 +240,7 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
               <>
                 <div className="grid gap-4">
                   <div className="space-y-2">
-                    <Label className="text-xs font-mono uppercase tracking-widest">Suggested Title</Label>
+                    <Label className="label-sm">Suggested Title</Label>
                     <Input
                       value={extracted.suggestedTitle || ""}
                       onChange={(e) => setExtracted({ ...extracted, suggestedTitle: e.target.value })}
@@ -250,7 +250,7 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xs font-mono uppercase tracking-widest">Target Audience</Label>
+                    <Label className="label-sm">Target Audience</Label>
                     <Input
                       value={extracted.suggestedAudience || ""}
                       onChange={(e) => setExtracted({ ...extracted, suggestedAudience: e.target.value })}
@@ -263,7 +263,7 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
                 <div className="flex gap-3">
                   <Button
                     onClick={handleApplyAndContinue}
-                    className="rounded-none font-mono uppercase text-xs tracking-widest"
+                    className="label-sm rounded-none"
                   >
                     <Sparkles className="w-4 h-4 mr-2" />
                     Apply &amp; Continue
@@ -271,7 +271,7 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
                   <Button
                     variant="outline"
                     onClick={() => setExtracted({})}
-                    className="rounded-none font-mono uppercase text-xs tracking-widest"
+                    className="label-sm rounded-none"
                   >
                     Start Fresh
                   </Button>
@@ -283,17 +283,17 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
       )}
 
       {step === "context" && (
-        <Card className="border-amber-500/20 animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <Card className="border-primary/20 animate-in fade-in slide-in-from-bottom-2 duration-500">
           <CardHeader>
             <CardTitle className="text-xl font-mono uppercase flex items-center gap-2">
-              <Settings className="w-5 h-5 text-amber-500" />
+              <Settings className="w-5 h-5 text-primary" />
               Additional context (optional)
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+                <Label className="label-sm text-muted-foreground">
                   Tech Stack (optional)
                 </Label>
                 <Input
@@ -305,7 +305,7 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
               </div>
 
               <div className="space-y-2">
-                <Label className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+                <Label className="label-sm text-muted-foreground">
                   Domain / Industry (optional)
                 </Label>
                 <Input
@@ -318,7 +318,7 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+              <Label className="label-sm text-muted-foreground">
                 Must-have features (optional)
               </Label>
               <Textarea
@@ -336,7 +336,7 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+              <Label className="label-sm text-muted-foreground">
                 Constraints (optional)
               </Label>
               <Input
@@ -351,15 +351,15 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
       )}
 
       {step === "generate" && (
-        <Card className="border-amber-500/20 animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <Card className="border-primary/20 animate-in fade-in slide-in-from-bottom-2 duration-500">
           <CardHeader>
             <CardTitle className="text-xl font-mono uppercase flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-amber-500" />
+              <Sparkles className="w-5 h-5 text-primary" />
               Ready to generate concepts
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="bg-amber-500/5 border border-amber-500/20 p-4 rounded-md">
+            <div className="bg-primary/5 p-4 rounded-sm">
               <div className="grid gap-2 text-sm">
                 {value.title && (
                   <div className="flex gap-2">
@@ -386,16 +386,16 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
               <Button
                 variant="outline"
                 onClick={() => setStep("context")}
-                className="rounded-none font-mono uppercase text-xs tracking-widest"
+                className="label-sm rounded-none"
               >
                 <ChevronLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
 
-              <Button
+              <Button size="xl"
                 onClick={() => onSubmit(value)}
                 disabled={isLoading}
-                className="rounded-none font-mono uppercase text-xs tracking-widest px-8 py-6 bg-amber-500 hover:bg-amber-600"
+                
               >
                 {isLoading ? (
                   <>
@@ -419,7 +419,7 @@ export default function IdeationWizard({ value, onChange, onSubmit, isLoading }:
           <Button
             onClick={handleNext}
             disabled={(step === "problem" && !rawInput.trim()) || isLoading}
-            className="rounded-none font-mono uppercase text-xs tracking-widest px-8"
+            className="label-sm rounded-none px-8"
           >
             {step === "context" ? "Review" : "Continue"}
             <ChevronRight className="w-4 h-4 ml-2" />

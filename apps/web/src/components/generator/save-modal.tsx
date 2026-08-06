@@ -70,16 +70,16 @@ export default function SaveModal({
           <DialogHeader className="border-b border-primary/10 pb-4">
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 bg-primary" />
-              <DialogTitle className="font-mono uppercase tracking-widest">Save Project</DialogTitle>
+              <DialogTitle className="label-lg">Save Project</DialogTitle>
             </div>
-            <DialogDescription className="font-sans italic text-sm">
+            <DialogDescription className="font-sans text-sm">
               Give your project a name and save it to your dashboard.
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-6 py-8">
             <div className="space-y-2">
-              <Label htmlFor="title" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Project Name *</Label>
+              <Label htmlFor="title" className="label-xs text-primary/80">Project Name *</Label>
               <Input
                 id="title"
                 placeholder="My Project"
@@ -88,11 +88,11 @@ export default function SaveModal({
                 disabled={isSaving}
                 className={`rounded-none border-primary/20 bg-background/50 font-mono text-sm focus-visible:ring-primary/30 h-11 ${error ? "border-destructive focus-visible:ring-destructive/30" : ""}`}
               />
-              {error && <p className="text-[10px] font-mono text-destructive uppercase tracking-tighter">{error}</p>}
+              {error && <p className="label-xs text-destructive">{error}</p>}
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="description" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Description (Optional)</Label>
+              <Label htmlFor="description" className="label-xs text-primary/80">Description (Optional)</Label>
               <Textarea
                 id="description"
                 placeholder="Add a brief description..."
@@ -111,14 +111,14 @@ export default function SaveModal({
               variant="ghost"
               onClick={handleClose}
               disabled={isSaving}
-              className="rounded-none font-mono uppercase text-[10px] tracking-widest"
+              className="label-xs rounded-none"
             >
               Cancel
             </Button>
-            <Button 
+            <Button size="xl" 
               type="submit" 
               disabled={isSaving}
-              className="rounded-none font-mono uppercase text-[10px] tracking-[0.2em] bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-6 border-2 border-primary/50"
+              
             >
               {isSaving ? (
                 <>

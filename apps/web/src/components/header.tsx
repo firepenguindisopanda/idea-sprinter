@@ -21,12 +21,18 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 import { useLayoutEffect, useState } from "react";
 
 export default function Header() {
   const { user, logout, initAuth } = useAuthStore();
+  const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const isActive = (to: string) =>
+    to === "/" ? pathname === "/" : pathname === to || pathname?.startsWith(`${to}/`);
 
   useLayoutEffect(() => {
     initAuth();
@@ -73,7 +79,7 @@ export default function Header() {
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
             <SheetHeader className="p-6 border-b border-primary/10">
-              <SheetTitle className="font-mono font-bold tracking-tighter text-sm uppercase">
+              <SheetTitle className="label-lg text-sm">
                 specs<span className="text-primary">:</span>before<span className="text-primary">:</span>code
               </SheetTitle>
             </SheetHeader>
@@ -83,7 +89,13 @@ export default function Header() {
                   key={to}
                   href={to}
                   onClick={() => setMobileOpen(false)}
-                  className="font-mono text-xs uppercase tracking-widest px-6 py-3 transition-colors hover:bg-primary/5 hover:text-primary text-muted-foreground"
+                  aria-current={isActive(to) ? "page" : undefined}
+                  className={cn(
+                    "label-sm border-l-2 px-6 py-3 transition-colors",
+                    isActive(to)
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-transparent text-muted-foreground hover:bg-primary/5 hover:text-primary",
+                  )}
                 >
                   [{label}]
                 </Link>
@@ -94,13 +106,19 @@ export default function Header() {
                   <Link
                     href="/profile"
                     onClick={() => setMobileOpen(false)}
-                    className="font-mono text-xs uppercase tracking-widest px-6 py-3 transition-colors hover:bg-primary/5 hover:text-primary text-muted-foreground"
+                    aria-current={isActive("/profile") ? "page" : undefined}
+                    className={cn(
+                      "label-sm border-l-2 px-6 py-3 transition-colors",
+                      isActive("/profile")
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-transparent text-muted-foreground hover:bg-primary/5 hover:text-primary",
+                    )}
                   >
                     [Profile]
                   </Link>
                   <button
                     onClick={() => { setMobileOpen(false); logout(); }}
-                    className="font-mono text-xs uppercase tracking-widest px-6 py-3 transition-colors hover:bg-destructive/5 text-destructive text-left"
+                    className="label-sm border-l-2 border-transparent px-6 py-3 transition-colors hover:bg-destructive/5 text-destructive text-left"
                   >
                     [Logout]
                   </button>
@@ -112,7 +130,13 @@ export default function Header() {
                   <Link
                     href="/auth/login"
                     onClick={() => setMobileOpen(false)}
-                    className="font-mono text-xs uppercase tracking-widest px-6 py-3 transition-colors hover:bg-primary/5 hover:text-primary text-muted-foreground"
+                    aria-current={isActive("/auth/login") ? "page" : undefined}
+                    className={cn(
+                      "label-sm border-l-2 px-6 py-3 transition-colors",
+                      isActive("/auth/login")
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-transparent text-muted-foreground hover:bg-primary/5 hover:text-primary",
+                    )}
                   >
                     [Log In]
                   </Link>
@@ -131,16 +155,22 @@ export default function Header() {
               height={24}
               className="h-6 w-6 object-contain"
             />
-            <span className="font-mono font-bold tracking-tighter text-lg uppercase">
+            <span className="label-lg text-lg">
               specs<span className="text-primary">:</span>before<span className="text-primary">:</span>code
             </span>
           </Link>
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center gap-8 self-stretch">
             {links.map(({ to, label }) => (
               <Link
                 key={to}
                 href={to}
-                className="font-mono text-xs uppercase tracking-widest transition-colors hover:text-primary text-muted-foreground"
+                aria-current={isActive(to) ? "page" : undefined}
+                className={cn(
+                  "label-sm flex items-center border-b-2 transition-colors",
+                  isActive(to)
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-primary",
+                )}
               >
                 [{label}]
               </Link>
@@ -153,7 +183,7 @@ export default function Header() {
             {user ? (
               <div className="flex items-center gap-3 pl-4 border-l border-primary/10">
                 <div className="hidden lg:flex flex-col items-end">
-                  <span className="text-[10px] font-mono leading-none text-muted-foreground uppercase">Signed In</span>
+                  <span className="label-xs text-muted-foreground">Signed In</span>
                   <span className="text-xs font-mono font-bold leading-none">{user.full_name || user.email.split('@')[0]}</span>
                 </div>
                 <DropdownMenu>
@@ -181,8 +211,8 @@ export default function Header() {
                   <DropdownMenuContent className="w-56 rounded-none border-2 p-0" align="end" forceMount>
                     <DropdownMenuLabel className="font-mono bg-primary/5 p-4 border-b">
                       <div className="flex flex-col space-y-1">
-                        <p className="text-xs font-bold leading-none uppercase tracking-tighter">{user.full_name}</p>
-                        <p className="text-[10px] leading-none text-muted-foreground font-mono">
+                        <p className="label-lg text-xs leading-none">{user.full_name}</p>
+                        <p className="text-xs leading-none text-muted-foreground font-mono">
                           {user.email}
                         </p>
                       </div>
@@ -205,7 +235,7 @@ export default function Header() {
                 </DropdownMenu>
               </div>
             ) : (
-              <Button asChild variant="outline" size="sm" className="font-mono uppercase tracking-tighter rounded-none border-2">
+              <Button asChild variant="outline" size="sm" className="label-lg rounded-none border-2">
                 <Link href="/auth/login">Log In</Link>
               </Button>
             )}

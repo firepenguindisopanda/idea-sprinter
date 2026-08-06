@@ -60,7 +60,7 @@ export default function ExampleLibrary({
             className="w-full border border-primary/20 bg-background py-2 pl-9 pr-3 font-mono text-xs focus:border-primary focus:outline-none"
           />
         </div>
-        <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+        <p className="label-xs text-muted-foreground">
           {visible.length} of {SYSTEM_DESIGN_EXAMPLES.length}
         </p>
       </div>
@@ -74,7 +74,7 @@ export default function ExampleLibrary({
               type="button"
               onClick={() => setCategory(option)}
               aria-pressed={active}
-              className={`border px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest transition-colors ${
+              className={`label-xs border px-2.5 py-1 transition-colors ${
                 active
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-primary/15 text-muted-foreground hover:border-primary/40 hover:text-primary"
@@ -99,10 +99,10 @@ export default function ExampleLibrary({
                 onClick={() => onSelect(example)}
                 className="group flex h-full w-full flex-col border border-primary/20 bg-background/60 p-4 text-left transition-colors hover:border-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               >
-                <span className="font-mono text-[9px] uppercase tracking-widest text-primary/50">
+                <span className="label-xs text-primary/80">
                   {example.category}
                 </span>
-                <span className="mt-1 font-mono text-base font-bold uppercase tracking-tighter">
+                <span className="label-lg mt-1 text-base">
                   {example.name}
                 </span>
                 <span className="mt-1 text-xs leading-relaxed text-muted-foreground">
@@ -118,11 +118,11 @@ export default function ExampleLibrary({
                   <span className="text-foreground">{example.twist}</span>
                 </span>
 
-                <span className="mt-3 block text-[11px] leading-relaxed text-muted-foreground/80">
+                <span className="mt-3 block text-xs leading-relaxed text-muted-foreground">
                   {example.tension}
                 </span>
 
-                <span className="mt-4 inline-flex font-mono text-[10px] uppercase tracking-widest text-primary/60 transition-colors group-hover:text-primary">
+                <span className="label-xs mt-4 inline-flex text-primary/80 transition-colors group-hover:text-primary">
                   [{actionLabel}]
                 </span>
               </button>

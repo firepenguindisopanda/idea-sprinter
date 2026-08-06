@@ -71,7 +71,12 @@ export function IdeaInput() {
           content: "Your idea is clear and specific enough to generate a spec. Let's pick a direction.",
         });
         try {
-          const dirResponse = await api.getDirections({});
+          // The idea has to travel with the request: an empty payload makes the
+          // backend short-circuit to canned fallback directions, so the users
+          // who wrote the clearest ideas were the ones getting generic ones.
+          const dirResponse = await api.getDirections({
+            "The project idea": ideaInput.trim(),
+          });
           const dirs = (dirResponse.directions ?? [])
             .filter((d: { id?: string; title?: string }) => d.id && d.title)
             .map((d: { id?: string; title?: string; description?: string; tags?: string[] }) => ({
@@ -121,12 +126,12 @@ export function IdeaInput() {
 
   if (phase !== "idea_input" && phase !== "evaluating") {
     return (
-      <div className="rounded-xl border border-border bg-background p-4 shadow-sm opacity-70 transition-opacity hover:opacity-100">
+      <div className="rounded-sm border border-primary/20 bg-card p-4 opacity-80 transition-opacity hover:opacity-100">
         <div className="flex items-start gap-3">
-          <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-          <div>
-            <h3 className="text-sm font-medium text-foreground">Initial Idea</h3>
-            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{ideaInput}</p>
+          <CheckCircle2 className="h-4 w-4 text-tertiary shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <h3 className="label-xs text-muted-foreground">Initial idea</h3>
+            <p className="text-sm text-foreground line-clamp-2 mt-2 leading-relaxed">{ideaInput}</p>
           </div>
         </div>
       </div>
@@ -135,12 +140,13 @@ export function IdeaInput() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-border bg-background p-6 shadow-sm space-y-6">
+      <div className="reticle rounded-none border border-primary/25 bg-card p-5 space-y-5">
         <div className="space-y-2">
-          <h2 className="text-lg font-semibold text-foreground tracking-tight">
+          <span className="label-xs text-primary">Stage 01 - Draft</span>
+          <h2 className="text-lg font-bold text-foreground tracking-tight pt-1">
             What are you building?
           </h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground leading-relaxed">
             Describe your idea in a sentence or two. We&apos;ll analyze it for clarity and help you refine it.
           </p>
         </div>
@@ -150,7 +156,7 @@ export function IdeaInput() {
           onChange={(e) => setIdeaInput(e.target.value)}
           placeholder="I want to build a..."
           rows={4}
-          className="w-full resize-none rounded-lg border border-input bg-background px-4 py-3 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring focus:border-input transition-shadow"
+          className="w-full resize-none rounded-sm border border-input bg-surface-sunken/60 px-3 py-3 text-sm leading-relaxed placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring transition-colors"
         />
 
         <div className="flex items-center justify-between gap-3">
@@ -184,7 +190,7 @@ export function IdeaInput() {
                 <Lightbulb className="h-3 w-3" />
                 Pick one to start from, then edit it
               </p>
-              <p className="text-[11px] text-muted-foreground/60">
+              <p className="text-xs text-muted-foreground">
                 {visibleExamples.length} of {ALL_EXAMPLE_PROMPTS.length}
               </p>
             </div>
@@ -195,7 +201,7 @@ export function IdeaInput() {
               onChange={(e) => setExampleQuery(e.target.value)}
               placeholder="Search examples"
               aria-label="Search examples"
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-xs placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full rounded-sm border border-input bg-surface-sunken/60 px-3 py-2 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
             />
 
             <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter by category">
@@ -207,10 +213,10 @@ export function IdeaInput() {
                     type="button"
                     onClick={() => setExampleCategory(cat)}
                     aria-pressed={active}
-                    className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
+                    className={`label-xs rounded-xs border px-2 py-1 transition-colors ${
                       active
                         ? "border-primary/40 bg-primary/10 text-primary"
-                        : "border-border text-muted-foreground hover:border-primary/30 hover:text-foreground"
+                        : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
                     }`}
                   >
                     {cat}
@@ -220,7 +226,7 @@ export function IdeaInput() {
             </div>
 
             {visibleExamples.length === 0 ? (
-              <p className="rounded-lg border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
+              <p className="rounded-sm border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
                 Nothing matches &ldquo;{exampleQuery}&rdquo;. Clear the search or pick another category.
               </p>
             ) : (
@@ -229,15 +235,15 @@ export function IdeaInput() {
                 <button
                   key={ex.id}
                   onClick={() => setIdeaInput(ex.prompt)}
-                  className="group text-left w-full rounded-lg border border-border bg-muted/30 p-3 hover:border-primary/30 hover:bg-muted/50 transition-all"
+                  className="stamp-hover group text-left w-full rounded-sm border border-border bg-card/50 p-3 hover:border-primary/40 hover:bg-primary/5"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <span className="text-xs font-semibold text-foreground">{ex.title}</span>
+                      <span className="text-xs font-bold text-foreground">{ex.title}</span>
                       <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5 leading-relaxed">
                         {ex.prompt}
                       </p>
-                      <p className="text-[11px] text-muted-foreground/60 mt-1 italic">{ex.why}</p>
+                      <p className="text-xs text-muted-foreground mt-1 ">{ex.why}</p>
                     </div>
                     <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40 group-hover:text-primary transition-colors mt-1" />
                   </div>

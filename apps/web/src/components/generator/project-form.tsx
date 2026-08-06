@@ -227,7 +227,7 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
         <div className="flex items-center justify-between border-b border-primary/10 pb-2">
           <div className="flex items-center gap-2">
             <div className="h-1.5 w-1.5 bg-primary rounded-full animate-pulse" />
-            <Label htmlFor="description" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">
+            <Label htmlFor="description" className="label-xs text-primary/80">
               Project Description *
             </Label>
           </div>
@@ -236,7 +236,7 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
             variant="ghost"
             size="sm"
             onClick={() => setPickerOpen(true)}
-            className="h-7 text-[10px] font-mono uppercase tracking-widest text-primary/40 hover:text-primary transition-colors"
+            className="label-xs h-7 text-primary/80 hover:text-primary transition-colors"
           >
             {isExampleLoaded ? (
               <>
@@ -261,7 +261,7 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
           className={`${errors.description ? "border-destructive" : "border-primary/20"} min-h-[260px] rounded-none bg-background/50 font-mono text-sm focus-visible:ring-primary/30 p-6 leading-relaxed`}
           disabled={isLoading}
         />
-        <div className="flex justify-between items-center text-[10px] font-mono text-muted-foreground uppercase tracking-tighter">
+        <div className="label-xs flex justify-between items-center text-muted-foreground">
           {errors.description ? (
             <p className="text-destructive font-bold">{errors.description}</p>
           ) : (
@@ -270,7 +270,7 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
               <span>Required field</span>
             </div>
           )}
-          <span className="bg-primary/5 px-2 py-0.5 border border-primary/10 tabular-nums">{formData.description.length} characters</span>
+          <span className="bg-primary/5 px-2 py-0.5 tabular-nums">{formData.description.length} characters</span>
         </div>
       </div>
 
@@ -278,14 +278,14 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
       <div className="border-t border-b border-primary/10 py-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className={`p-2 rounded-full ${!isAdvancedMode ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+            <div className={`p-2 ${!isAdvancedMode ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
               <Bot className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-sm font-mono font-bold uppercase tracking-widest">
+              <h3 className="label-sm">
                 {!isAdvancedMode ? "AI Selects Stack" : "Manual Configuration"}
               </h3>
-              <p className="text-[10px] text-muted-foreground font-mono mt-1 max-w-[500px]">
+              <p className="text-xs text-muted-foreground font-mono mt-1 max-w-[500px]">
                 {!isAdvancedMode 
                   ? "Our AI agents will analyze your requirements and autonomously select the optimal technology stack and infrastructure for your project." 
                   : "You have taken control. Manually specify your preferred frameworks, databases, and infrastructure components."}
@@ -298,7 +298,7 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
             variant="outline"
             size="sm"
             onClick={() => setIsAdvancedMode(!isAdvancedMode)}
-            className={`font-mono text-[10px] uppercase tracking-wider border-primary/20 hover:bg-primary/5 ${isAdvancedMode ? 'bg-primary/5 text-primary' : 'text-muted-foreground'}`}
+            className={`label-xs border-primary/20 hover:bg-primary/5 ${isAdvancedMode ? 'bg-primary/5 text-primary' : 'text-muted-foreground'}`}
           >
             <Settings2 className="mr-2 h-3 w-3" />
             {isAdvancedMode ? "Hide Options" : "Show Options"}
@@ -312,14 +312,14 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
         <div className="space-y-12 animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="space-y-6">
             <div className="flex items-center gap-4">
-              <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary pr-2">Technology Stack</h3>
+              <h3 className="label-xs text-primary pr-2 font-bold">Technology Stack</h3>
               <div className="h-px bg-primary/20 flex-1" />
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Frontend Framework */}
               <div className="space-y-2">
-                <Label htmlFor="frontend" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Frontend</Label>
+                <Label htmlFor="frontend" className="label-xs text-primary/80">Frontend</Label>
                 <Select
                   value={formData.frontend_framework || ""}
                   onValueChange={(value) =>
@@ -327,12 +327,12 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
                   }
                   disabled={isLoading}
                 >
-                  <SelectTrigger id="frontend" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
+                  <SelectTrigger id="frontend" className="rounded-none border-primary/20 bg-background/50 font-mono text-xs h-10">
                     <SelectValue placeholder="Auto-Detect" />
                   </SelectTrigger>
                   <SelectContent className="rounded-none border-primary/20">
                     {FRONTEND_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
+                      <SelectItem key={option.value} value={option.value} className="text-xs font-mono">
                         {option.label}
                       </SelectItem>
                     ))}
@@ -342,7 +342,7 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
 
               {/* Backend Framework */}
               <div className="space-y-2">
-                <Label htmlFor="backend" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Backend</Label>
+                <Label htmlFor="backend" className="label-xs text-primary/80">Backend</Label>
                 <Select
                   value={formData.backend_framework || ""}
                   onValueChange={(value) =>
@@ -350,12 +350,12 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
                   }
                   disabled={isLoading}
                 >
-                  <SelectTrigger id="backend" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
+                  <SelectTrigger id="backend" className="rounded-none border-primary/20 bg-background/50 font-mono text-xs h-10">
                     <SelectValue placeholder="Auto-Detect" />
                   </SelectTrigger>
                   <SelectContent className="rounded-none border-primary/20">
                     {BACKEND_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
+                      <SelectItem key={option.value} value={option.value} className="text-xs font-mono">
                         {option.label}
                       </SelectItem>
                     ))}
@@ -365,18 +365,18 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
 
               {/* Database */}
               <div className="space-y-2">
-                <Label htmlFor="database" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Database</Label>
+                <Label htmlFor="database" className="label-xs text-primary/80">Database</Label>
                 <Select
                   value={formData.database || ""}
                   onValueChange={(value) => updateField("database", value || null)}
                   disabled={isLoading}
                 >
-                  <SelectTrigger id="database" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
+                  <SelectTrigger id="database" className="rounded-none border-primary/20 bg-background/50 font-mono text-xs h-10">
                     <SelectValue placeholder="Auto-Detect" />
                   </SelectTrigger>
                   <SelectContent className="rounded-none border-primary/20">
                     {DATABASE_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
+                      <SelectItem key={option.value} value={option.value} className="text-xs font-mono">
                         {option.label}
                       </SelectItem>
                     ))}
@@ -386,7 +386,7 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
 
               {/* Auth Service */}
               <div className="space-y-2">
-                <Label htmlFor="auth" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Authentication</Label>
+                <Label htmlFor="auth" className="label-xs text-primary/80">Authentication</Label>
                 <Select
                   value={formData.auth_service || ""}
                   onValueChange={(value) =>
@@ -394,12 +394,12 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
                   }
                   disabled={isLoading}
                 >
-                  <SelectTrigger id="auth" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
+                  <SelectTrigger id="auth" className="rounded-none border-primary/20 bg-background/50 font-mono text-xs h-10">
                     <SelectValue placeholder="Auto-Detect" />
                   </SelectTrigger>
                   <SelectContent className="rounded-none border-primary/20">
                     {AUTH_SERVICE_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
+                      <SelectItem key={option.value} value={option.value} className="text-xs font-mono">
                         {option.label}
                       </SelectItem>
                     ))}
@@ -409,18 +409,18 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
 
               {/* Runtime */}
               <div className="space-y-2">
-                <Label htmlFor="runtime" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Runtime</Label>
+                <Label htmlFor="runtime" className="label-xs text-primary/80">Runtime</Label>
                 <Select
                   value={formData.runtime || ""}
                   onValueChange={(value) => updateField("runtime", value || null)}
                   disabled={isLoading}
                 >
-                  <SelectTrigger id="runtime" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
+                  <SelectTrigger id="runtime" className="rounded-none border-primary/20 bg-background/50 font-mono text-xs h-10">
                     <SelectValue placeholder="Auto-Detect" />
                   </SelectTrigger>
                   <SelectContent className="rounded-none border-primary/20">
                     {availableRuntimes.map((option) => (
-                      <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
+                      <SelectItem key={option.value} value={option.value} className="text-xs font-mono">
                         {option.label}
                       </SelectItem>
                     ))}
@@ -430,7 +430,7 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
 
               {/* Package Manager */}
               <div className="space-y-2">
-                <Label htmlFor="package-manager" className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Package Manager</Label>
+                <Label htmlFor="package-manager" className="label-xs text-primary/80">Package Manager</Label>
                 <Select
                   value={formData.package_manager || ""}
                   onValueChange={(value) =>
@@ -438,12 +438,12 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
                   }
                   disabled={isLoading}
                 >
-                  <SelectTrigger id="package-manager" className="rounded-none border-primary/20 bg-background/50 font-mono text-[11px] h-10">
+                  <SelectTrigger id="package-manager" className="rounded-none border-primary/20 bg-background/50 font-mono text-xs h-10">
                     <SelectValue placeholder="Auto-Detect" />
                   </SelectTrigger>
                   <SelectContent className="rounded-none border-primary/20">
                     {availablePackageManagers.map((option) => (
-                      <SelectItem key={option.value} value={option.value} className="text-[11px] font-mono">
+                      <SelectItem key={option.value} value={option.value} className="text-xs font-mono">
                         {option.label}
                       </SelectItem>
                     ))}
@@ -456,15 +456,15 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
           {/* Additional Options */}
           <div className="space-y-6">
             <div className="flex items-center gap-4">
-              <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary pr-2">Infrastructure</h3>
+              <h3 className="label-xs text-primary pr-2 font-bold">Infrastructure</h3>
               <div className="h-px bg-primary/20 flex-1" />
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="flex items-center justify-between p-4 border border-primary/10 bg-primary/5">
+              <div className="flex items-center justify-between p-4 bg-primary/5">
                 <div className="space-y-1">
-                  <Label htmlFor="docker" className="text-[11px] font-mono uppercase tracking-widest font-bold">Docker</Label>
-                  <p className="text-[10px] text-muted-foreground font-mono uppercase">
+                  <Label htmlFor="docker" className="label-sm">Docker</Label>
+                  <p className="label-xs text-muted-foreground">
                     Include Dockerfile and docker-compose
                   </p>
                 </div>
@@ -477,10 +477,10 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 border border-primary/10 bg-primary/5">
+              <div className="flex items-center justify-between p-4 bg-primary/5">
                 <div className="space-y-1">
-                  <Label htmlFor="cicd" className="text-[11px] font-mono uppercase tracking-widest font-bold">Pipeline: CI/CD</Label>
-                  <p className="text-[10px] text-muted-foreground font-mono uppercase">
+                  <Label htmlFor="cicd" className="label-sm">Pipeline: CI/CD</Label>
+                  <p className="label-xs text-muted-foreground">
                     Include CI/CD workflow files
                   </p>
                 </div>
@@ -500,7 +500,8 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
       {/* Submit Button */}
       <Button
         type="submit"
-        className="w-full rounded-none py-10 font-mono uppercase text-lg tracking-[0.2em] border-2 border-primary/50 group bg-primary text-primary-foreground hover:bg-primary/90"
+        size="xl"
+        className="w-full py-10 text-lg group"
         disabled={isLoading}
       >
         {isLoading ? (
@@ -521,7 +522,7 @@ const [availablePackageManagers, setAvailablePackageManagers] = useState<TechOpt
       <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
         <DialogContent className="max-h-[85vh] max-w-6xl overflow-y-auto rounded-none border-2">
           <DialogHeader>
-            <DialogTitle className="font-mono text-sm uppercase tracking-tighter">
+            <DialogTitle className="label-lg text-sm">
               Pick a starter
             </DialogTitle>
             <DialogDescription className="text-xs">

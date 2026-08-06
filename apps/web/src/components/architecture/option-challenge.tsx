@@ -9,7 +9,7 @@ import ContestableAssumption from "./contestable-assumption";
 
 const SEVERITY_STYLES: Record<string, string> = {
   high: "border-destructive/40 bg-destructive/5 text-destructive",
-  medium: "border-amber-500/40 bg-amber-500/5 text-amber-600",
+  medium: "border-warning/40 bg-warning/5 text-warning",
   low: "border-primary/20 bg-primary/5 text-muted-foreground",
 };
 
@@ -51,11 +51,11 @@ export default function OptionChallenge({ sessionId, optionId, assumptions }: Re
           for a user to confirm or reject from their own knowledge. */}
       {assumptions && assumptions.length > 0 && (
         <div className="space-y-1.5">
-          <span className="text-xs font-mono uppercase text-amber-600 flex items-center gap-1.5">
+          <span className="text-xs font-mono uppercase text-warning flex items-center gap-1.5">
             <HelpCircle className="h-3 w-3" />
             Assumptions to check
           </span>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             These are things the model filled in that you never said. Tell it
             where it is wrong and it has to defend or revise.
           </p>
@@ -78,7 +78,7 @@ export default function OptionChallenge({ sessionId, optionId, assumptions }: Re
           size="sm"
           onClick={run}
           disabled={isLoading}
-          className="font-mono uppercase text-[10px] w-full"
+          className="label-xs w-full"
         >
           {isLoading ? (
             <><Loader2 className="h-3 w-3 mr-2 animate-spin" /> Building the counter-case…</>
@@ -99,13 +99,13 @@ export default function OptionChallenge({ sessionId, optionId, assumptions }: Re
               <ShieldAlert className="h-3 w-3" />
               The case against
             </span>
-            <span className="text-[10px] font-mono uppercase text-muted-foreground">
+            <span className="label-xs text-muted-foreground">
               risk: {challenge.risk_level}
             </span>
           </div>
 
           {challenge.summary && (
-            <p className="text-xs text-muted-foreground italic">{challenge.summary}</p>
+            <p className="text-xs text-muted-foreground ">{challenge.summary}</p>
           )}
 
           {challenge.attack_vectors.length === 0 ? (
@@ -119,14 +119,14 @@ export default function OptionChallenge({ sessionId, optionId, assumptions }: Re
                   key={v.id}
                   className={`border p-2.5 text-xs space-y-1 ${SEVERITY_STYLES[v.severity] ?? SEVERITY_STYLES.low}`}
                 >
-                  <div className="flex items-center gap-2 font-mono uppercase text-[10px]">
+                  <div className="label-xs flex items-center gap-2">
                     <span>{v.severity}</span>
                     <span className="opacity-60">{v.category.replace(/_/g, " ")}</span>
                   </div>
                   <p className="text-foreground/90">{v.description}</p>
                   {v.suggested_fix && (
                     <p className="text-muted-foreground">
-                      <span className="font-mono uppercase text-[10px]">Mitigation: </span>
+                      <span className="label-xs">Mitigation: </span>
                       {v.suggested_fix}
                     </p>
                   )}
@@ -137,13 +137,13 @@ export default function OptionChallenge({ sessionId, optionId, assumptions }: Re
 
           {challenge.counterpoint_reading.length > 0 && (
             <div className="space-y-1.5">
-              <span className="text-xs font-mono uppercase text-primary/60 flex items-center gap-1.5">
+              <span className="text-xs font-mono uppercase text-primary/80 flex items-center gap-1.5">
                 <BookOpen className="h-3 w-3" />
                 Worth reading against this
               </span>
               {challenge.counterpoint_reading.map((c) => (
                 <details key={c.book} className="text-xs border border-primary/10 p-2">
-                  <summary className="cursor-pointer font-mono text-[10px] uppercase text-primary/70">
+                  <summary className="label-xs cursor-pointer text-primary/80">
                     {c.book.replace(/-/g, " ")}
                   </summary>
                   <p className="mt-2 text-muted-foreground whitespace-pre-wrap">{c.excerpt}</p>

@@ -77,8 +77,8 @@ describe('DraftBanner', () => {
 
     it('should show the Sparkles icon for ideation', () => {
       render(<DraftBanner />);
-      // The Sparkles icon is rendered in the amber-colored container
-      const iconContainer = document.querySelector('.bg-amber-500\\/10');
+      // The Sparkles icon sits in the warning-toned container
+      const iconContainer = document.querySelector('.bg-warning\\/10');
       expect(iconContainer).toBeInTheDocument();
     });
 

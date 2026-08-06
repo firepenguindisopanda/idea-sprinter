@@ -14,7 +14,8 @@ function Progress({
     <ProgressPrimitive.Root
       data-slot="progress"
       className={cn(
-        "bg-primary/20 relative h-2 w-full overflow-hidden rounded-full",
+        // DESIGN.md: linear meters stay sharp-edged to hold the grid.
+        "bg-primary/15 border border-primary/20 relative h-2 w-full overflow-hidden rounded-none",
         className
       )}
       {...props}

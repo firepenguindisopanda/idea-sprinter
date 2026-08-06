@@ -11,7 +11,7 @@ import type { GenerateResponse, JudgeResult } from "@/types";
 
 /** Shared heading treatment; must stay in sync with the section nav's scroll targets. */
 const HEADING_BASE =
-  "font-mono uppercase tracking-tighter border-l-4 border-primary/20 pl-3 scroll-mt-20";
+  "font-bold tracking-[-0.02em] border-l-2 border-primary/40 pl-3 scroll-mt-20";
 
 /** Flatten a rendered heading back to text so its anchor id matches parseSections(). */
 function headingText(node: React.ReactNode): string {
@@ -152,7 +152,7 @@ function MarkdownViewer({ content, agentKey: _agentKey }: { content: string; age
       {sections.length > 0 && (
         <div className="hidden lg:block w-48 shrink-0">
           <div className="sticky top-0 max-h-[calc(100vh-200px)] overflow-y-auto">
-            <div className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1">
+            <div className="label-xs text-muted-foreground mb-2 flex items-center gap-1">
               <List className="h-3 w-3" />
               Contents
             </div>
@@ -185,7 +185,7 @@ function MarkdownViewer({ content, agentKey: _agentKey }: { content: string; age
                     aria-label="Copy section"
                   >
                     {copiedSection === section.id ? (
-                      <Check className="h-2.5 w-2.5 text-green-500" />
+                      <Check className="h-2.5 w-2.5 text-tertiary" />
                     ) : (
                       <Copy className="h-2.5 w-2.5" />
                     )}
@@ -199,8 +199,8 @@ function MarkdownViewer({ content, agentKey: _agentKey }: { content: string; age
       <div ref={contentRef} className="flex-1 min-w-0">
         <Markdown
           enableDiagrams
-          className="max-w-none font-sans text-muted-foreground/90
-            [&_th]:font-mono [&_th]:text-[10px] [&_th]:uppercase [&_th]:bg-primary/5 [&_th]:p-2
+          className="max-w-none font-sans text-muted-foreground
+ [&_th]:font-mono [&_th]:text-xs [&_th]:uppercase [&_th]:bg-primary/5 [&_th]:p-2
             [&_td]:p-2 [&_td]:border-b [&_td]:border-primary/5
             [&_code]:text-primary"
           components={{
@@ -208,7 +208,7 @@ function MarkdownViewer({ content, agentKey: _agentKey }: { content: string; age
               <h1 id={slugify(children)} className={cn(HEADING_BASE, "text-xl font-bold mt-8 mb-4")}>{children}</h1>
             ),
             h2: ({ children }) => (
-              <h2 id={slugify(children)} className={cn(HEADING_BASE, "text-lg font-semibold mt-6 mb-3")}>{children}</h2>
+              <h2 id={slugify(children)} className={cn(HEADING_BASE, "text-lg font-bold mt-6 mb-3")}>{children}</h2>
             ),
             h3: ({ children }) => (
               <h3 id={slugify(children)} className={cn(HEADING_BASE, "text-base font-medium mt-4 mb-2")}>{children}</h3>
@@ -274,8 +274,8 @@ export default function ResultsDisplay({
       <div className="h-full border-2 border-primary/20 bg-background/50 flex flex-col">
         <div className="p-6 border-b border-primary/20 flex items-center justify-between">
           <div>
-            <h3 className="text-xl font-mono font-bold uppercase">Artifacts</h3>
-            <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
+            <h3 className="text-xl font-bold tracking-[-0.03em]">Artifacts</h3>
+            <p className="label-xs text-muted-foreground">
               Waiting for output
             </p>
           </div>
@@ -284,10 +284,10 @@ export default function ResultsDisplay({
           </div>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center p-12 text-center opacity-50">
-          <div className="h-20 w-20 border border-dashed border-primary/30 rounded-full flex items-center justify-center mb-4">
+          <div className="mb-4 flex h-20 w-20 items-center justify-center border border-dashed border-primary/30">
              <span className="text-2xl font-mono">?</span>
           </div>
-          <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Waiting for results...</p>
+          <p className="label-sm text-muted-foreground">Waiting for results...</p>
         </div>
       </div>
     );
@@ -354,12 +354,14 @@ export default function ResultsDisplay({
     return judge_results?.[agentKey];
   };
 
+  // The other half of the rgba(var(--primary), ...) shadow that never drew -
+  // --primary holds a colour, not three comma-separated channels.
   return (
-    <div className="h-full border-2 border-primary/20 bg-background/80 backdrop-blur-sm flex flex-col shadow-[4px_4px_0px_0px_rgba(var(--primary),0.05)] overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden border border-primary/25 bg-card/80 backdrop-blur-sm">
       <div className="p-6 border-b-2 border-primary/20 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
-          <h3 className="text-2xl font-mono font-bold uppercase tracking-tighter">Generated <span className="text-primary">Specifications</span></h3>
-          <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-[0.2em]">
+          <h3 className="text-2xl font-bold tracking-[-0.03em]">Generated <span className="text-primary">specifications</span></h3>
+          <p className="label-xs text-muted-foreground">
             Multi-agent specification documents
           </p>
         </div>
@@ -368,10 +370,10 @@ export default function ResultsDisplay({
             {onSave && (
               <Button
                 onClick={onSave}
-                variant="outline"
+                variant="plate"
                 size="sm"
                 disabled={isSaving}
-                className="font-mono uppercase text-[10px] tracking-widest rounded-none border-2 border-primary/20"
+                className="label-xs"
               >
                 {isSaving ? (
                   <Loader2 className="mr-2 h-3 w-3 animate-spin" />
@@ -384,10 +386,10 @@ export default function ResultsDisplay({
             {onDownloadPdf && (
               <Button
                 onClick={onDownloadPdf}
-                variant="outline"
+                variant="plate"
                 size="sm"
                 disabled={isDownloading}
-                className="font-mono uppercase text-[10px] tracking-widest rounded-none border-2 border-primary/20"
+                className="label-xs"
               >
                 {isDownloading ? (
                   <Loader2 className="mr-2 h-3 w-3 animate-spin" />
@@ -410,7 +412,7 @@ export default function ResultsDisplay({
                   <TabsTrigger
                     key={`${agent.key}-${idx}`}
                     value={agent.key}
-                    className="rounded-none border-r border-primary/10 px-4 py-3 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-b-primary font-mono text-[9px] uppercase tracking-wider h-auto data-[state=active]:shadow-none"
+                    className="label-xs rounded-none border-r border-primary/10 px-4 py-3 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-b-primary h-auto data-[state=active]:shadow-none"
                   >
                     <span className="opacity-50 mr-1.5">{agent.id}</span>
                     {agent.label}
@@ -421,7 +423,7 @@ export default function ResultsDisplay({
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowSections(!showSections)}
-                className="mr-2 rounded-none font-mono text-[10px] uppercase"
+                className="label-xs mr-2 rounded-none"
               >
                 {showSections ? (
                   <>
@@ -452,24 +454,24 @@ export default function ResultsDisplay({
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-8 border-b border-primary/5 pb-4">
                       <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 border border-primary/20 flex items-center justify-center font-mono text-primary bg-primary/5">
+                        <div className="h-10 w-10 flex items-center justify-center font-mono text-primary bg-primary/5">
                           {agent.id}
                         </div>
                         <div>
-                          <h4 className="font-mono font-bold text-sm uppercase tracking-widest">{agent.label}</h4>
+                          <h4 className="text-base font-bold tracking-tight">{agent.label}</h4>
                           <div className="flex gap-2 mt-1">
                             {judgeStatus && (
-                              <div className={`text-[8px] font-mono px-1.5 py-0.5 border ${
+                              <div className={`text-xs font-mono px-1.5 py-0.5 border ${
                                 judgeStatus.score >= 8 
-                                  ? 'bg-green-500/10 text-green-500 border-green-500/20' 
+                                  ? 'bg-tertiary/10 text-tertiary border-tertiary/20' 
                                   : judgeStatus.score >= 5 
-                                    ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' 
-                                    : 'bg-red-500/10 text-red-500 border-red-500/20'
+                                    ? 'bg-warning/10 text-warning border-warning/20' 
+                                    : 'bg-destructive/10 text-destructive border-destructive/20'
                               }`}>
                                 Quality: {judgeStatus.score}/10
                               </div>
                             )}
-                            <div className="text-[8px] font-mono px-1.5 py-0.5 border bg-primary/5 text-primary/60 border-primary/10 uppercase">
+                            <div className="label-xs px-1.5 py-0.5 bg-primary/5 text-primary/80">
                               Verified
                             </div>
                           </div>
@@ -481,7 +483,7 @@ export default function ResultsDisplay({
                             variant="ghost"
                             size="sm"
                             onClick={() => handleEditStart(agent.key, content || "")}
-                            className="font-mono text-[9px] uppercase tracking-tighter h-8 rounded-none border border-primary/5 hover:bg-primary/5"
+                            className="label-xs h-8 rounded-none border border-primary/5 hover:bg-primary/5"
                           >
                             <Edit className="mr-1 h-3 w-3" />
                             Edit
@@ -495,7 +497,7 @@ export default function ResultsDisplay({
                               size="sm"
                               onClick={handleEditCancel}
                               disabled={isUpdating}
-                              className="font-mono text-[9px] uppercase tracking-tighter h-8 rounded-none border border-destructive/20 text-destructive hover:bg-destructive/5"
+                              className="label-xs h-8 rounded-none border border-destructive/20 text-destructive hover:bg-destructive/5"
                             >
                               <X className="mr-1 h-3 w-3" />
                               Cancel
@@ -505,7 +507,7 @@ export default function ResultsDisplay({
                               size="sm"
                               onClick={() => handleEditSave(agent.key)}
                               disabled={isUpdating}
-                              className="font-mono text-[9px] uppercase tracking-tighter h-8 rounded-none border border-primary/20 bg-primary/5 hover:bg-primary/10"
+                              className="label-xs h-8 rounded-none bg-primary/5 hover:bg-primary/10"
                             >
                               {isUpdating ? (
                                 <Loader2 className="mr-1 h-3 w-3 animate-spin" />
@@ -520,11 +522,11 @@ export default function ResultsDisplay({
                             variant="ghost"
                             size="sm"
                             onClick={() => copyToClipboard(content || "", agent.key)}
-                            className="font-mono text-[9px] uppercase tracking-tighter h-8 rounded-none border border-primary/5 hover:bg-primary/5"
+                            className="label-xs h-8 rounded-none border border-primary/5 hover:bg-primary/5"
                           >
                             {copiedAgent === agent.key ? (
                               <>
-                                <Check className="mr-1 h-3 w-3 text-green-500" />
+                                <Check className="mr-1 h-3 w-3 text-tertiary" />
                                 Copied!
                               </>
                             ) : (
@@ -547,7 +549,7 @@ export default function ResultsDisplay({
                           placeholder="Enter markdown content..."
                         />
                         <div className="flex justify-end">
-                           <p className="text-[10px] font-mono text-muted-foreground uppercase">
+                           <p className="label-xs text-muted-foreground">
                              Editing mode - Markdown supported
                            </p>
                         </div>
@@ -558,12 +560,12 @@ export default function ResultsDisplay({
                    
                     {judgeStatus?.feedback && (
                         <div className="mt-8 border-t border-primary/10 pt-4">
-                             <div className="text-[10px] font-mono text-primary uppercase mb-2">Quality Review:</div>
-                            <p className="text-xs font-mono italic text-muted-foreground opacity-80 mb-2">
+                             <div className="label-xs text-primary mb-2">Quality Review:</div>
+                            <p className="text-xs font-mono text-muted-foreground opacity-80 mb-2">
                                 &quot;{judgeStatus.feedback}&quot;
                             </p>
                             {judgeStatus.recommended_action && (
-                                <p className="text-[10px] font-mono text-muted-foreground">
+                                <p className="text-xs font-mono text-muted-foreground">
                                     <span className="text-primary font-bold">Recommended:</span> {judgeStatus.recommended_action}
                                 </p>
                             )}

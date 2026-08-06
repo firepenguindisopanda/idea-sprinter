@@ -1,8 +1,26 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import Cookies from 'js-cookie';
 import { api, ApiError } from './api';
+import { rememberIntendedRoute } from './post-login-redirect';
 import type { User, UserPersona } from '../types';
+
+/**
+ * The cookie is the only place a token lives.
+ *
+ * It used to live in two: a 7-day cookie *and* a `persist`ed localStorage entry
+ * with no expiry. `initAuth` read the cookie, so once it expired the store
+ * still rehydrated a truthy token from localStorage while the API client had
+ * none. `ProtectedRoute` saw a token and rendered, every request went out
+ * unauthenticated and came back 401, and `onAuthError` - which had no way to
+ * reach the store, as its own comment admitted - could only clear the cookie
+ * and hard-redirect. The localStorage token survived, so the next visit did it
+ * all again, destroying whatever was in progress each time.
+ *
+ * One store of record removes the disagreement rather than trying to keep two
+ * in sync.
+ */
+const TOKEN_COOKIE = 'auth_token';
+const LEGACY_PERSIST_KEY = 'auth-storage';
 
 interface AuthStore {
   token: string | null;
@@ -16,37 +34,20 @@ interface AuthStore {
   updatePersona: (persona: UserPersona) => Promise<void>;
 }
 
-// Helper to redirect to login page
-function redirectToLogin() {
-  if (typeof globalThis.window !== 'undefined') {
-    globalThis.window.location.href = '/auth/login';
-  }
-}
-
-// Set up the API client's auth error handler
-api.onAuthError = () => {
-  // Remove token, clear user, and redirect
-  Cookies.remove('auth_token');
-  api.setToken(null);
-  // We can't call set() here directly, but the store will be reset on next usage
-  redirectToLogin();
-};
-
 export const useAuthStore = create<AuthStore>()(
-  persist(
     (set, get) => ({
       token: null,
       user: null,
       isLoading: true,
 
       setToken: (token) => {
-        Cookies.set('auth_token', token, { expires: 7 });
+        Cookies.set(TOKEN_COOKIE, token, { expires: 7 });
         api.setToken(token);
         set({ token });
       },
 
       logout: () => {
-        Cookies.remove('auth_token');
+        Cookies.remove(TOKEN_COOKIE);
         api.setToken(null);
         set({ token: null, user: null });
       },
@@ -76,11 +77,22 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       initAuth: async () => {
-        const token = Cookies.get('auth_token');
+        // Anyone who signed in before the token stopped being persisted still
+        // has the old entry. Left in place it is inert, but it is a copy of a
+        // bearer token sitting in localStorage with no expiry, so clear it.
+        if (typeof globalThis.window !== 'undefined') {
+          globalThis.window.localStorage.removeItem(LEGACY_PERSIST_KEY);
+        }
+
+        const token = Cookies.get(TOKEN_COOKIE);
         if (token) {
           api.setToken(token);
           set({ token });
           await get().fetchUser();
+        } else {
+          // The cookie is gone, so the session is over - say so in the store
+          // rather than leaving a stale token to render protected pages.
+          get().logout();
         }
         set({ isLoading: false });
       },
@@ -94,10 +106,19 @@ export const useAuthStore = create<AuthStore>()(
           throw error;
         }
       },
-    }),
-    {
-      name: 'auth-storage',
-      partialize: (state) => ({ token: state.token }),
-    }
-  )
+    })
 );
+
+// Registered after the store exists so it can actually clear it. Previously
+// this lived above `create` and could only reach the cookie and the API client,
+// which is why an expired session could not be cleaned up from the one place
+// that decided whether to render protected pages.
+api.onAuthError = () => {
+  useAuthStore.getState().logout();
+
+  if (typeof globalThis.window === 'undefined') return;
+
+  const { pathname, search } = globalThis.window.location;
+  rememberIntendedRoute(pathname + search);
+  globalThis.window.location.href = '/auth/login';
+};

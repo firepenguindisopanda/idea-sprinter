@@ -16,6 +16,8 @@
  * because records written before this split have no prefix.
  */
 
+import type { JudgeResult } from "@/types";
+
 export type ProjectArtifacts = Record<string, unknown>;
 
 /** Keys the workspace flow wrote directly into artifacts before the split. */
@@ -108,6 +110,63 @@ export function displayOutputs(
     }
   }
   return fallback;
+}
+
+/**
+ * The adversarial review saved alongside a spec.
+ *
+ * Lives under the reserved `_review` key, so it is quarantined from the role
+ * map exactly like `_workspace`. Before this existed the detail page hardcoded
+ * `judge_results: {}` - a saved spec showed none of the scrutiny it had been
+ * through, because none of it was ever written down.
+ */
+export function projectReview(artifacts: ProjectArtifacts | null | undefined): {
+  judgeResults: Record<string, JudgeResult>;
+  contradictions: { type: string; detail: string; severity: string; roles?: string[] }[];
+} {
+  const empty = { judgeResults: {}, contradictions: [] };
+  if (!artifacts) return empty;
+  const review = artifacts._review as
+    | { judge_results?: unknown; contradictions?: unknown }
+    | undefined;
+  if (!review) return empty;
+  return {
+    judgeResults:
+      review.judge_results && typeof review.judge_results === "object"
+        ? (review.judge_results as Record<string, JudgeResult>)
+        : {},
+    contradictions: Array.isArray(review.contradictions)
+      ? (review.contradictions as {
+          type: string;
+          detail: string;
+          severity: string;
+          roles?: string[];
+        }[])
+      : [],
+  };
+}
+
+/**
+ * Outputs keyed for export rather than for display.
+ *
+ * The PDF generator titles a section from its key: it knows the twelve agent
+ * roles by name and falls back to title-casing anything else. A workspace spec
+ * has no agent roles, so its sections would arrive as `sec-overview` and print
+ * as "Sec-Overview" - keyed by their real titles they print properly.
+ */
+export function exportOutputs(
+  artifacts: ProjectArtifacts | null | undefined,
+): Record<string, string> {
+  const outputs = agentOutputs(artifacts);
+  if (Object.keys(outputs).length > 0) return outputs;
+
+  const titled: Record<string, string> = {};
+  for (const section of workspaceSections(artifacts)) {
+    if (typeof section?.content === "string" && section.content.trim()) {
+      titled[section.title || section.id] = section.content;
+    }
+  }
+  return titled;
 }
 
 /** Section id -> title, so the renderer can label sections properly. */

@@ -34,6 +34,7 @@ export function useWorkspace() {
     nextQuestion: store.nextQuestion,
     previousQuestion: store.previousQuestion,
     setDirections: store.setDirections,
+    addDirection: store.addDirection,
     selectDirection: store.selectDirection,
     addDocSection: store.addDocSection,
     updateDocSection: store.updateDocSection,

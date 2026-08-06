@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/auth-store";
+import { rememberIntendedRoute } from "@/lib/post-login-redirect";
 import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
@@ -23,6 +24,9 @@ export default function ProtectedRoute({ children }: Readonly<ProtectedRouteProp
 
   useEffect(() => {
     if (!isLoading && !token) {
+      // Keep where they were going, so signing in resumes it instead of
+      // dropping them on the marketing page to start over.
+      rememberIntendedRoute(window.location.pathname + window.location.search);
       router.push("/auth/login");
     }
   }, [isLoading, token, router]);

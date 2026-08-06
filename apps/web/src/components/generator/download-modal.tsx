@@ -211,7 +211,7 @@ export default function DownloadModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 font-mono uppercase tracking-wider">
+          <DialogTitle className="label-lg flex items-center gap-2">
             <Download className="h-5 w-5" />
             Download Specifications
           </DialogTitle>
@@ -221,7 +221,7 @@ export default function DownloadModal({
           {/* Quick Options */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="font-mono text-sm uppercase tracking-wider">
+              <Label className="label-sm">
                 Quick Download
               </Label>
             </div>
@@ -240,7 +240,7 @@ export default function DownloadModal({
                   <Package className="h-6 w-6 text-primary" />
                 </div>
                 <div className="flex-1 text-left">
-                  <div className="font-mono font-bold uppercase text-sm tracking-wider">
+                  <div className="label-sm">
                     Complete Package
                   </div>
                   <div className="text-xs text-muted-foreground">
@@ -265,7 +265,7 @@ export default function DownloadModal({
                   <BookOpen className="h-6 w-6 text-primary" />
                 </div>
                 <div className="flex-1 text-left">
-                  <div className="font-mono font-bold uppercase text-sm tracking-wider">
+                  <div className="label-sm">
                     Coder&apos;s Handbook
                   </div>
                   <div className="text-xs text-muted-foreground">
@@ -294,7 +294,7 @@ export default function DownloadModal({
 
           {/* Individual Documents */}
           <div className="space-y-3">
-            <Label className="font-mono text-sm uppercase tracking-wider">
+            <Label className="label-sm">
               Individual Documents
             </Label>
             <div className="grid grid-cols-1 gap-2">
@@ -327,18 +327,18 @@ export default function DownloadModal({
                     onCheckedChange={() => toggleOption(option.id)}
                     onClick={(e) => e.stopPropagation()}
                   />
-                  <div className="h-8 w-8 bg-primary/5 flex items-center justify-center text-primary/60">
+                  <div className="h-8 w-8 bg-primary/5 flex items-center justify-center text-primary/80">
                     {option.icon}
                   </div>
                   <div className="flex-1">
-                    <div className="font-mono text-xs uppercase tracking-wider">
+                    <div className="label-sm">
                       {option.label}
                     </div>
-                    <div className="text-[10px] text-muted-foreground">
+                    <div className="text-xs text-muted-foreground">
                       {option.description}
                     </div>
                   </div>
-                  <div className="text-[10px] font-mono text-muted-foreground">
+                  <div className="text-xs font-mono text-muted-foreground">
                     {option.fileType}
                   </div>
                   {isDownloading && downloadedType === option.id && (
@@ -350,11 +350,11 @@ export default function DownloadModal({
           </div>
 
           {/* Info Box */}
-          <div className="bg-primary/5 border border-primary/10 p-4 space-y-2">
-            <div className="font-mono text-xs uppercase tracking-wider text-primary font-bold">
+          <div className="bg-primary/5 p-4 space-y-2">
+            <div className="label-sm text-primary">
               What&apos;s in the package?
             </div>
-            <ul className="text-[10px] font-mono text-muted-foreground space-y-1">
+            <ul className="text-xs font-mono text-muted-foreground space-y-1">
               <li>• PRD.md - Product Requirements Document</li>
               <li>• SRS.md - Complete Software Requirements</li>
               <li>• Individual section files (Architecture, API, QA, etc.)</li>
@@ -368,15 +368,15 @@ export default function DownloadModal({
             <Button
               variant="outline"
               onClick={onClose}
-              className="font-mono text-xs uppercase tracking-wider rounded-none"
+              className="label-sm rounded-none"
             >
               Close
             </Button>
             {selectedOptions.size > 0 && !selectedOptions.has("full_package") && (
-              <Button
+              <Button size="xl"
                 onClick={handleDownloadAll}
                 disabled={isDownloading}
-                className="font-mono text-xs uppercase tracking-wider rounded-none bg-primary"
+                
               >
                 {isDownloading ? (
                   <>

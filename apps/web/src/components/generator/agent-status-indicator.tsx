@@ -25,7 +25,7 @@ export function AgentStatusIndicator({
   const getStatusIcon = () => {
     switch (status) {
       case 'completed':
-        return <CheckCircle2 className="h-3 w-3 text-green-500" aria-hidden="true" />;
+        return <CheckCircle2 className="h-3 w-3 text-tertiary" aria-hidden="true" />;
       case 'active':
         return <Loader2 className="h-3 w-3 text-primary animate-spin" aria-hidden="true" />;
       case 'failed':
@@ -40,7 +40,7 @@ export function AgentStatusIndicator({
   const getStatusColor = () => {
     switch (status) {
       case 'completed':
-        return 'text-green-500';
+        return 'text-tertiary';
       case 'active':
         return 'text-primary';
       case 'failed':
@@ -73,7 +73,7 @@ export function AgentStatusIndicator({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 text-[10px] font-mono uppercase transition-all duration-300",
+        "label-xs flex items-center gap-2 transition-all duration-300",
         status === 'active' && "animate-pulse",
         status === 'completed' && "opacity-60",
         status === 'pending' && "opacity-40",
@@ -97,7 +97,7 @@ export function AgentStatusIndicator({
       <div className="flex items-center gap-2">
         {/* Retry Count */}
         {retryCount > 0 && (
-          <span className="flex items-center gap-1 text-amber-500">
+          <span className="flex items-center gap-1 text-warning">
             <Clock className="h-3 w-3" />
             <span>retry {retryCount}</span>
           </span>
@@ -105,7 +105,7 @@ export function AgentStatusIndicator({
 
         {/* Duration */}
         {status === 'active' && formatDuration() && (
-          <span className="text-muted-foreground/50">
+          <span className="text-muted-foreground">
             {formatDuration()}
           </span>
         )}

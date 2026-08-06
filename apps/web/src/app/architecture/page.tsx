@@ -11,6 +11,8 @@ import ExampleLibrary from "@/components/examples/example-library";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
+import { useWorkspaceStore } from "@/lib/workspace-store";
+import { prefillFromProject, requirementsFromSections } from "@/lib/architecture-prefill";
 import { useSSE } from "@/hooks/useSSE";
 import type { ArchitectureSession } from "@/types";
 import {
@@ -35,6 +37,16 @@ const VIEWS: { id: ViewId; label: string; step: string }[] = [
   { id: "compare", label: "Compare", step: "03" },
   { id: "decision", label: "Decision", step: "04" },
 ];
+
+/**
+ * These calls used to fail straight into the console: on a cold backend the
+ * spinner stopped and nothing else happened, so the page looked broken with no
+ * explanation. Prefer the server's own message, fall back to a plain one.
+ */
+function errorMessage(error: unknown, fallback: string): string {
+  const detail = error instanceof Error ? error.message.trim() : "";
+  return detail ? `${fallback} ${detail}` : fallback;
+}
 
 function ArchitecturePageContent() {
   const searchParams = useSearchParams();
@@ -68,12 +80,55 @@ function ArchitecturePageContent() {
 
   // Load existing session from URL if present
   const sessionId = searchParams?.get('session_id');
+  // A finished spec can hand itself over instead of being retyped: `project_id`
+  // for a saved one, `from=workspace` for one still in the workshop.
+  const prefillProjectId = searchParams?.get('project_id');
+  const prefillFromWorkspace = searchParams?.get('from') === 'workspace';
 
   useEffect(() => {
     if (sessionId) {
       loadSession(sessionId);
     }
   }, [sessionId]);
+
+  useEffect(() => {
+    if (sessionId) return; // An explicit session wins over any prefill.
+
+    if (prefillFromWorkspace) {
+      const { projectTitle, documentSections } = useWorkspaceStore.getState();
+      const sections = [...documentSections]
+        .filter((s) => s.status === 'complete')
+        .sort((a, b) => a.order - b.order);
+      if (sections.length === 0) return;
+      setProjectName(projectTitle || 'Untitled Specification');
+      setRequirements(requirementsFromSections(sections));
+      setStartMode('describe');
+      return;
+    }
+
+    if (!prefillProjectId) return;
+    const id = Number(prefillProjectId);
+    if (!Number.isFinite(id)) return;
+    let cancelled = false;
+    api
+      .getProject(id)
+      .then((project) => {
+        if (cancelled) return;
+        const prefill = prefillFromProject(project.title, project.artifacts);
+        if (!prefill.requirements.trim()) return;
+        setProjectName(prefill.projectName);
+        setRequirements(prefill.requirements);
+        setStartMode('describe');
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setGenerateError(errorMessage(error, 'Could not load that specification.'));
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionId, prefillProjectId, prefillFromWorkspace]);
 
   const loadSession = async (id: string) => {
     try {
@@ -87,6 +142,7 @@ function ArchitecturePageContent() {
       }
     } catch (error) {
       console.error("Failed to load session:", error);
+      setGenerateError(errorMessage(error, "Could not load that architecture session."));
     }
   };
 
@@ -94,6 +150,7 @@ function ArchitecturePageContent() {
     if (!projectName.trim() || !requirements.trim()) return;
 
     setIsCreating(true);
+    setGenerateError(null);
     try {
       const newSession = await api.createArchitectureSession({
         project_name: projectName,
@@ -104,6 +161,7 @@ function ArchitecturePageContent() {
       setSession(newSession);
     } catch (error) {
       console.error("Failed to create session:", error);
+      setGenerateError(errorMessage(error, "Could not start the architecture session."));
     } finally {
       setIsCreating(false);
     }
@@ -146,6 +204,7 @@ function ArchitecturePageContent() {
       setActiveView('compare');
     } catch (error) {
       console.error("Failed to compare:", error);
+      setGenerateError(errorMessage(error, "Could not build the comparison."));
     } finally {
       setIsComparing(false);
     }
@@ -164,18 +223,17 @@ function ArchitecturePageContent() {
       setSession(prev => prev ? { ...prev, selected_option_id: optionId } : null);
     } catch (error) {
       console.error("Failed to select option:", error);
+      setGenerateError(errorMessage(error, "Could not record that selection."));
     }
   };
 
-  // ── Start screen ────────────────────────────────────────────────────
+  // Start screen
   if (!session) {
     return (
-      <div className="mx-auto w-full max-w-6xl px-6 py-12">
-        <header className="border-b-2 border-primary/20 pb-8">
-          <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary/50">
-            Architecture Studio
-          </p>
-          <h1 className="mt-3 font-mono text-4xl font-bold uppercase tracking-tighter md:text-5xl">
+      <div className="sheet-frame mx-auto w-full max-w-6xl px-6 py-12">
+        <header className="border-b border-primary/25 pb-8">
+          <span className="label-xs text-primary">Architecture Studio</span>
+          <h1 className="mt-3 text-4xl font-bold tracking-[-0.035em] md:text-5xl">
             Decide an architecture<span className="text-primary">.</span>
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">
@@ -184,6 +242,21 @@ function ArchitecturePageContent() {
             still defend in six months.
           </p>
         </header>
+
+        {generateError && (
+          <div
+            role="alert"
+            className="accent-note mt-6 flex items-center justify-between gap-3 border-destructive bg-destructive/10 px-4 py-3 text-sm"
+          >
+            <span className="text-destructive">{generateError}</span>
+            <button
+              onClick={() => setGenerateError(null)}
+              className="font-mono text-xs uppercase text-destructive hover:text-destructive"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         <div className="mt-8 flex gap-1" role="tablist" aria-label="How to start">
           {([
@@ -198,7 +271,7 @@ function ArchitecturePageContent() {
                 role="tab"
                 aria-selected={active}
                 onClick={() => setStartMode(tab.id)}
-                className={`border-b-2 px-4 py-2 font-mono text-[11px] uppercase tracking-widest transition-colors ${
+                className={`label-sm border-b-2 px-4 py-2 transition-colors ${
                   active
                     ? "border-primary text-primary"
                     : "border-transparent text-muted-foreground hover:text-primary"
@@ -227,7 +300,7 @@ function ArchitecturePageContent() {
           <section className="mt-8 max-w-3xl" aria-label="Project brief">
             {pickedStarter && (
               <div className="mb-6 border-l-2 border-primary bg-primary/5 px-4 py-3">
-                <p className="font-mono text-[10px] uppercase tracking-widest text-primary/70">
+                <p className="label-xs text-primary/80">
                   Loaded from starter
                 </p>
                 <p className="mt-1 text-sm">
@@ -242,7 +315,7 @@ function ArchitecturePageContent() {
 
             <div className="border-2 border-primary/20">
               <div className="border-b border-primary/20 bg-primary/5 px-5 py-3">
-                <h2 className="font-mono text-xs uppercase tracking-widest text-primary/70">
+                <h2 className="label-sm text-primary/80">
                   New session
                 </h2>
               </div>
@@ -251,7 +324,7 @@ function ArchitecturePageContent() {
                 <div className="space-y-2">
                   <label
                     htmlFor="arch-project-name"
-                    className="block font-mono text-[10px] uppercase tracking-widest text-primary/60"
+                    className="label-xs block text-primary/80"
                   >
                     Project name
                   </label>
@@ -268,7 +341,7 @@ function ArchitecturePageContent() {
                 <div className="space-y-2">
                   <label
                     htmlFor="arch-requirements"
-                    className="block font-mono text-[10px] uppercase tracking-widest text-primary/60"
+                    className="label-xs block text-primary/80"
                   >
                     Requirements
                   </label>
@@ -285,7 +358,7 @@ function ArchitecturePageContent() {
                 <div className="space-y-2">
                   <label
                     htmlFor="arch-constraints"
-                    className="block font-mono text-[10px] uppercase tracking-widest text-primary/60"
+                    className="label-xs block text-primary/80"
                   >
                     Constraints
                     <span className="ml-2 normal-case tracking-normal text-muted-foreground">
@@ -300,7 +373,7 @@ function ArchitecturePageContent() {
                     rows={3}
                     className="w-full resize-y border border-primary/20 bg-background p-3 font-mono text-sm leading-relaxed focus:border-primary focus:outline-none"
                   />
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     Constraints do most of the work. Without them every option looks
                     equally good.
                   </p>
@@ -309,7 +382,7 @@ function ArchitecturePageContent() {
                 <Button
                   onClick={handleCreateSession}
                   disabled={isCreating || !projectName.trim() || !requirements.trim()}
-                  className="w-full rounded-none font-mono uppercase tracking-widest"
+                  className="label-sm w-full rounded-none"
                   size="lg"
                 >
                   {isCreating ? "Starting…" : "Start session"}
@@ -322,7 +395,7 @@ function ArchitecturePageContent() {
     );
   }
 
-  // ── Session ─────────────────────────────────────────────────────────
+  // Session
   const unlocked: Record<ViewId, boolean> = {
     chat: true,
     options: session.options.length > 0,
@@ -338,14 +411,12 @@ function ArchitecturePageContent() {
         : "Compare the options and choose one";
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6 px-6 py-8">
-      <header className="border-b-2 border-primary/20 pb-6">
+    <div className="sheet-frame mx-auto w-full max-w-6xl space-y-6 px-6 py-8">
+      <header className="border-b border-primary/25 pb-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="min-w-0">
-            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary/50">
-              Architecture Studio
-            </p>
-            <h1 className="mt-2 truncate font-mono text-3xl font-bold uppercase tracking-tighter">
+            <span className="label-xs text-primary">Architecture Studio</span>
+            <h1 className="mt-2 truncate text-3xl font-bold tracking-[-0.03em]">
               {session.project_name}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">{statusLine}</p>
@@ -356,7 +427,7 @@ function ArchitecturePageContent() {
               <Button
                 onClick={handleGenerate}
                 disabled={isGenerating}
-                className="rounded-none font-mono text-[10px] uppercase tracking-widest"
+                className="label-xs rounded-none"
               >
                 <Sparkles className="mr-2 h-3 w-3" />
                 {isGenerating ? "Generating…" : "Generate options"}
@@ -368,7 +439,7 @@ function ArchitecturePageContent() {
                 onClick={handleCompare}
                 disabled={isComparing}
                 variant="outline"
-                className="rounded-none font-mono text-[10px] uppercase tracking-widest"
+                className="label-xs rounded-none"
               >
                 <Scale className="mr-2 h-3 w-3" />
                 {isComparing ? "Comparing…" : "Compare options"}
@@ -378,7 +449,7 @@ function ArchitecturePageContent() {
             <Button
               variant="outline"
               onClick={() => setShowPatternModal(true)}
-              className="rounded-none font-mono text-[10px] uppercase tracking-widest"
+              className="label-xs rounded-none"
             >
               <Library className="mr-2 h-3 w-3" />
               Patterns
@@ -390,12 +461,12 @@ function ArchitecturePageContent() {
       {generateError && (
         <div
           role="alert"
-          className="flex items-center justify-between gap-3 border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm"
+          className="accent-note flex items-center justify-between gap-3 border-destructive bg-destructive/10 px-4 py-3 text-sm"
         >
           <span className="text-destructive">{generateError}</span>
           <button
             onClick={() => setGenerateError(null)}
-            className="font-mono text-xs uppercase text-destructive/70 hover:text-destructive"
+            className="font-mono text-xs uppercase text-destructive hover:text-destructive"
           >
             Dismiss
           </button>
@@ -415,18 +486,18 @@ function ArchitecturePageContent() {
               disabled={!isUnlocked}
               aria-current={active ? "step" : undefined}
               title={isUnlocked ? undefined : "Not available yet"}
-              className={`group flex items-baseline gap-2 border-b-2 px-3 py-2.5 font-mono text-[11px] uppercase tracking-widest transition-colors ${
+              className={`label-sm group flex items-baseline gap-2 border-b-2 px-3 py-2.5 transition-colors ${
                 active
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground enabled:hover:text-primary"
               } disabled:cursor-not-allowed disabled:text-muted-foreground/40`}
             >
-              <span className={active ? "text-primary/60" : "text-muted-foreground/50"}>
+              <span className={active ? "text-primary/80" : "text-muted-foreground"}>
                 {view.step}
               </span>
               <span>{view.label}</span>
               {count !== null && count > 0 && (
-                <span className="text-primary/60">({count})</span>
+                <span className="text-primary/80">({count})</span>
               )}
               {!isUnlocked && <Lock aria-hidden className="h-3 w-3" />}
             </button>
@@ -475,7 +546,7 @@ function ArchitecturePageContent() {
 
         <aside className="space-y-4">
           <section className="border border-primary/15">
-            <h2 className="border-b border-primary/15 bg-primary/5 px-4 py-2.5 font-mono text-[10px] uppercase tracking-widest text-primary/60">
+            <h2 className="label-xs border-b border-primary/15 bg-primary/5 px-4 py-2.5 text-primary/80">
               Session
             </h2>
             <dl className="space-y-2.5 p-4 text-sm">
@@ -497,7 +568,7 @@ function ArchitecturePageContent() {
           </section>
 
           <section className="border border-primary/15">
-            <h2 className="border-b border-primary/15 bg-primary/5 px-4 py-2.5 font-mono text-[10px] uppercase tracking-widest text-primary/60">
+            <h2 className="label-xs border-b border-primary/15 bg-primary/5 px-4 py-2.5 text-primary/80">
               Requirements
             </h2>
             <div className="p-4">
@@ -506,7 +577,7 @@ function ArchitecturePageContent() {
               </p>
               {session.constraints && (
                 <div className="mt-3 border-t border-primary/10 pt-3">
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-primary/60">
+                  <span className="label-xs text-primary/80">
                     Constraints
                   </span>
                   <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
@@ -536,7 +607,7 @@ function ArchitecturePageLoading() {
       <div className="animate-pulse space-y-4">
         <div className="h-8 w-48 bg-primary/20" />
         <div className="h-4 w-96 bg-primary/10" />
-        <div className="h-64 border border-primary/10 bg-primary/5" />
+        <div className="h-64 bg-primary/5" />
       </div>
     </div>
   );

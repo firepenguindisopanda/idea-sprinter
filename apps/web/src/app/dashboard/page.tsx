@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import ProtectedRoute from "@/components/protected-route";
+import ArchitectureList from "@/components/dashboard/architecture-list";
 import ProjectCard from "@/components/dashboard/project-card";
 import EmptyState from "@/components/dashboard/empty-state";
 import UsageStats from "@/components/dashboard/usage-stats";
@@ -24,13 +25,21 @@ import { api, downloadProjectPdf } from "@/lib/api";
 import { useWorkspaceStore } from "@/lib/workspace-store";
 import { toast } from "sonner";
 import type { Project, UsageStatsResponse } from "@/types";
-import { displayOutputs } from "@/lib/project-artifacts";
+import { exportOutputs } from "@/lib/project-artifacts";
 
 interface CacheHealth {
   status: string;
   keys_tracked: number;
   ttl_seconds: number;
 }
+
+/** Single-step tools the workshop run now covers end to end. */
+const RELICS = [
+  { href: "/ideation" as const, icon: Lightbulb, name: "Ideation", detail: "Brainstorm and refine" },
+  { href: "/generate" as const, icon: Zap, name: "Generator", detail: "Direct spec generation" },
+  { href: "/prd" as const, icon: FileText, name: "PRD agent", detail: "Product requirements only" },
+  { href: "/architecture" as const, icon: Network, name: "Architecture", detail: "Compare architectures" },
+];
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -141,7 +150,7 @@ export default function DashboardPage() {
 
   const handleDownloadPdf = async (project: Project) => {
     try {
-      await downloadProjectPdf(project.description || project.title, displayOutputs(project.artifacts));
+      await downloadProjectPdf(project.description || project.title, exportOutputs(project.artifacts));
       
       toast.success("PDF Downloaded!", {
         description: "Your project specification has been downloaded.",
@@ -156,57 +165,39 @@ export default function DashboardPage() {
   return (
     <ProtectedRoute>
       <div className="container mx-auto p-6 max-w-7xl space-y-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-primary/20 pb-8 gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 bg-primary rounded-full animate-pulse" />
-              <span className="text-[10px] font-mono text-primary/60 uppercase tracking-widest">Dashboard</span>
-            </div>
-            <h1 className="text-4xl font-mono font-bold uppercase tracking-tighter">Your <span className="text-primary">Projects</span></h1>
-            <p className="text-muted-foreground font-sans text-sm max-w-xl">
-              View and manage your saved specification documents.
+        <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-primary/25 pb-8 gap-4">
+          <div className="space-y-2">
+            <span className="label-xs text-primary">Dashboard</span>
+            <h1 className="text-4xl font-bold tracking-[-0.03em]">Your projects</h1>
+            <p className="text-muted-foreground text-sm max-w-xl">
+              Every specification you have saved, and every architecture you have compared.
             </p>
           </div>
-          
-          <Button
-            size="xl"
-            onClick={handleNewProject}
-            className="font-mono uppercase tracking-widest rounded-none border-2 border-primary/20 shadow-[4px_4px_0px_0px_rgba(var(--primary),0.1)]"
-          >
-            <Plus className="mr-2 h-5 w-5" />
-            New Project
+
+          <Button size="xl" onClick={handleNewProject} className="shrink-0">
+            <Plus className="mr-2 h-4 w-4" />
+            New project
           </Button>
         </div>
 
-        {/* Usage Statistics */}
-        <div className="relative">
-          <div className="absolute top-0 right-0 p-2 text-[10px] font-mono text-primary/20 select-none uppercase">Usage</div>
-          <UsageStats stats={metrics} isLoading={isLoadingMetrics} />
-        </div>
+        <UsageStats stats={metrics} isLoading={isLoadingMetrics} />
 
         {/* LangSmith Status */}
         {lsPrefs && (
-          <div className="border border-primary/10 p-4 bg-primary/5">
-            <div className="flex items-center justify-between">
+          <div className="p-4 bg-primary/5">
+            <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <Activity className="h-4 w-4 text-primary/60" />
                 <div>
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-primary/70">LangSmith Tracing</span>
+                  <span className="label-xs text-primary">LangSmith tracing</span>
                   {lsPrefs.langsmithProject && (
-                    <p className="text-[9px] font-mono text-muted-foreground mt-0.5">
-                      Project: {lsPrefs.langsmithProject}
+                    <p className="label-xs text-muted-foreground mt-1.5">
+                      {lsPrefs.langsmithProject}
                     </p>
                   )}
                 </div>
               </div>
-              <Badge
-                variant="outline"
-                className={`rounded-none font-mono text-[10px] uppercase tracking-wider ${
-                  lsPrefs.enableTracing
-                    ? "border-green-500/50 text-green-600 bg-green-500/5"
-                    : "border-muted-foreground/30 text-muted-foreground"
-                }`}
-              >
+              <Badge variant={lsPrefs.enableTracing ? "tertiary" : "outline"}>
                 {lsPrefs.enableTracing ? "Active" : "Disabled"}
               </Badge>
             </div>
@@ -214,26 +205,28 @@ export default function DashboardPage() {
         )}
 
         <div className="space-y-6">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="font-mono text-xs font-bold uppercase text-primary/70">Saved Projects:</span>
-            <div className="h-px flex-1 bg-primary/10" />
-            <span className="font-mono text-xs text-muted-foreground">{projects.length} projects</span>
+          <div className="flex items-center gap-4 border-b border-primary/25 pb-3">
+            <span className="label-xs text-primary">Saved projects</span>
+            <div className="h-px flex-1 bg-primary/15" />
+            <span className="label-xs text-muted-foreground">
+              {projects.length} {projects.length === 1 ? "project" : "projects"}
+            </span>
           </div>
-          
+
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-32 space-y-4">
-              <Loader2 className="h-10 w-10 animate-spin text-primary" />
-              <span className="font-mono text-[10px] uppercase animate-pulse">Loading projects...</span>
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="label-xs text-muted-foreground">Loading projects</span>
             </div>
           ) : (
             <>
               {projects.length === 0 ? (
                 <EmptyState
                   title="No projects yet"
-                  description="You haven&apos;t created any projects yet. Start a new generation to get started."
+                  description="Saved specifications land here. Start a draft in the workshop to create your first."
                 />
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
                   {projects.map((project) => (
                     <ProjectCard
                       key={project.id}
@@ -248,105 +241,75 @@ export default function DashboardPage() {
           )}
         </div>
 
+        <ArchitectureList />
+
         {/* The Relics */}
-        <div className="relative">
-          <div className="absolute top-0 right-0 p-2 text-[10px] font-mono text-primary/20 select-none uppercase">Legacy</div>
-          <div className="border border-primary/10 bg-muted/20 rounded-xl p-6 space-y-4">
-            <div className="space-y-1">
-              <h2 className="text-lg font-mono font-bold uppercase tracking-tighter text-muted-foreground">
-                The Relics
-              </h2>
-              <p className="text-sm text-muted-foreground/70">
-                Older tools, still functional. The Workshop Studio is the recommended experience.
-              </p>
-            </div>
+        <div>
+          <div className="flex items-center gap-4 border-b border-primary/25 pb-3">
+            <span className="label-xs text-primary">Earlier tools</span>
+            <div className="h-px flex-1 bg-primary/15" />
+            <span className="label-xs text-muted-foreground">Superseded</span>
+          </div>
+          <div className="border-x border-b border-primary/15 bg-muted/20 p-6 space-y-4">
+            <p className="text-sm text-muted-foreground max-w-2xl">
+              These still work, but the workshop replaced them. Each one does a
+              single step of what a workshop run now does end to end.
+            </p>
 
+            {/* These carried four unrelated accent hues - amber, blue, purple,
+                indigo - none of which mean anything in the palette. Superseded
+                tools read as superseded: one muted treatment, no colour coding. */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Link
-                href="/ideation"
-                className="group flex items-center gap-3 p-4 rounded-lg border border-primary/10 bg-background/50 hover:border-primary/30 hover:bg-primary/5 transition-all opacity-70 hover:opacity-100"
-              >
-                <div className="h-8 w-8 rounded-md bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
-                  <Lightbulb className="h-4 w-4" aria-hidden />
-                </div>
-                <div>
-                  <div className="text-xs font-mono font-bold uppercase text-muted-foreground group-hover:text-primary transition-colors">Ideation</div>
-                  <div className="text-[10px] text-muted-foreground/60">Brainstorm & refine</div>
-                </div>
-              </Link>
-
-              <Link
-                href="/generate"
-                className="group flex items-center gap-3 p-4 rounded-lg border border-primary/10 bg-background/50 hover:border-primary/30 hover:bg-primary/5 transition-all opacity-70 hover:opacity-100"
-              >
-                <div className="h-8 w-8 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                  <Zap className="h-4 w-4" aria-hidden />
-                </div>
-                <div>
-                  <div className="text-xs font-mono font-bold uppercase text-muted-foreground group-hover:text-primary transition-colors">Generator</div>
-                  <div className="text-[10px] text-muted-foreground/60">Direct spec generation</div>
-                </div>
-              </Link>
-
-              <Link
-                href="/prd"
-                className="group flex items-center gap-3 p-4 rounded-lg border border-primary/10 bg-background/50 hover:border-primary/30 hover:bg-primary/5 transition-all opacity-70 hover:opacity-100"
-              >
-                <div className="h-8 w-8 rounded-md bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
-                  <FileText className="h-4 w-4" aria-hidden />
-                </div>
-                <div>
-                  <div className="text-xs font-mono font-bold uppercase text-muted-foreground group-hover:text-primary transition-colors">PRD Agent</div>
-                  <div className="text-[10px] text-muted-foreground/60">Product requirements doc</div>
-                </div>
-              </Link>
-
-              <Link
-                href="/architecture"
-                className="group flex items-center gap-3 p-4 rounded-lg border border-primary/10 bg-background/50 hover:border-primary/30 hover:bg-primary/5 transition-all opacity-70 hover:opacity-100"
-              >
-                <div className="h-8 w-8 rounded-md bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500">
-                  <Network className="h-4 w-4" aria-hidden />
-                </div>
-                <div>
-                  <div className="text-xs font-mono font-bold uppercase text-muted-foreground group-hover:text-primary transition-colors">Architecture</div>
-                  <div className="text-[10px] text-muted-foreground/60">Compare architectures</div>
-                </div>
-              </Link>
+              {RELICS.map(({ href, icon: Icon, name, detail }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="group flex items-center gap-3 border border-primary/15 bg-background/50 p-4 transition-colors hover:border-primary/40 hover:bg-primary/5"
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center border border-border text-muted-foreground transition-colors group-hover:border-primary/40 group-hover:text-primary">
+                    <Icon className="h-4 w-4" aria-hidden />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="label-xs text-muted-foreground transition-colors group-hover:text-primary">
+                      {name}
+                    </div>
+                    <div className="mt-1.5 text-xs text-muted-foreground">{detail}</div>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         </div>
 
         {/* Cache Management */}
-        <div className="relative">
-          <div className="absolute top-0 right-0 p-2 text-[10px] font-mono text-primary/20 select-none uppercase">Admin</div>
-          <div className="border border-primary/10 bg-muted/20 rounded-xl p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <h2 className="text-lg font-mono font-bold uppercase tracking-tighter text-muted-foreground">
-                  Cache
-                </h2>
-                <p className="text-sm text-muted-foreground/70">
-                  {cacheHealth
-                    ? `${cacheHealth.keys_tracked} keys tracked, TTL ${cacheHealth.ttl_seconds}s`
-                    : 'Cache status unknown'}
-                </p>
-              </div>
-              <Button
-                onClick={handleClearCache}
-                disabled={isClearingCache || isLoadingCache}
-                variant="outline"
-                size="sm"
-                className="font-mono uppercase text-[10px]"
-              >
-                {isClearingCache ? (
-                  <RefreshCw className="h-3 w-3 mr-2 animate-spin" />
-                ) : (
-                  <Trash2 className="h-3 w-3 mr-2" />
-                )}
-                {isClearingCache ? 'Clearing...' : 'Clear Cache'}
-              </Button>
-            </div>
+        <div>
+          <div className="flex items-center gap-4 border-b border-primary/25 pb-3">
+            <span className="label-xs text-primary">Cache</span>
+            <div className="h-px flex-1 bg-primary/15" />
+            <span className="label-xs text-muted-foreground">
+              {cacheHealth ? `TTL ${cacheHealth.ttl_seconds}s` : "Status unknown"}
+            </span>
+          </div>
+          <div className="flex items-center justify-between gap-4 border-x border-b border-primary/15 bg-muted/20 p-6">
+            <p className="text-sm text-muted-foreground">
+              {cacheHealth
+                ? `${cacheHealth.keys_tracked} keys tracked. Clearing forces the next run to recompute from scratch.`
+                : "Could not read cache status from the API."}
+            </p>
+            <Button
+              onClick={handleClearCache}
+              disabled={isClearingCache || isLoadingCache}
+              variant="outline"
+              size="sm"
+              className="label-xs shrink-0"
+            >
+              {isClearingCache ? (
+                <RefreshCw className="h-3 w-3 mr-2 animate-spin" />
+              ) : (
+                <Trash2 className="h-3 w-3 mr-2" />
+              )}
+              {isClearingCache ? "Clearing" : "Clear cache"}
+            </Button>
           </div>
         </div>
       </div>

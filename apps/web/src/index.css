@@ -12,92 +12,144 @@
 
 @theme {
   --font-sans: var(--font-geist-sans), "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
-html,
-body {
-  @apply bg-white dark:bg-[#0F172A];
+/* 
+   Kinetic Blueprint - see DESIGN.md.
 
-  @media (prefers-color-scheme: dark) {
-    color-scheme: dark;
-  }
-}
-
+   Light is a diazo whiteprint (blue line on paper), dark is the cyanotype it
+   was printed from. Both carry the same three pigments - periwinkle for the
+   drawing, teal for anything measured and passing, red-oxide for a fault - so
+   switching themes changes the paper, never the ink's meaning.
+ */
 :root {
-  --radius: 0.5rem;
-  --background: oklch(0.985 0.005 280);        /* warm off-white */
-  --foreground: oklch(0.15 0.02 280);           /* soft dark */
-  --card: oklch(0.98 0.008 280);
-  --card-foreground: oklch(0.15 0.02 280);
-  --popover: oklch(0.98 0.008 280);
-  --popover-foreground: oklch(0.15 0.02 280);
-  --primary: oklch(0.45 0.12 265);              /* warm indigo */
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.93 0.01 265);
-  --secondary-foreground: oklch(0.15 0.02 280);
-  --muted: oklch(0.94 0.008 280);
-  --muted-foreground: oklch(0.55 0.02 280);
-  --accent: oklch(0.9 0.02 265);
-  --accent-foreground: oklch(0.15 0.02 280);
-  --destructive: oklch(0.58 0.2 25);
-  --border: oklch(0.88 0.01 280);
-  --input: oklch(0.88 0.01 280);
-  --ring: oklch(0.45 0.12 265);
-  --chart-1: oklch(0.55 0.18 265);
-  --chart-2: oklch(0.6 0.12 170);
-  --chart-3: oklch(0.5 0.1 40);
-  --chart-4: oklch(0.6 0.15 310);
-  --chart-5: oklch(0.55 0.13 15);
-  --sidebar: oklch(0.98 0.01 280);
-  --sidebar-foreground: oklch(0.15 0.02 280);
-  --sidebar-primary: oklch(0.45 0.12 265);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.93 0.01 265);
-  --sidebar-accent-foreground: oklch(0.15 0.02 280);
-  --sidebar-border: oklch(0.88 0.01 280);
-  --sidebar-ring: oklch(0.45 0.12 265);
+  --radius: 0.25rem;
+
+  /* Paper. Monotonic tonal ladder: each rung lighter than the one below, so a
+     panel nested in a card separates without a rule between them. */
+  --surface-sunken: #e8ebf5;
+  --surface-raised: #f9fafd;
+  --surface-high: #fcfdfe;
+  --surface-highest: #ffffff;
+
+  --background: #f4f6fb;
+  --foreground: #14182a;
+  --card: #ffffff;
+  --card-foreground: #14182a;
+  --popover: #ffffff;
+  --popover-foreground: #14182a;
+
+  /* Periwinkle - the drawing itself: actions, active state, structure */
+  --primary: #3a3bc4;
+  --primary-foreground: #ffffff;
+
+  /* Teal - reserved for measured-and-passing: clarity scores, approvals */
+  --tertiary: #0f7d72;
+  --tertiary-foreground: #ffffff;
+
+  /* Sand - measured but short of the bar. DESIGN.md names a pass colour and a
+     fault colour but no middle, and the app had been reaching for yellow-500
+     and amber-500 to fill the gap. */
+  --warning: #8a5a1f;
+  --warning-foreground: #ffffff;
+
+  --secondary: #e6e9f4;
+  --secondary-foreground: #14182a;
+  --muted: #eaedf6;
+  --muted-foreground: #565b74;
+  --accent: #e6e9f4;
+  --accent-foreground: #14182a;
+  --destructive: #b3261e;
+  --destructive-foreground: #ffffff;
+
+  --border: #d3d8e8;
+  --input: #c3cadf;
+  --ring: #3a3bc4;
+
+  /* Ink the blueprint grid is drawn in */
+  --grid-ink: #3a3bc4;
+
+  --chart-1: #3a3bc4;
+  --chart-2: #0f7d72;
+  --chart-3: #8a5a1f;
+  --chart-4: #7a3fa8;
+  --chart-5: #b3261e;
+
+  --sidebar: #eef1f9;
+  --sidebar-foreground: #14182a;
+  --sidebar-primary: #3a3bc4;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e6e9f4;
+  --sidebar-accent-foreground: #14182a;
+  --sidebar-border: #d3d8e8;
+  --sidebar-ring: #3a3bc4;
 }
 
 .dark {
-  --background: oklch(0.18 0.015 280);          /* warm dark */
-  --foreground: oklch(0.97 0.005 280);
-  --card: oklch(0.22 0.015 280);
-  --card-foreground: oklch(0.97 0.005 280);
-  --popover: oklch(0.22 0.015 280);
-  --popover-foreground: oklch(0.97 0.005 280);
-  --primary: oklch(0.65 0.15 265);              /* warmer indigo glow */
-  --primary-foreground: oklch(0.15 0.02 280);
-  --secondary: oklch(0.28 0.015 280);
-  --secondary-foreground: oklch(0.97 0.005 280);
-  --muted: oklch(0.28 0.015 280);
-  --muted-foreground: oklch(0.7 0.01 280);
-  --accent: oklch(0.28 0.02 265);
-  --accent-foreground: oklch(0.97 0.005 280);
-  --destructive: oklch(0.65 0.2 25);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.65 0.15 265);
-  --chart-1: oklch(0.55 0.2 265);
-  --chart-2: oklch(0.65 0.15 170);
-  --chart-3: oklch(0.65 0.15 40);
-  --chart-4: oklch(0.6 0.2 310);
-  --chart-5: oklch(0.6 0.18 15);
-  --sidebar: oklch(0.22 0.015 280);
-  --sidebar-foreground: oklch(0.97 0.005 280);
-  --sidebar-primary: oklch(0.65 0.15 265);
-  --sidebar-primary-foreground: oklch(0.15 0.02 280);
-  --sidebar-accent: oklch(0.28 0.02 265);
-  --sidebar-accent-foreground: oklch(0.97 0.005 280);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.65 0.15 265);
+  /* Cyanotype. Tonal ladder from DESIGN.md's surface-container scale - depth
+     is carried by these five steps and a hairline rule, not by shadow. */
+  --surface-sunken: #090e1b;
+  --surface-raised: #161b29;
+  --surface-high: #1a1f2e;
+  --surface-highest: #252a38;
+
+  --background: #0e1321;
+  --foreground: #dee2f6;
+  --card: #161b29;
+  --card-foreground: #dee2f6;
+  --popover: #1a1f2e;
+  --popover-foreground: #dee2f6;
+
+  --primary: #c0c1ff;
+  --primary-foreground: #1000a9;
+
+  --tertiary: #6bd8cb;
+  --tertiary-foreground: #003732;
+
+  --warning: #e0b978;
+  --warning-foreground: #3a2606;
+
+  --secondary: #252a38;
+  --secondary-foreground: #dee2f6;
+  --muted: #1a1f2e;
+  --muted-foreground: #9ba1bd;
+  --accent: #252a38;
+  --accent-foreground: #dee2f6;
+  --destructive: #ffb4ab;
+  --destructive-foreground: #690005;
+
+  --border: #2d3250;
+  --input: #3a3f55;
+  --ring: #c0c1ff;
+
+  --grid-ink: #c0c1ff;
+
+  --chart-1: #c0c1ff;
+  --chart-2: #6bd8cb;
+  --chart-3: #e0b978;
+  --chart-4: #d0a3f5;
+  --chart-5: #ffb4ab;
+
+  --sidebar: #161b29;
+  --sidebar-foreground: #dee2f6;
+  --sidebar-primary: #c0c1ff;
+  --sidebar-primary-foreground: #1000a9;
+  --sidebar-accent: #252a38;
+  --sidebar-accent-foreground: #dee2f6;
+  --sidebar-border: #2d3250;
+  --sidebar-ring: #c0c1ff;
 }
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: var(--radius);
-  --radius-lg: calc(var(--radius) + 2px);
-  --radius-xl: calc(var(--radius) + 8px);
+  /* Shapes stay between 2px and 8px. DESIGN.md puts standard UI at 0.25rem
+     and primary CTAs at 0; nothing in the system needs a pill except a dot. */
+  --radius-xs: 0.0625rem;
+  --radius-sm: 0.125rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.375rem;
+  --radius-xl: 0.5rem;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -106,6 +158,10 @@ body {
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-foreground: var(--tertiary-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -113,9 +169,16 @@ body {
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-high: var(--surface-high);
+  --color-surface-highest: var(--surface-highest);
+
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -135,14 +198,194 @@ body {
   * {
     @apply border-border outline-ring/50;
   }
+
+  html,
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background;
   }
-  
+
+  body {
+    @apply text-foreground font-sans;
+  }
+
+  /* Geist's tight tracking is what makes the headings read as drafted rather
+     than typeset. Applied once here so screens stop re-declaring it. */
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.02em;
+  }
+
+  /* Thin rules instead of chrome. The app is mostly scrolling panes and the
+     default 15px bar breaks every hairline border it sits next to. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--border) 90%, transparent) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--border) 90%, transparent);
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklab, var(--primary) 45%, transparent);
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+}
+
+@layer components {
+  /* Technical labels. Geist reads, JetBrains Mono measures.
+     Three rungs only; scripts/check-type-scale.mjs fails lint on a fourth.
+     Weight is baked in, so a utility on top overrides it. */
+  .label-sm {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .label-xs {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* Mono display titles. Sets no font-size on purpose: callers keep whichever
+     rung of the standard ladder they already use. */
+  .label-lg {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  /* Accent note: a colour bar on one edge instead of a box on all four.
+     Geometry only; the call site supplies the pigment.
+     <div class="accent-note border-destructive bg-destructive/10"> */
+  .accent-note {
+    border-left-width: 2px;
+    border-left-style: solid;
+  }
+
+  /* The sheet
+     No full-bleed texture. A repeating pattern behind everything - rules at
+     16px, or registration crosses at 96px - lands marks in the gaps between
+     glyphs, where they read as speckle competing with the type rather than as
+     a surface underneath it. Two passes at tuning density and opacity did not
+     separate the two.
+
+     So the canvas is flat, and the drawing language is carried by structure
+     instead: the margin frame below, the corner reticles, the title block,
+     and the mono labels. Structure never fights the text it frames. */
+
+  /* Margin frame
+     The ruled border every drafting sheet carries, set inside the page
+     margin. One hairline, well clear of the content column. */
+  .sheet-frame {
+    position: relative;
+  }
+
+  .sheet-frame::before {
+    content: "";
+    position: absolute;
+    inset: 0 -1.5rem;
+    border-left: 1px solid color-mix(in oklab, var(--primary) 18%, transparent);
+    border-right: 1px solid color-mix(in oklab, var(--primary) 18%, transparent);
+    pointer-events: none;
+  }
+
+  @media (max-width: 1024px) {
+    .sheet-frame::before {
+      display: none;
+    }
+  }
+
+  /* Corner reticles
+     Registration marks from the drawing's four corners. Several screens were
+     hand-building these out of absolutely positioned bordered divs. */
+  .reticle {
+    position: relative;
+  }
+
+  .reticle::before,
+  .reticle::after {
+    content: "";
+    position: absolute;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-color: color-mix(in oklab, var(--primary) 55%, transparent);
+    pointer-events: none;
+  }
+
+  .reticle::before {
+    top: -1px;
+    left: -1px;
+    border-top-width: 1px;
+    border-left-width: 1px;
+  }
+
+  .reticle::after {
+    right: -1px;
+    bottom: -1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+  }
+
+  /* Hard offset shadow
+     The system's only shadow, and it only appears on hover. It replaces
+     `shadow-[8px_8px_0px_0px_rgba(var(--primary),0.1)]`, which rendered
+     nothing at all: --primary holds a colour, not the three comma-separated
+     channels rgba() needs. */
+  .stamp-hover {
+    transition: box-shadow 150ms ease, border-color 150ms ease, transform 150ms ease;
+  }
+
+  .stamp-hover:hover {
+    box-shadow: 6px 6px 0 0 color-mix(in oklab, var(--primary) 16%, transparent);
+  }
+}
+
+@layer utilities {
+  /* The active line in a streaming document. */
+  .pulse-rule {
+    animation: pulse-rule 1.6s ease-in-out infinite;
+  }
+
+  @keyframes pulse-rule {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.35;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pulse-rule {
+      animation: none;
+    }
+  }
 }
 
 #gen-ex-modal {
   --container-lg: 86rem;
   --container-6xl: 86rem;
 }
-

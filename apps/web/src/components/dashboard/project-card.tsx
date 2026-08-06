@@ -57,66 +57,71 @@ export default function ProjectCard({ project, onDelete, onDownloadPdf }: Projec
 
   return (
     <>
-      <div className="group relative border-2 border-primary/20 bg-background/50 backdrop-blur-sm transition-all hover:border-primary/50 hover:shadow-[8px_8px_0px_0px_rgba(var(--primary),0.1)]">
-        <div className="absolute -top-3 left-4 bg-background border border-primary/20 px-2 py-0.5 text-[8px] font-mono text-primary/60 uppercase tracking-widest z-10">
-          Ref: ID-{project.id.toString().padStart(4, '0')}
+      {/* `stamp-hover` replaces shadow-[8px_8px_0px_0px_rgba(var(--primary),0.1)],
+          which never drew anything: --primary holds a colour, not the three
+          channels rgba() expects. h-full keeps a short card level with a tall
+          one so the action bars line up across the grid. */}
+      <div className="stamp-hover group relative flex h-full flex-col border border-primary/25 bg-card/60 backdrop-blur-sm hover:border-primary/50">
+        <div className="label-xs absolute -top-px left-4 z-10 border border-primary/25 border-t-0 bg-background px-2 py-0.5 text-primary/80">
+          Ref ID-{project.id.toString().padStart(4, '0')}
         </div>
-        
-        <div className="p-6 pb-4">
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <h3 className="font-mono font-bold text-xl uppercase tracking-tighter line-clamp-2 leading-tight">
+
+        <div className="flex-1 p-6 pt-8">
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <h3 className="line-clamp-2 text-lg font-bold leading-tight tracking-tight">
               {project.title}
             </h3>
-            <div className="flex shrink-0 flex-col items-end gap-1">
-              <div className="font-mono text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-1 uppercase">
+            <div className="flex shrink-0 flex-col items-end gap-1.5">
+              <span className="label-xs border border-primary/25 bg-primary/10 px-2 py-1 text-primary">
                 {summaryBadge}
-              </div>
-              <div className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
-                {sourceLabel}
-              </div>
+              </span>
+              <span className="label-xs text-muted-foreground">{sourceLabel}</span>
             </div>
           </div>
-          
+
           <div className="space-y-4">
             {project.description && (
-<p className="text-sm text-muted-foreground line-clamp-3 font-sans italic leading-relaxed">
-                &quot;{project.description}&quot;
+              <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                {project.description}
               </p>
             )}
-            
-            <div className="flex items-center text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
+
+            <div className="label-xs flex items-center text-muted-foreground">
               <Calendar className="mr-1.5 h-3 w-3 text-primary/50" />
-              Created: {formatDate(project.created_at)}
+              {formatDate(project.created_at)}
             </div>
 
             {roles.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-2 border-t border-primary/10">
+              <div className="flex flex-wrap gap-1.5 border-t border-primary/15 pt-3">
                 {roles.slice(0, 3).map((agentRole) => (
-                  <span key={agentRole} className="text-[9px] font-mono text-primary/70 uppercase border border-primary/10 px-1.5 py-0.5 bg-primary/5">
+                  <span
+                    key={agentRole}
+                    className="label-xs bg-primary/5 px-1.5 py-1 text-primary/80"
+                  >
                     {formatRole(agentRole)}
                   </span>
                 ))}
                 {roles.length > 3 && (
-                  <span className="text-[9px] font-mono text-muted-foreground uppercase px-1.5 py-0.5">
-                    +{roles.length - 3} OTHERS
+                  <span className="label-xs px-1.5 py-1 text-muted-foreground">
+                    +{roles.length - 3} more
                   </span>
                 )}
               </div>
             )}
           </div>
         </div>
-        
-        <div className="flex border-t-2 border-primary/20">
+
+        <div className="mt-auto flex border-t border-primary/25">
           <button
             onClick={handleView}
-            className="flex-1 flex items-center justify-center gap-2 py-3 font-mono text-xs uppercase tracking-widest hover:bg-primary/10 transition-colors border-r border-primary/20"
+            className="label-xs flex flex-1 items-center justify-center gap-2 border-r border-primary/25 py-3.5 transition-colors hover:bg-primary/10 hover:text-primary"
           >
             <Eye className="h-4 w-4" />
             View
           </button>
           <button
             onClick={() => onDownloadPdf(project)}
-            className="flex items-center justify-center p-3 hover:bg-primary/10 transition-colors border-r border-primary/20"
+            className="flex items-center justify-center border-r border-primary/25 p-3 transition-colors hover:bg-primary/10 hover:text-primary"
             title="Download PDF"
           >
             <Download className="h-4 w-4" />

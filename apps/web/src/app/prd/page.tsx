@@ -37,10 +37,10 @@ function PrdPageContent() {
     <div className="w-full h-[calc(100vh-64px)] px-4 py-4 flex flex-col gap-4 overflow-hidden">
       <div className="flex items-center justify-between border-b border-primary/20 pb-4 shrink-0">
         <div>
-          <h1 className="text-3xl font-mono font-bold uppercase tracking-tighter">Product <span className="text-amber-500">Requirements</span> (PRD)</h1>
+          <h1 className="text-3xl font-bold tracking-[-0.03em]">Product <span className="text-primary">Requirements</span> (PRD)</h1>
           <p className="text-xs text-muted-foreground mt-1">Draft and refine a PRD with the PRD agent - synthesize to a full document and export or use it to start the SRS generation.</p>
         </div>
-        <Button variant="outline" asChild className="font-mono uppercase text-[10px]">
+        <Button variant="outline" asChild className="label-xs">
           <Link href="/architecture">
             <Building2 className="h-3 w-3 mr-2" />
             Architecture Studio
@@ -49,12 +49,12 @@ function PrdPageContent() {
       </div>
 
       {hasIdeationExample && !prefill && (
-        <div className="bg-amber-500/10 border border-amber-500/20 p-3 flex items-center justify-between shrink-0">
+        <div className="bg-primary/10 border border-primary/25 p-3 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <Sparkles className="h-4 w-4 text-amber-500" />
+            <Sparkles className="h-4 w-4 text-primary" />
             <div>
-              <p className="text-xs font-mono uppercase text-amber-600">Ideation example available</p>
-              <p className="text-[10px] text-muted-foreground">Import your selected concept to start building the PRD</p>
+              <p className="label-xs text-primary">Ideation example available</p>
+              <p className="text-xs text-muted-foreground">Import your selected concept to start building the PRD</p>
             </div>
           </div>
           <Button
@@ -67,7 +67,7 @@ function PrdPageContent() {
                 window.location.href = `/prd?prefill=${encoded}`;
               }
             }}
-            className="h-7 rounded-none font-mono uppercase text-[10px] border-amber-500/30 text-amber-600 hover:bg-amber-500/10"
+            className="label-xs h-7 rounded-none border-primary/40 text-primary hover:bg-primary/10"
           >
             <FileText className="h-3 w-3 mr-2" />
             Import Example
@@ -76,7 +76,7 @@ function PrdPageContent() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-[35%_20%_45%] gap-4 flex-1 min-h-0">
-        <div className="flex flex-col h-full overflow-hidden border border-border/40 rounded-md bg-background/50">
+        <div className="flex flex-col h-full overflow-hidden border border-border/40 rounded-sm bg-background/50">
           <PrdChat 
             initialSessionId={sessionId} 
             prefill={prefill ?? undefined} 
@@ -86,17 +86,17 @@ function PrdPageContent() {
         </div>
 
         <div className="flex flex-col h-full overflow-hidden space-y-4">
-          <div className="bg-background border border-primary/10 p-3 shrink-0 rounded-md">
-            <h3 className="text-[10px] font-mono uppercase text-primary/60">Session Status</h3>
-            <p className="text-[10px] text-muted-foreground mt-1">Use messages to build out PRD sections. When ready, synthesize the document from the right panel.</p>
+          <div className="bg-background border border-primary/10 p-3 shrink-0 rounded-sm">
+            <h3 className="label-xs text-primary/80">Session Status</h3>
+            <p className="text-xs text-muted-foreground mt-1">Use messages to build out PRD sections. When ready, synthesize the document from the right panel.</p>
           </div>
 
-          <div className="flex-1 overflow-auto border border-border/40 rounded-md bg-background/50">
+          <div className="flex-1 overflow-auto border border-border/40 rounded-sm bg-background/50">
             <PrdStatus sessionId={sessionId} onSessionReady={handleSessionReady} />
           </div>
         </div>
 
-        <div className="flex flex-col h-full overflow-hidden border border-border/40 rounded-md bg-background/50">
+        <div className="flex flex-col h-full overflow-hidden border border-border/40 rounded-sm bg-background/50">
           <PrdDocument 
             sessionId={sessionId} 
             generatedPrd={generatedPrd}
@@ -112,7 +112,7 @@ function PrdPageLoading() {
     <div className="w-full max-w-6xl mx-auto px-6 py-8 space-y-10">
       <div className="flex items-center justify-between border-b border-primary/20 pb-6">
         <div>
-          <h1 className="text-4xl font-mono font-bold uppercase tracking-tighter">Product <span className="text-amber-500">Requirements</span> (PRD)</h1>
+          <h1 className="text-4xl font-bold tracking-[-0.03em]">Product <span className="text-primary">Requirements</span> (PRD)</h1>
           <p className="text-sm text-muted-foreground mt-2">Loading...</p>
         </div>
       </div>

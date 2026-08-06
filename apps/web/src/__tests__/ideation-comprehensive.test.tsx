@@ -40,7 +40,7 @@ describe('Ideation Page Comprehensive Testing', () => {
     it('should show step 1 as active', () => {
       render(<IdeationPage />);
       const activeStep = screen.getByText(/What's your problem\?/i);
-      expect(activeStep.closest('div')?.querySelector('.bg-amber-500')).toBeInTheDocument();
+      expect(activeStep.closest('div')?.querySelector('.bg-primary')).toBeInTheDocument();
     });
   });
 

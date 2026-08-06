@@ -229,4 +229,55 @@ describe('WorkspaceStore', () => {
     expect(state.vaguenessScores).toBeNull();
     expect(state.chatMessages).toEqual([]);
   });
+
+  describe('rehydration after an interrupted run', () => {
+    // A reload mid-generation restored phase:'generating' with no stream behind
+    // it - skeleton loaders forever, and the only escape was "New project",
+    // which discarded the work. The phase must not outlive its stream.
+    const persist = (state: Record<string, unknown>) => {
+      localStorage.setItem(
+        'workspace-store',
+        JSON.stringify({ state, version: 0 }),
+      );
+    };
+
+    it('demotes a persisted generating phase to interrupted', async () => {
+      persist({
+        ...useWorkspaceStore.getState(),
+        phase: 'generating',
+        selectedDirectionId: 'dir-1',
+        documentSections: [
+          { id: 'sec-1', title: 'Overview', status: 'complete', content: 'Done.', order: 0 },
+          { id: 'sec-2', title: 'Scope', status: 'generating', content: 'Half a s', order: 1 },
+        ],
+      });
+
+      await useWorkspaceStore.persist.rehydrate();
+
+      const state = useWorkspaceStore.getState();
+      expect(state.phase).toBe('interrupted');
+      // The partial section keeps its content but stops claiming to be running.
+      expect(state.documentSections[1].status).toBe('pending');
+      expect(state.documentSections[1].content).toBe('Half a s');
+      expect(state.documentSections[0].status).toBe('complete');
+      // Retry needs the direction that was being generated.
+      expect(state.selectedDirectionId).toBe('dir-1');
+    });
+
+    it('leaves a completed run alone', async () => {
+      persist({
+        ...useWorkspaceStore.getState(),
+        phase: 'refinement',
+        documentSections: [
+          { id: 'sec-1', title: 'Overview', status: 'complete', content: 'Done.', order: 0 },
+        ],
+      });
+
+      await useWorkspaceStore.persist.rehydrate();
+
+      const state = useWorkspaceStore.getState();
+      expect(state.phase).toBe('refinement');
+      expect(state.documentSections[0].status).toBe('complete');
+    });
+  });
 });

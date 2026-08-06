@@ -21,6 +21,7 @@ import {
   RefreshCw,
   Trash2,
 } from "lucide-react";
+import { IconTile } from "@/components/ui/icon-tile";
 
 interface Props {
   sessionId: string;
@@ -35,8 +36,8 @@ const KIND_LABEL: Record<DecisionConsequence["kind"], string> = {
 };
 
 const KIND_STYLE: Record<DecisionConsequence["kind"], string> = {
-  accepted_cost: "border-amber-500/40 bg-amber-500/5 text-amber-700",
-  benefit: "border-green-600/30 bg-green-600/5 text-green-700",
+  accepted_cost: "border-warning/40 bg-warning/5 text-warning",
+  benefit: "border-tertiary/30 bg-tertiary/5 text-tertiary",
   risk: "border-destructive/30 bg-destructive/5 text-destructive",
 };
 
@@ -136,12 +137,12 @@ export default function DecisionRecord({ sessionId, optionId, optionName }: Read
         : prev,
     );
 
-  // ── Nothing selected yet ────────────────────────────────────────────────
+  // Nothing selected yet
   if (!optionId) {
     return (
       <Card className="border-primary/10">
         <CardContent className="py-10 text-center space-y-2">
-          <FileText className="h-8 w-8 mx-auto text-primary/30" />
+          <IconTile className="mx-auto"><FileText /></IconTile>
           <p className="text-sm text-muted-foreground">
             Choose an option first. The record documents a decision you have made.
           </p>
@@ -150,7 +151,7 @@ export default function DecisionRecord({ sessionId, optionId, optionName }: Read
     );
   }
 
-  // ── Captured ────────────────────────────────────────────────────────────
+  // Captured
   if (saved) {
     return (
       <Card className="border-primary/30">
@@ -158,7 +159,7 @@ export default function DecisionRecord({ sessionId, optionId, optionName }: Read
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
               <CardTitle className="font-mono uppercase text-base">{saved.title}</CardTitle>
-              <p className="text-[10px] font-mono uppercase text-primary/50">
+              <p className="label-xs text-primary/80">
                 {saved.chosen_pattern.replace(/_/g, " ")} ·{" "}
                 {new Date(saved.created_at).toLocaleDateString()} ·{" "}
                 {saved.edited_by_user ? "edited by you" : "accepted as drafted"}
@@ -171,7 +172,7 @@ export default function DecisionRecord({ sessionId, optionId, optionName }: Read
                 setSaved(null);
                 void requestDraft();
               }}
-              className="font-mono uppercase text-[10px] shrink-0"
+              className="label-xs shrink-0"
             >
               <RefreshCw className="h-3 w-3 mr-1.5" />
               Redraft
@@ -192,7 +193,7 @@ export default function DecisionRecord({ sessionId, optionId, optionName }: Read
               <ul className="space-y-2">
                 {saved.alternatives.map((alt) => (
                   <li key={alt.name} className="text-xs">
-                    <span className="font-mono uppercase text-[10px] text-primary/70">
+                    <span className="label-xs text-primary/80">
                       {alt.name}
                     </span>
                     <p className="text-muted-foreground mt-0.5">{alt.rejected_because}</p>
@@ -207,11 +208,11 @@ export default function DecisionRecord({ sessionId, optionId, optionName }: Read
               <ul className="space-y-2">
                 {saved.consequences.map((c, i) => (
                   <li key={i} className={`border p-2 text-xs ${KIND_STYLE[c.kind]}`}>
-                    <span className="font-mono uppercase text-[10px]">{KIND_LABEL[c.kind]}</span>
+                    <span className="label-xs">{KIND_LABEL[c.kind]}</span>
                     <p className="text-foreground/80 mt-0.5">{c.consequence}</p>
                     {c.mitigation && (
                       <p className="text-muted-foreground mt-1">
-                        <span className="font-mono uppercase text-[10px]">Mitigation: </span>
+                        <span className="label-xs">Mitigation: </span>
                         {c.mitigation}
                       </p>
                     )}
@@ -227,12 +228,12 @@ export default function DecisionRecord({ sessionId, optionId, optionName }: Read
     );
   }
 
-  // ── No draft requested yet ──────────────────────────────────────────────
+  // No draft requested yet
   if (!draft) {
     return (
       <Card className="border-primary/10">
         <CardContent className="py-10 text-center space-y-4">
-          <FileText className="h-8 w-8 mx-auto text-primary/30" />
+          <IconTile className="mx-auto"><FileText /></IconTile>
           <div className="space-y-1">
             <p className="text-sm">
               Record why you chose {optionName ? <strong>{optionName}</strong> : "this option"}.
@@ -246,7 +247,7 @@ export default function DecisionRecord({ sessionId, optionId, optionName }: Read
           <Button
             onClick={requestDraft}
             disabled={isDrafting}
-            className="font-mono uppercase text-[10px]"
+            className="label-xs"
           >
             {isDrafting ? (
               <>
@@ -261,7 +262,7 @@ export default function DecisionRecord({ sessionId, optionId, optionName }: Read
     );
   }
 
-  // ── Review and edit ─────────────────────────────────────────────────────
+  // Review and edit
   return (
     <Card className="border-primary/30">
       <CardHeader className="pb-3 space-y-2">
@@ -304,7 +305,7 @@ export default function DecisionRecord({ sessionId, optionId, optionName }: Read
             <div className="space-y-3">
               {draft.alternatives.map((alt, i) => (
                 <div key={alt.name} className="space-y-1">
-                  <span className="font-mono uppercase text-[10px] text-primary/70">
+                  <span className="label-xs text-primary/80">
                     {alt.name}
                   </span>
                   <Textarea
@@ -336,7 +337,7 @@ export default function DecisionRecord({ sessionId, optionId, optionName }: Read
                         key={kind}
                         type="button"
                         onClick={() => patchConsequence(i, { kind })}
-                        className={`px-1.5 py-0.5 font-mono uppercase text-[9px] border transition-colors ${
+                        className={`label-xs px-1.5 py-0.5 border transition-colors ${
                           c.kind === kind
                             ? KIND_STYLE[kind]
                             : "border-primary/15 text-muted-foreground hover:border-primary/40"
@@ -383,7 +384,7 @@ export default function DecisionRecord({ sessionId, optionId, optionName }: Read
                   ],
                 })
               }
-              className="font-mono uppercase text-[10px] h-7"
+              className="label-xs h-7"
             >
               <Plus className="h-3 w-3 mr-1" /> Add consequence
             </Button>
@@ -415,7 +416,7 @@ export default function DecisionRecord({ sessionId, optionId, optionName }: Read
             <Button
               onClick={save}
               disabled={!canSave || isSaving}
-              className="font-mono uppercase text-[10px]"
+              className="label-xs"
             >
               {isSaving ? (
                 <>
@@ -428,12 +429,12 @@ export default function DecisionRecord({ sessionId, optionId, optionName }: Read
               )}
             </Button>
             {!canSave && (
-              <span className="flex items-center gap-1.5 text-[10px] font-mono uppercase text-muted-foreground">
+              <span className="label-xs flex items-center gap-1.5 text-muted-foreground">
                 <Lock className="h-3 w-3" /> Edit or confirm first
               </span>
             )}
             {hasEdited && (
-              <span className="text-[10px] font-mono uppercase text-primary/60">
+              <span className="label-xs text-primary/80">
                 Your edits will be recorded
               </span>
             )}
@@ -447,7 +448,7 @@ export default function DecisionRecord({ sessionId, optionId, optionName }: Read
 function Section({ title, children }: Readonly<{ title: string; children: React.ReactNode }>) {
   return (
     <div className="space-y-1.5">
-      <span className="font-mono uppercase text-[10px] text-primary/60">{title}</span>
+      <span className="label-xs text-primary/80">{title}</span>
       {children}
     </div>
   );
@@ -461,8 +462,8 @@ function Field({
   return (
     <div className="space-y-1.5">
       <div className="flex items-baseline gap-2">
-        <span className="font-mono uppercase text-[10px] text-primary/60">{label}</span>
-        {hint && <span className="text-[10px] text-muted-foreground">{hint}</span>}
+        <span className="label-xs text-primary/80">{label}</span>
+        {hint && <span className="text-xs text-muted-foreground">{hint}</span>}
       </div>
       {children}
     </div>
@@ -479,19 +480,19 @@ function ContestedTrail({
 }: Readonly<{ points: ArchitectureDecisionDraft["contested"] }>) {
   return (
     <div className="space-y-1.5">
-      <span className="font-mono uppercase text-[10px] text-primary/60">
+      <span className="label-xs text-primary/80">
         Where you pushed back
       </span>
       <ul className="space-y-2">
         {points.map((p, i) => (
-          <li key={i} className="border border-primary/15 bg-primary/[0.02] p-2 text-xs space-y-1">
+          <li key={i} className="bg-primary/[0.02] p-2 text-xs space-y-1">
             <p className="text-muted-foreground line-through decoration-destructive/40">
               {p.assumption}
             </p>
             <p className="text-foreground/90">You said: {p.correction}</p>
             <p
-              className={`font-mono uppercase text-[10px] ${
-                p.verdict === "defended" ? "text-primary" : "text-amber-600"
+              className={`label-xs ${
+                p.verdict === "defended" ? "text-primary" : "text-warning"
               }`}
             >
               {p.verdict === "defended" ? "Recommendation defended" : "Recommendation revised"}

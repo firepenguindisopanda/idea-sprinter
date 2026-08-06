@@ -62,10 +62,10 @@ export default function ImportPatternModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-background border border-primary/20 rounded-xl w-full max-w-3xl max-h-[80vh] flex flex-col">
+      <div className="bg-background border border-primary/20 rounded-sm w-full max-w-3xl max-h-[80vh] flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-primary/10">
           <div>
-            <h2 className="text-lg font-mono font-bold uppercase tracking-tighter">
+            <h2 className="text-lg font-bold tracking-[-0.03em]">
               Pattern Library
             </h2>
             <p className="text-sm text-muted-foreground">
@@ -112,7 +112,7 @@ export default function ImportPatternModal({
                       size="sm"
                       onClick={() => handleImport(pattern.id)}
                       disabled={importingId === pattern.id}
-                      className="font-mono uppercase text-[10px]"
+                      className="label-xs"
                     >
                       {importingId === pattern.id ? (
                         <Loader2 className="h-3 w-3 mr-1 animate-spin" />
@@ -129,13 +129,13 @@ export default function ImportPatternModal({
                     {pattern.components.slice(0, 5).map((comp, idx) => (
                       <span
                         key={idx}
-                        className="px-2 py-0.5 bg-primary/5 border border-primary/20 text-[10px] font-mono"
+                        className="px-2 py-0.5 bg-primary/5 text-xs font-mono"
                       >
                         {comp}
                       </span>
                     ))}
                     {pattern.components.length > 5 && (
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-xs text-muted-foreground">
                         +{pattern.components.length - 5} more
                       </span>
                     )}

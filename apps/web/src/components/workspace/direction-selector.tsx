@@ -1,78 +1,54 @@
 "use client";
 
+import { useState } from "react";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { useWorkspaceStore } from "@/lib/workspace-store";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { api } from "@/lib/api";
+import { runWorkspaceGeneration } from "@/lib/workspace-generate";
 
-function buildBrief(): string {
-  const state = useWorkspaceStore.getState();
-  const parts: string[] = [state.ideaInput];
-  for (const q of state.questions) {
-    if (q.answer) parts.push(`- ${q.question} ${q.answer}`);
-  }
-  return parts.join("\n");
-}
+const CUSTOM_DIRECTION_ID = "custom";
 
 export function DirectionSelector() {
-  const { directions, selectDirection, setError } = useWorkspace();
+  const { directions, selectDirection, addDirection } = useWorkspace();
+  const [isDescribing, setIsDescribing] = useState(false);
+  const [customDirection, setCustomDirection] = useState("");
 
   const handleSelect = async (directionId: string) => {
     selectDirection(directionId);
-    const brief = buildBrief();
+    await runWorkspaceGeneration(directionId);
+  };
 
-    try {
-      const store = useWorkspaceStore.getState();
-      await api.streamDocument(directionId, brief, (event) => {
-        switch (event.type) {
-          case "section_start": {
-            store.addDocSection({
-              id: event.section_id!,
-              title: event.title ?? "Untitled",
-              status: "generating",
-              content: "",
-              order: event.order ?? 0,
-            });
-            break;
-          }
-          case "chunk": {
-            // `event.content` is a token delta - append it, don't replace the
-            // section body, or the reader sees one word at a time flickering.
-            store.appendDocSectionContent(event.section_id!, event.content ?? "");
-            break;
-          }
-          case "section_complete": {
-            store.updateDocSection(event.section_id!, {
-              status: "complete",
-              content: event.content ?? "",
-            });
-            break;
-          }
-          case "pipeline_complete": {
-            store.setPhase("refinement");
-            break;
-          }
-        }
-      });
-    } catch {
-      setError("Could not reach the server. Check your connection and try again.");
-      useWorkspaceStore.getState().setPhase("idea_input");
-    }
+  /**
+   * "Describe my own" was a button with no handler - the one escape hatch from
+   * three generated options did nothing when clicked. The custom direction is
+   * added to the list like any other so `buildBrief` picks it up; it is the
+   * brief that steers generation, not the id.
+   */
+  const handleCustomSubmit = async () => {
+    const description = customDirection.trim();
+    if (!description) return;
+    addDirection({
+      id: CUSTOM_DIRECTION_ID,
+      title: "My own direction",
+      description,
+      tags: ["custom"],
+    });
+    await handleSelect(CUSTOM_DIRECTION_ID);
   };
 
   if (directions.length === 0) {
     return (
-      <div className="rounded-xl border border-border bg-background p-6 shadow-sm text-sm text-muted-foreground text-center">
+      <div className="rounded-sm border border-primary/25 bg-card p-6 text-sm text-muted-foreground text-center">
         Analyzing your answers to suggest directions...
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl border border-border bg-background p-6 shadow-sm space-y-6">
+    <div className="rounded-sm border border-primary/25 bg-card p-6 space-y-6">
       <div className="space-y-2">
-        <h2 className="text-lg font-semibold text-foreground tracking-tight">
+        <h2 className="text-lg font-bold text-foreground tracking-tight">
           Possible Directions
         </h2>
         <p className="text-sm text-muted-foreground">
@@ -85,11 +61,11 @@ export function DirectionSelector() {
           <button
             key={dir.id}
             onClick={() => handleSelect(dir.id)}
-            className="group text-left rounded-xl border border-border bg-card p-5 hover:border-primary/40 hover:bg-primary/[0.02] transition-all"
+            className="stamp-hover group text-left rounded-sm border border-border bg-card p-5 hover:border-primary/40 hover:bg-primary/[0.02]"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-2 min-w-0">
-                <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                <h3 className="font-bold text-foreground group-hover:text-primary transition-colors">
                   {dir.title}
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -100,7 +76,7 @@ export function DirectionSelector() {
                     {dir.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-muted text-muted-foreground"
+                        className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground"
                       >
                         {tag}
                       </span>
@@ -115,12 +91,45 @@ export function DirectionSelector() {
       </div>
 
       {/* Custom / Hybrid option */}
-      <div className="text-center">
-        <Button variant="ghost" className="gap-2 text-sm text-muted-foreground">
-          <Sparkles className="h-4 w-4" />
-          I want something different - describe my own
-        </Button>
-      </div>
+      {isDescribing ? (
+        <div className="space-y-3">
+          <label htmlFor="custom-direction" className="block text-sm font-medium text-foreground">
+            Describe the direction you want
+          </label>
+          <Textarea
+            id="custom-direction"
+            autoFocus
+            value={customDirection}
+            onChange={(e) => setCustomDirection(e.target.value)}
+            placeholder="e.g. A single-tenant internal tool, optimised for speed of delivery over extensibility."
+            rows={3}
+          />
+          <div className="flex gap-2">
+            <Button
+              onClick={handleCustomSubmit}
+              disabled={!customDirection.trim()}
+              className="gap-2"
+            >
+              <ArrowRight className="h-4 w-4" />
+              Generate with this
+            </Button>
+            <Button variant="ghost" onClick={() => setIsDescribing(false)}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="text-center">
+          <Button
+            variant="ghost"
+            className="gap-2 text-sm text-muted-foreground"
+            onClick={() => setIsDescribing(true)}
+          >
+            <Sparkles className="h-4 w-4" />
+            I want something different - describe my own
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

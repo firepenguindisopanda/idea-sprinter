@@ -57,7 +57,7 @@ export const EXAMPLE_PROMPTS: ExamplePrompt[] = [
   },
 ];
 
-// ── Derived from the system design starters ──────────────────────────
+// Derived from the system design starters
 //
 // The six above are deliberate test shapes; these are breadth. Each is a
 // recognisable system plus one feature the original lacks, which is what makes

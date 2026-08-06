@@ -68,7 +68,7 @@ function GeneratePageLoading() {
   return (
     <div className="w-full max-w-7xl mx-auto px-6 py-16 text-center">
       <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-      <p className="mt-4 text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
+      <p className="label-xs mt-4 text-muted-foreground">
         Loading Generator...
       </p>
     </div>
@@ -134,6 +134,7 @@ function GeneratePageContent() {
       setGenerationError(message);
     },
   });
+  const { startStream } = sse;
   const isGenerating = sse.isStreaming;
 
   // Track if we should resume from draft
@@ -158,6 +159,10 @@ function GeneratePageContent() {
       }
 
       resumedFromDraft.current = true;
+      // Syncing from an external store, which the rule allows: the draft store
+      // is zustand/persist and rehydrates from localStorage after first render,
+      // so a lazy useState initialiser would read it before it exists.
+      /* eslint-disable react-hooks/set-state-in-effect */
       setCurrentPhase(generationDraft.currentPhase);
       setCompletedAgents(generationDraft.completedAgents);
       if (generationDraft.partialResults?.markdown_outputs) {
@@ -171,6 +176,7 @@ function GeneratePageContent() {
       if (generationDraft.error) {
         setError(generationDraft.error);
       }
+      /* eslint-enable react-hooks/set-state-in-effect */
     }
   }, [generationDraft]);
 
@@ -233,6 +239,9 @@ function GeneratePageContent() {
         setCompletedAgents(prev => (prev.includes(role) ? prev : [...prev, role]));
         setActiveAgent(null);
         setStatusText(`${labelFor(role)} finished`);
+        const phase = getPhaseForAgent(role);
+        setCurrentPhase(prev => (phase > prev ? phase : prev));
+        updateGenerationPhase(phase, role);
         break;
       }
 
@@ -291,8 +300,14 @@ function GeneratePageContent() {
         // Stream finished
         break;
     }
-  }, [updateGenerationPartialResults]);
-  handleEventRef.current = handleStreamEvent;
+  }, [updateGenerationPartialResults, updateGenerationPhase]);
+
+  // Kept in a ref so the SSE onEvent closure always calls the current handler.
+  // Assigned after commit rather than during render: onEvent only fires while a
+  // stream is running, which cannot start before this effect has run.
+  useEffect(() => {
+    handleEventRef.current = handleStreamEvent;
+  }, [handleStreamEvent]);
 
   const handleGenerate = useCallback(async (data: ProjectRequest) => {
     setCurrentPhase(1);
@@ -311,31 +326,8 @@ function GeneratePageContent() {
     const headers: Record<string, string> = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    await sse.startStream(`${API_URL}/api/generate/stream`, data, headers);
-  }, [startGeneration, sse.startStream, token]);
-
-  const getPhaseForAgent = (agent: string): number => {
-    for (const phase of AGENT_PHASES) {
-      if (phase.agents.includes(agent)) {
-        return phase.phase;
-      }
-    }
-    return 1;
-  };
-
-  useEffect(() => {
-    if (completedAgents.length > 0) {
-      const lastCompleted = completedAgents.at(-1);
-      if (lastCompleted) {
-        const phase = getPhaseForAgent(lastCompleted);
-        if (phase > currentPhase) {
-          setCurrentPhase(phase);
-        }
-        updateGenerationPhase(phase, lastCompleted);
-      }
-    }
-  }, [completedAgents, currentPhase, updateGenerationPhase]);
-
+    await startStream(`${API_URL}/api/generate/stream`, data, headers);
+  }, [startGeneration, startStream, token]);
 
   const hasInterruptedGeneration = Boolean(
     generationDraft &&
@@ -351,11 +343,11 @@ function GeneratePageContent() {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className={`h-2 w-2 ${isGenerating ? 'bg-primary animate-pulse' : 'bg-primary/50'}`} />
-            <span className="text-[10px] font-mono text-primary/60 uppercase tracking-widest">
+            <span className="label-xs text-primary/80">
               {isGenerating ? 'Pipeline Active' : 'Ready to Generate'}
             </span>
           </div>
-          <h1 className="text-3xl font-mono font-bold uppercase tracking-tighter">
+          <h1 className="text-3xl font-bold tracking-[-0.03em]">
             Specification <span className="text-primary">Generator</span>
           </h1>
           <p className="text-muted-foreground font-sans text-xs max-w-xl">
@@ -366,7 +358,7 @@ function GeneratePageContent() {
         {/* Link to ideation */}
         <Link 
           href="/ideation"
-          className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground hover:text-amber-500 uppercase tracking-widest transition-colors"
+          className="label-xs flex items-center gap-2 text-muted-foreground hover:text-warning transition-colors"
         >
           <Lightbulb className="h-4 w-4" />
           Need help with your idea?
@@ -374,9 +366,9 @@ function GeneratePageContent() {
       </div>
 
       {hasInterruptedGeneration && (
-        <div className="border border-amber-500/30 bg-amber-500/10 p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="accent-note border-warning bg-warning/10 p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="space-y-1">
-            <p className="text-xs font-mono uppercase text-amber-500/80 tracking-widest">
+            <p className="label-sm text-warning">
               Generation was interrupted
             </p>
             <p className="text-sm text-muted-foreground">
@@ -389,7 +381,7 @@ function GeneratePageContent() {
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push(`/generate/${generationDraft.sessionId}`)}
-                className="rounded-none font-mono uppercase text-[10px] tracking-widest"
+                className="label-xs rounded-none"
               >
                 View Partial Results
               </Button>
@@ -409,7 +401,7 @@ function GeneratePageContent() {
                 partialOutputsRef.current = {};
                 resumedFromDraft.current = false;
               }}
-              className="rounded-none font-mono uppercase text-[10px] tracking-widest text-muted-foreground"
+              className="label-xs rounded-none text-muted-foreground"
             >
               Start Over
             </Button>
@@ -419,7 +411,7 @@ function GeneratePageContent() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[35%_20%_45%] gap-4 flex-1 min-h-0">
         {/* Left: Project Configuration */}
-        <div className="flex flex-col h-full min-h-0 overflow-hidden border border-border/40 rounded-md bg-background/50 p-4">
+        <div className="flex flex-col h-full min-h-0 overflow-hidden border border-border/40 rounded-sm bg-background/50 p-4">
           <div className="mb-4 shrink-0">
             <h2 className="text-sm font-mono font-bold uppercase flex items-center gap-2">
               <span className="text-primary">[01]</span> Project Configuration
@@ -436,7 +428,7 @@ function GeneratePageContent() {
         </div>
 
         {/* Middle: Agent Pipeline Progress */}
-        <div className="flex flex-col h-full min-h-0 overflow-hidden border border-border/40 rounded-md bg-background/50 p-4">
+        <div className="flex flex-col h-full min-h-0 overflow-hidden border border-border/40 rounded-sm bg-background/50 p-4">
           <AgentPipelineProgress
             isGenerating={isGenerating}
             currentPhase={currentPhase}
@@ -454,7 +446,7 @@ function GeneratePageContent() {
         </div>
 
         {/* Right: Live Preview */}
-        <div className="flex flex-col h-full min-h-0 overflow-hidden border border-border/40 rounded-md bg-background/50 p-4 lg:col-span-1">
+        <div className="flex flex-col h-full min-h-0 overflow-hidden border border-border/40 rounded-sm bg-background/50 p-4 lg:col-span-1">
           <LivePreview
             streamingContent={previewRole ? (outputsByAgent[previewRole] ?? '') : ''}
             activeAgent={activeAgent ?? previewRole}
@@ -468,14 +460,14 @@ function GeneratePageContent() {
       <div className="flex justify-between items-center pt-4 border-t border-primary/10 shrink-0">
         <Link 
           href="/"
-          className="text-[10px] font-mono text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors"
+          className="label-xs text-muted-foreground hover:text-primary transition-colors"
         >
           ← Back to Home
         </Link>
         
         <Link 
           href="/dashboard"
-          className="text-[10px] font-mono text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors flex items-center gap-2"
+          className="label-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
         >
           Dashboard
           <ArrowRight className="h-3 w-3" />
@@ -494,6 +486,15 @@ function GeneratePageContent() {
  * 3. Shows real-time agent pipeline status
  * 4. Redirects to results page on completion
  */
+function getPhaseForAgent(agent: string): number {
+  for (const phase of AGENT_PHASES) {
+    if (phase.agents.includes(agent)) {
+      return phase.phase;
+    }
+  }
+  return 1;
+}
+
 export default function GeneratePage() {
   return (
     <ProtectedRoute>

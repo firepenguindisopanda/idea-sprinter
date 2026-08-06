@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, SkipForward, CheckCircle2 } from "lucide-react";
@@ -10,6 +10,7 @@ import { HybridChatInput } from "./hybrid-chat-input";
 
 export function ClarifyingQuestions() {
   const {
+    ideaInput,
     questions,
     currentQuestionIndex,
     currentQuestion,
@@ -25,6 +26,8 @@ export function ClarifyingQuestions() {
   } = useWorkspace();
 
   const [localAnswer, setLocalAnswer] = useState<string>("");
+  const [isFetching, setIsFetching] = useState(false);
+  const isFetchingRef = useRef(false);
 
   if (!currentQuestion) {
     return (
@@ -35,9 +38,26 @@ export function ClarifyingQuestions() {
   }
 
   const fetchDirections = async () => {
+    // One request per user, however many times they press the button.
+    //
+    // Neither handler awaits this call and there was no in-flight flag, so a
+    // double-click - or Enter followed by a click - fired `/directions` twice.
+    // Both are full authoring-tier calls; in a real session the duplicate ran
+    // for 142 seconds and landed in the middle of a generation the user had
+    // already started from the first one's results.
+    //
+    // A ref rather than the state flag because two clicks in the same tick see
+    // the same render's state, and that is exactly the case being prevented.
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+    setIsFetching(true);
+
+    // Keys become prompt labels on the backend, so send the question text and
+    // the original idea rather than opaque ids like "q1".
     const answers: Record<string, string> = {};
+    if (ideaInput?.trim()) answers["The project idea"] = ideaInput.trim();
     for (const q of questions) {
-      if (q.answer) answers[q.id] = q.answer;
+      if (q.answer) answers[q.question] = q.answer;
     }
     try {
       const response = await api.getDirections(answers);
@@ -56,6 +76,9 @@ export function ClarifyingQuestions() {
       setError("Received insufficient directions from the server. Please try again.");
     } catch {
       setError("Could not reach the server. Check your connection and try again.");
+    } finally {
+      isFetchingRef.current = false;
+      setIsFetching(false);
     }
   };
 
@@ -92,7 +115,7 @@ export function ClarifyingQuestions() {
 
   if (phase !== "clarifying_questions" && phase !== "idea_input") {
     return (
-      <div className="rounded-xl border border-border bg-background p-4 shadow-sm opacity-70 transition-opacity hover:opacity-100">
+      <div className="rounded-sm border border-primary/25 bg-card p-4 opacity-70 transition-opacity hover:opacity-100">
         <div className="flex items-start gap-3">
           <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
           <div>
@@ -105,17 +128,17 @@ export function ClarifyingQuestions() {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-background p-6 shadow-sm space-y-8">
+    <div className="rounded-sm border border-primary/25 bg-card p-6 space-y-8">
       <div className="space-y-2">
         <div className="flex items-center justify-between text-sm">
-          <span className="font-semibold text-lg text-foreground tracking-tight">Sharpening your brief</span>
+          <span className="font-bold text-lg text-foreground tracking-tight">Sharpening your brief</span>
           <span className="text-muted-foreground">
             {currentQuestionIndex + 1} of {questions.length}
           </span>
         </div>
-        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+        <div className="h-1.5 overflow-hidden bg-primary/10">
           <div
-            className="h-full bg-primary rounded-full transition-all duration-300"
+            className="h-full bg-primary transition-all duration-300"
             style={{
               width: `${((currentQuestionIndex + 1) / questions.length) * 100}%`,
             }}
@@ -136,7 +159,7 @@ export function ClarifyingQuestions() {
                 onClick={() => {
                   setLocalAnswer(option);
                 }}
-                className={`w-full text-left px-4 py-3 rounded-lg border text-sm transition-all ${
+                className={`w-full text-left px-4 py-3 rounded-sm border text-sm transition-all ${
                   localAnswer === option
                     ? "border-primary bg-primary/5 text-primary font-medium"
                     : "border-border bg-background text-foreground hover:border-muted-foreground/30"
@@ -152,7 +175,7 @@ export function ClarifyingQuestions() {
             onChange={(e) => setLocalAnswer(e.target.value)}
             placeholder="Type your answer..."
             rows={3}
-            className="w-full resize-none rounded-lg border border-input bg-background px-4 py-3 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full resize-none rounded-sm border border-input bg-background px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
         )}
 
@@ -180,6 +203,7 @@ export function ClarifyingQuestions() {
               variant="ghost"
               size="sm"
               onClick={handleSkip}
+              disabled={isFetching}
               className="gap-1 text-xs text-muted-foreground"
             >
               <SkipForward className="h-3.5 w-3.5" />
@@ -188,10 +212,10 @@ export function ClarifyingQuestions() {
             <Button
               size="sm"
               onClick={handleAnswer}
-              disabled={!localAnswer.trim()}
+              disabled={!localAnswer.trim() || isFetching}
               className="gap-1 text-xs"
             >
-              {canGoNext ? "Next" : "See Directions"}
+              {canGoNext ? "Next" : isFetching ? "Finding directions..." : "See Directions"}
               <ChevronRight className="h-3.5 w-3.5" />
             </Button>
           </div>
@@ -200,7 +224,7 @@ export function ClarifyingQuestions() {
 
       {answeredQuestions.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          <p className="label-sm text-muted-foreground">
             Your answers so far
           </p>
           <div className="space-y-1.5">

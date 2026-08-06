@@ -1,5 +1,5 @@
-import { streamSSEPost } from './sse';
-import type { ContestOutcome, OptionChallenge, User, UserPersona, UserPersonaInfo, ProjectRequest, GenerateResponse, Project, ProjectCreate, UsageMetrics, UsageStatsResponse, PRDStartResponse, PRDChatResponse, PRDStatusResponse, PRDDocumentResponse, ArchitectureSession, ArchitectureSessionCreate, ArchitectureSelectRequest, ArchitectureRefineRequest, ArchitectureComparison, ArchitectureOption, ArchitectureDecisionDraft, ArchitectureDecisionSave, ArchitectureDecisionRecord } from '../types';
+import { readSSEStream, streamSSEPost } from './sse';
+import type { ContestOutcome, OptionChallenge, User, UserPersona, UserPersonaInfo, ProjectRequest, GenerateResponse, Project, ProjectCreate, UsageMetrics, UsageStatsResponse, PRDStartResponse, PRDChatResponse, PRDStatusResponse, PRDDocumentResponse, ArchitectureSession, ArchitectureSessionCreate, ArchitectureSessionSummary, ArchitectureSelectRequest, ArchitectureRefineRequest, ArchitectureComparison, ArchitectureOption, ArchitectureDecisionDraft, ArchitectureDecisionSave, ArchitectureDecisionRecord } from '../types';
 
 interface JudgeReevaluateResponse {
   session_id: string;
@@ -41,6 +41,53 @@ export interface WorkspaceRefineResponse {
   section_id: string;
   content: string;
   suggestions: string[];
+}
+
+/**
+ * One event from `/api/workspace/generate`.
+ *
+ * `review` events (kind critic/skeptic/judge) carry the adversarial pass the
+ * backend has always run; they used to be dropped in the server's event
+ * translation, so the workspace showed the document without any of the scrutiny
+ * that produced it.
+ */
+export interface WorkspaceStreamEvent {
+  type: string;
+  section_id?: string;
+  title?: string;
+  content?: string;
+  order?: number;
+  kind?: 'critic' | 'skeptic' | 'judge';
+  role?: string;
+  score?: number | null;
+  passed?: boolean | null;
+  summary?: string;
+  dimensions?: Array<{ name: string; score: number; justification: string; issues?: string[] }>;
+  risk_level?: string;
+  attack_vectors?: Array<{
+    id: string;
+    category: string;
+    description: string;
+    severity: string;
+    impacted_dimension?: string;
+    suggested_fix?: string;
+  }>;
+  approved?: boolean;
+  issues_count?: number;
+  recommended_action?: string;
+  feedback?: string;
+  judge_results?: Record<string, unknown>;
+  contradictions?: Array<{
+    type: string;
+    detail: string;
+    severity: string;
+    roles?: string[];
+    entity_ids?: string[];
+  }>;
+  /** Announced first on every stream, so a client can re-attach after a drop. */
+  run_id?: string;
+  /** Monotonic per run. The client keeps the highest it saw and resumes from it. */
+  seq?: number;
 }
 
 export interface WorkspaceEvaluateResponse {
@@ -296,8 +343,7 @@ class ApiClient {
     return this.request('/api/v1/cache/health');
   }
 
-  // ---------------- PRD agent endpoints ----------------
-  
+  // PRD agent endpoints
   // Start a new PRD session
   async startPrdSession(description: string, userId: number | undefined, persona?: UserPersona | null): Promise<PRDStartResponse> {
     if (!userId) {
@@ -363,8 +409,7 @@ class ApiClient {
     });
   }
 
-  // ---------------- Architecture Agent endpoints ----------------
-
+  // Architecture Agent endpoints
   // Create a new architecture session
   async createArchitectureSession(data: ArchitectureSessionCreate): Promise<ArchitectureSession> {
     return this.request('/architecture/sessions', {
@@ -378,8 +423,9 @@ class ApiClient {
     return this.request(`/architecture/sessions/${sessionId}`);
   }
 
-  // List architecture sessions
-  async listArchitectureSessions(limit?: number): Promise<ArchitectureSession[]> {
+  // List architecture sessions. Returns summaries, not full sessions - the
+  // endpoint projects a subset and never sends messages/options/requirements.
+  async listArchitectureSessions(limit?: number): Promise<ArchitectureSessionSummary[]> {
     const params = limit ? `?limit=${limit}` : '';
     return this.request(`/architecture/sessions${params}`);
   }
@@ -487,8 +533,7 @@ class ApiClient {
     });
   }
 
-  // ---------------- Architecture Pattern Library ----------------
-
+  // Architecture Pattern Library
   // List architecture patterns
   async listArchitecturePatterns(tag?: string, search?: string): Promise<{ patterns: ArchitectureOption[] }> {
     const params = new URLSearchParams();
@@ -525,33 +570,69 @@ class ApiClient {
     });
   }
 
+  private authHeaders(): Record<string, string> {
+    return this._token ? { Authorization: `Bearer ${this._token}` } : {};
+  }
+
   async streamDocument(
     directionId: string,
     brief: string,
-    onEvent: (event: {
-      type: string;
-      section_id?: string;
-      title?: string;
-      content?: string;
-      order?: number;
-    }) => void,
+    onEvent: (event: WorkspaceStreamEvent) => void,
+    signal?: AbortSignal,
   ): Promise<void> {
-    const headers: Record<string, string> = {};
-    if (this._token) {
-      headers['Authorization'] = `Bearer ${this._token}`;
-    }
     await streamSSEPost(
       `${API_URL}/api/workspace/generate`,
       { direction_id: directionId, brief },
       onEvent,
-      headers,
+      this.authHeaders(),
+      signal,
     );
   }
 
-  async refineSection(sectionId: string, prompt: string): Promise<WorkspaceRefineResponse> {
+  /**
+   * Re-attach to a generation already running on the server.
+   *
+   * The work belongs to a `Run`, not to the connection that started it, so a
+   * reload no longer discards ten minutes of a twelve-agent pipeline.
+   * `afterSeq` is the last event the client saw, so this replays only the gap.
+   */
+  async followRun(
+    runId: string,
+    afterSeq: number,
+    onEvent: (event: WorkspaceStreamEvent) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    const response = await fetch(
+      `${API_URL}/api/workspace/runs/${encodeURIComponent(runId)}/events?after_seq=${afterSeq}`,
+      { headers: this.authHeaders(), signal },
+    );
+    if (!response.ok) {
+      throw new ApiError('api_error', 'Could not re-attach to the run', response.status);
+    }
+    await readSSEStream<WorkspaceStreamEvent>(response, onEvent);
+  }
+
+  async getRunStatus(runId: string): Promise<{ run_id: string; status: string; last_seq: number }> {
+    return this.request(`/api/workspace/runs/${encodeURIComponent(runId)}`);
+  }
+
+  /** Stop a run's work. Leaving the page used to leave the pipeline spending. */
+  async cancelRun(runId: string): Promise<void> {
+    await this.request(`/api/workspace/runs/${encodeURIComponent(runId)}/cancel`, {
+      method: 'POST',
+    });
+  }
+
+  // `content` is required by the backend's RefineRequest - omitting it made
+  // every refine call 422.
+  async refineSection(
+    sectionId: string,
+    content: string,
+    prompt: string,
+  ): Promise<WorkspaceRefineResponse> {
     return this.request<WorkspaceRefineResponse>('/api/workspace/refine', {
       method: 'POST',
-      body: JSON.stringify({ section_id: sectionId, prompt }),
+      body: JSON.stringify({ section_id: sectionId, content, prompt }),
     });
   }
 
@@ -560,6 +641,10 @@ class ApiClient {
     direction_id?: string | null;
     brief?: string | null;
     sections: Array<{ id: string; title: string; content: string; order: number }>;
+    // Optional on the backend too, so an older saved draft still saves - it
+    // just carries no review scars.
+    judge_results?: Record<string, unknown>;
+    contradictions?: Array<Record<string, unknown>>;
   }): Promise<Project> {
     return this.request<Project>('/api/workspace/save', {
       method: 'POST',

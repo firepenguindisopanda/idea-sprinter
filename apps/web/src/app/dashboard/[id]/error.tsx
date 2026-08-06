@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { AlertTriangle, RotateCcw, ArrowLeft } from "lucide-react";
+import { IconTile } from "@/components/ui/icon-tile";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -19,7 +20,7 @@ export default function ProjectDetailError({
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
       <div className="flex items-center gap-3 mb-6">
-        <AlertTriangle className="size-10 text-destructive" />
+        <IconTile tone="destructive"><AlertTriangle /></IconTile>
         <h1 className="text-2xl font-bold tracking-tight">
           Failed to load project
         </h1>

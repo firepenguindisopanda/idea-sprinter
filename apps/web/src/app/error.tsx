@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { AlertTriangle, RotateCcw, Home } from "lucide-react";
+import { IconTile } from "@/components/ui/icon-tile";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -19,7 +20,7 @@ export default function GlobalError({
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
       <div className="flex items-center gap-3 mb-6">
-        <AlertTriangle className="size-10 text-destructive" />
+        <IconTile tone="destructive"><AlertTriangle /></IconTile>
         <h1 className="text-2xl font-bold tracking-tight">
           Something went wrong
         </h1>
@@ -31,7 +32,7 @@ export default function GlobalError({
       </p>
 
       {error.digest && (
-        <p className="text-xs text-muted-foreground/60 font-mono mb-6">
+        <p className="text-xs text-muted-foreground font-mono mb-6">
           Error ID: {error.digest}
         </p>
       )}

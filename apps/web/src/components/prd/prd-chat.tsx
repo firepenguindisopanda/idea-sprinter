@@ -185,7 +185,7 @@ export default function PrdChat({ initialSessionId, prefill: prefillProp, onPhas
         {messages.length === 0 && !prefill && (
           <div className="text-xs text-muted-foreground space-y-2">
             <p>Describe your product idea to start building a PRD.</p>
-            <p className="text-[10px]">Press Ctrl/Cmd+Enter to submit</p>
+            <p className="text-xs">Press Ctrl/Cmd+Enter to submit</p>
           </div>
         )}
 
@@ -196,8 +196,8 @@ export default function PrdChat({ initialSessionId, prefill: prefillProp, onPhas
         )}
 
         {messages.map((m) => (
-          <div key={m.id} className={`p-3 rounded ${m.author === "user" ? "bg-primary/5 self-end" : "bg-amber-500/5"}`}>
-            <div className="text-[11px] font-mono uppercase text-primary/60 mb-1">
+          <div key={m.id} className={`p-3 rounded ${m.author === "user" ? "bg-primary/5 self-end" : "bg-warning/5"}`}>
+            <div className="label-sm text-primary/80 mb-1">
               {m.author === "user" ? "You" : "PRD Agent"}
             </div>
             {m.author === "user" ? (
@@ -206,7 +206,7 @@ export default function PrdChat({ initialSessionId, prefill: prefillProp, onPhas
               <Markdown>{m.text}</Markdown>
             )}
             {m.isComplete && (
-              <div className="mt-2 flex items-center gap-1 text-[10px] font-mono text-green-500">
+              <div className="mt-2 flex items-center gap-1 text-xs font-mono text-tertiary">
                 <Check className="h-3 w-3" aria-hidden />
                 PRD Complete
               </div>

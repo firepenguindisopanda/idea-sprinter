@@ -14,7 +14,7 @@ export function ChatMessageItem({ message }: ChatMessageProps) {
   return (
     <div className={`flex gap-3 ${isUser ? "flex-row-reverse" : ""}`}>
       <div
-        className={`flex-shrink-0 h-7 w-7 rounded-full flex items-center justify-center ${
+        className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-xs ${
           isUser
             ? "bg-primary/10 text-primary"
             : "bg-muted text-muted-foreground"
@@ -27,7 +27,7 @@ export function ChatMessageItem({ message }: ChatMessageProps) {
         )}
       </div>
       <div
-        className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
+        className={`max-w-[85%] rounded-sm px-3 py-2 text-sm ${
           isUser
             ? "bg-primary/10 text-foreground"
             : "bg-muted/50 text-foreground"

@@ -123,7 +123,7 @@ export interface UsageMetrics {
   [key: string]: number | undefined;
 }
 
-// ---------------------- PRD types ----------------------
+// PRD types
 export interface PRDStartRequest {
   description: string;
   user_id?: number | null;
@@ -163,7 +163,7 @@ export interface PRDDocumentResponse {
   requirements_status: Record<string, boolean>;
 }
 
-// ---------------------- Architecture Agent types ----------------------
+// Architecture Agent types
 export interface ArchitectureOption {
   id: string;
   name: string;
@@ -308,6 +308,23 @@ export interface ArchitectureSession {
   iteration_count: number;
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * What `GET /architecture/sessions` actually returns.
+ *
+ * Not an `ArchitectureSession`: the list endpoint projects a summary
+ * (`architecture_session.list_sessions`) with no messages, options, requirements
+ * or comparison. The client typed it as the full session, which nothing caught
+ * because `listArchitectureSessions` was never called from anywhere.
+ */
+export interface ArchitectureSessionSummary {
+  id: string;
+  project_name: string;
+  status: ArchitectureSessionStatus;
+  options_count: number;
+  selected_option_id?: string | null;
+  created_at: string | null;
 }
 
 export interface ArchitectureSessionCreate {

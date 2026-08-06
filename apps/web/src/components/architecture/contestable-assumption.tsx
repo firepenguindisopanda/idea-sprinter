@@ -46,12 +46,12 @@ export default function ContestableAssumption({ sessionId, optionId, assumption 
   return (
     <li className="text-xs space-y-2">
       <div className="flex gap-2 items-start">
-        <span aria-hidden className="text-amber-600 mt-0.5">?</span>
+        <span aria-hidden className="text-warning mt-0.5">?</span>
         <span className="text-muted-foreground flex-1">{assumption}</span>
         {!outcome && !isOpen && (
           <button
             onClick={() => setIsOpen(true)}
-            className="shrink-0 font-mono uppercase text-[10px] text-primary/70 hover:text-primary underline underline-offset-2"
+            className="label-xs shrink-0 text-primary/80 hover:text-primary underline underline-offset-2"
           >
             That&apos;s wrong
           </button>
@@ -72,7 +72,7 @@ export default function ContestableAssumption({ sessionId, optionId, assumption 
               size="sm"
               onClick={submit}
               disabled={isLoading || !correction.trim()}
-              className="font-mono uppercase text-[10px] h-7"
+              className="label-xs h-7"
             >
               {isLoading ? (
                 <><Loader2 className="h-3 w-3 mr-1.5 animate-spin" /> Reassessing…</>
@@ -84,7 +84,7 @@ export default function ContestableAssumption({ sessionId, optionId, assumption 
               variant="ghost"
               size="sm"
               onClick={() => { setIsOpen(false); setCorrection(""); }}
-              className="font-mono uppercase text-[10px] h-7 text-muted-foreground"
+              className="label-xs h-7 text-muted-foreground"
             >
               Cancel
             </Button>
@@ -99,14 +99,14 @@ export default function ContestableAssumption({ sessionId, optionId, assumption 
           className={`ml-5 border p-2.5 space-y-1.5 ${
             defended
               ? "border-primary/25 bg-primary/5"
-              : "border-amber-500/40 bg-amber-500/5"
+              : "border-warning/40 bg-warning/5"
           }`}
         >
-          <div className="flex items-center gap-2 font-mono uppercase text-[10px]">
+          <div className="label-xs flex items-center gap-2">
             {defended ? (
               <><ShieldCheck className="h-3 w-3 text-primary" /><span className="text-primary">Recommendation defended</span></>
             ) : (
-              <><RefreshCw className="h-3 w-3 text-amber-600" /><span className="text-amber-600">Recommendation revised</span></>
+              <><RefreshCw className="h-3 w-3 text-warning" /><span className="text-warning">Recommendation revised</span></>
             )}
             {outcome.assumption_was_wrong && (
               <span className="text-muted-foreground normal-case">- your correction was accepted</span>
@@ -117,24 +117,24 @@ export default function ContestableAssumption({ sessionId, optionId, assumption 
 
           {outcome.revised_assumption && (
             <p className="text-muted-foreground">
-              <span className="font-mono uppercase text-[10px]">Now assumes: </span>
+              <span className="label-xs">Now assumes: </span>
               {outcome.revised_assumption}
             </p>
           )}
 
           {outcome.affected_dimensions.length > 0 && (
             <p className="text-muted-foreground">
-              <span className="font-mono uppercase text-[10px]">Affects: </span>
+              <span className="label-xs">Affects: </span>
               {outcome.affected_dimensions.join(", ").replace(/_/g, " ")}
             </p>
           )}
 
           {outcome.follow_up_question && (
-            <p className="text-primary/80 italic">{outcome.follow_up_question}</p>
+            <p className="text-primary/80 ">{outcome.follow_up_question}</p>
           )}
 
           {!outcome.still_recommended && (
-            <p className="text-destructive font-mono uppercase text-[10px]">
+            <p className="label-xs text-destructive">
               No longer a recommended choice
             </p>
           )}

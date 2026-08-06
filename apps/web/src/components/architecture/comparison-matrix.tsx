@@ -37,9 +37,9 @@ const SCORE_WEIGHTS: Record<ScoreDimension, number> = {
 };
 
 function getScoreColor(score: number): string {
-  if (score >= 8) return "text-green-600 bg-green-50";
-  if (score >= 5) return "text-amber-600 bg-amber-50";
-  return "text-red-600 bg-red-50";
+  if (score >= 8) return "text-tertiary bg-tertiary/10";
+  if (score >= 5) return "text-warning bg-warning/10";
+  return "text-destructive bg-destructive/10";
 }
 
 export default function ArchitectureComparisonView({ 
@@ -65,10 +65,10 @@ export default function ArchitectureComparisonView({
   return (
     <div className="space-y-6">
       {/* Recommendation Banner */}
-      <Card className="border-amber-500/30 bg-amber-500/10">
+      <Card className="border-tertiary/40 bg-tertiary/10">
         <CardContent className="py-4">
           <div className="flex items-center gap-3">
-            <Star className="h-5 w-5 text-amber-500" />
+            <Star className="h-5 w-5 text-tertiary" />
             <div>
               <p className="font-mono text-sm uppercase">{comparison.recommendation}</p>
             </div>
@@ -81,29 +81,32 @@ export default function ArchitectureComparisonView({
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-primary/20">
-              <th className="text-left p-3 font-mono text-xs uppercase text-primary/60">Dimension</th>
+              <th className="text-left p-3 font-mono text-xs uppercase text-primary/80">Dimension</th>
               {comparison.options.map(option => (
                 <th 
                   key={option.id}
                   className={`text-left p-3 font-mono text-xs uppercase ${
-                    option.id === bestOption.optionId ? 'text-amber-500' : 'text-primary/60'
+                    option.id === bestOption.optionId ? 'text-tertiary' : 'text-primary/80'
                   }`}
                 >
                   {option.name}
                   {option.id === bestOption.optionId && (
-                    <Star className="inline-block h-3 w-3 ml-1 text-amber-500" />
+                    <Star className="inline-block h-3 w-3 ml-1 text-tertiary" />
                   )}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody>
+          {/* The rule belongs to the gaps between rows, not to every row - as a
+              per-row border-b it also drew under the last one, closing the
+              table with a stray line. */}
+          <tbody className="divide-y divide-primary/10">
             {scoreKeys.map(key => (
-              <tr key={key} className="border-b border-primary/10">
-                <td className="p-3 text-sm font-mono uppercase text-primary/60">
+              <tr key={key}>
+                <td className="p-3 text-sm font-mono uppercase text-primary/80">
                   {SCORE_LABELS[key]}
                   {SCORE_WEIGHTS[key] > 1 && (
-                    <span className="ml-1 text-[10px] text-amber-500">×{SCORE_WEIGHTS[key]}</span>
+                    <span className="ml-1 text-xs text-primary/80">×{SCORE_WEIGHTS[key]}</span>
                   )}
                 </td>
                 {comparison.options.map(option => {
@@ -120,7 +123,7 @@ export default function ArchitectureComparisonView({
                         {score.toFixed(1)}
                       </div>
                       {why && (
-                        <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground max-w-[22rem]">
+                        <p className="mt-1.5 text-xs leading-snug text-muted-foreground max-w-[22rem]">
                           {why}
                         </p>
                       )}
@@ -137,7 +140,7 @@ export default function ArchitectureComparisonView({
                 return (
                   <td key={option.id} className="p-3">
                     <span className={`text-lg font-bold font-mono ${
-                      option.id === bestOption.optionId ? 'text-amber-600' : 'text-primary'
+                      option.id === bestOption.optionId ? 'text-tertiary' : 'text-primary'
                     }`}>
                       {ws?.weightedScore.toFixed(1) || '0.0'}
                     </span>
@@ -153,7 +156,7 @@ export default function ArchitectureComparisonView({
       {comparison.trade_offs.length > 0 && (
         <Card className="border-primary/10">
           <CardHeader className="pb-3">
-            <CardTitle className="text-xs font-mono uppercase text-primary/60 flex items-center gap-2">
+            <CardTitle className="text-xs font-mono uppercase text-primary/80 flex items-center gap-2">
               <AlertTriangle className="h-3 w-3" />
               Key Trade-offs
             </CardTitle>
@@ -162,7 +165,7 @@ export default function ArchitectureComparisonView({
             <ul className="space-y-2">
               {comparison.trade_offs.map((tradeOff, idx) => (
                 <li key={idx} className="text-sm text-muted-foreground flex items-start gap-2">
-                  <span className="text-amber-500">•</span>
+                  <span className="text-primary">•</span>
                   {tradeOff}
                 </li>
               ))}
@@ -179,7 +182,7 @@ export default function ArchitectureComparisonView({
             onClick={() => onSelect(option.id)}
             disabled={selectedOptionId === option.id}
             variant={selectedOptionId === option.id ? 'default' : 'outline'}
-            className="font-mono uppercase text-[10px]"
+            className="label-xs"
           >
             {selectedOptionId === option.id ? (
               <>

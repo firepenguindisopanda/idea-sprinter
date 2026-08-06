@@ -15,11 +15,6 @@ import {
 
 import type { PreGenerationRequest } from "@/types";
 
-/**
- * 
- * add the pre-generation fields (title, audience, techStack, scope seeds, exampleCount) and a disabled `Generate examples` button that validates required fields.
- */
-
 interface PreGenerationFormProps {
   value: PreGenerationRequest;
   onChange: (value: PreGenerationRequest) => void;
@@ -59,7 +54,7 @@ export default function PreGenerationForm({ value, onChange, onSubmit, isLoading
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-1 space-y-2">
-          <Label htmlFor="pre-title" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Project_Title *</Label>
+          <Label htmlFor="pre-title" className="label-xs text-primary/80">Project_Title *</Label>
           <Input
             id="pre-title"
             value={value.title}
@@ -71,7 +66,7 @@ export default function PreGenerationForm({ value, onChange, onSubmit, isLoading
         </div>
 
         <div className="md:col-span-1 space-y-2">
-          <Label htmlFor="pre-audience" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Target_Audience *</Label>
+          <Label htmlFor="pre-audience" className="label-xs text-primary/80">Target_Audience *</Label>
           <Input
             id="pre-audience"
             value={value.audience}
@@ -83,7 +78,7 @@ export default function PreGenerationForm({ value, onChange, onSubmit, isLoading
         </div>
 
         <div className="md:col-span-1 space-y-2">
-          <Label htmlFor="pre-tech" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Tech_Stack (Opt)</Label>
+          <Label htmlFor="pre-tech" className="label-xs text-primary/80">Tech_Stack (Opt)</Label>
           <Input
             id="pre-tech"
             value={value.techStack ?? ""}
@@ -97,7 +92,7 @@ export default function PreGenerationForm({ value, onChange, onSubmit, isLoading
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 space-y-2">
-          <Label htmlFor="pre-problem" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Problem_Statement *</Label>
+          <Label htmlFor="pre-problem" className="label-xs text-primary/80">Problem_Statement *</Label>
           <Textarea
             id="pre-problem"
             value={value.problemStatement}
@@ -110,7 +105,7 @@ export default function PreGenerationForm({ value, onChange, onSubmit, isLoading
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="pre-examples" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Iter_Count</Label>
+          <Label htmlFor="pre-examples" className="label-xs text-primary/80">Iter_Count</Label>
           <Select
             value={String(value.exampleCount)}
             onValueChange={(v) => onChange({ ...value, exampleCount: Number(v) })}
@@ -132,7 +127,7 @@ export default function PreGenerationForm({ value, onChange, onSubmit, isLoading
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="pre-domain" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Domain_Industry</Label>
+          <Label htmlFor="pre-domain" className="label-xs text-primary/80">Domain_Industry</Label>
           <Input
             id="pre-domain"
             value={value.domain ?? ""}
@@ -144,7 +139,7 @@ export default function PreGenerationForm({ value, onChange, onSubmit, isLoading
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="pre-tone" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Tone_Profile</Label>
+          <Label htmlFor="pre-tone" className="label-xs text-primary/80">Tone_Profile</Label>
           <Input
             id="pre-tone"
             value={value.desiredTone ?? ""}
@@ -158,7 +153,7 @@ export default function PreGenerationForm({ value, onChange, onSubmit, isLoading
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="pre-musthave" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Must_Have_Features</Label>
+          <Label htmlFor="pre-musthave" className="label-xs text-primary/80">Must_Have_Features</Label>
           <Textarea
             id="pre-musthave"
             value={mustHaveText}
@@ -179,7 +174,7 @@ export default function PreGenerationForm({ value, onChange, onSubmit, isLoading
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="pre-constraints" className="text-[10px] font-mono uppercase tracking-widest text-primary/70">Operational_Constraints</Label>
+          <Label htmlFor="pre-constraints" className="label-xs text-primary/80">Operational_Constraints</Label>
           <Textarea
             id="pre-constraints"
             value={value.constraints ?? ""}
@@ -197,7 +192,8 @@ export default function PreGenerationForm({ value, onChange, onSubmit, isLoading
           type="button"
           onClick={() => handleSubmit()}
           disabled={!requiredValid || isLoading}
-          className="rounded-none font-mono uppercase text-[12px] tracking-widest px-8 py-6 border-2 border-primary/50 group transition-all hover:bg-primary hover:text-primary-foreground"
+          size="xl"
+          className="px-8 py-6 group"
         >
           {isLoading ? (
             <>

@@ -66,7 +66,7 @@ export function AgentPipelineProgress({
     <div className="bg-background border-2 border-primary/20 p-6 rounded-none space-y-6">
       {/* Progress Bar */}
       <div className="space-y-2">
-        <div className="flex justify-between text-[10px] font-mono uppercase">
+        <div className="label-xs flex justify-between">
           <span className="text-muted-foreground">Progress</span>
           <span className="text-primary">{Math.round(progressPercentage)}%</span>
         </div>
@@ -98,15 +98,15 @@ export function AgentPipelineProgress({
               {/* Phase Header */}
               <div className="flex items-center gap-2">
                 <span className={cn(
-                  "text-[10px] font-mono font-bold uppercase",
-                  phaseComplete && "text-green-500",
+                  "label-xs font-bold",
+                  phaseComplete && "text-tertiary",
                   phaseActive && "text-primary",
                   !phaseComplete && !phaseActive && "text-muted-foreground"
                 )}>
                   Phase {phase.phase}: {phase.name}
                 </span>
                 {phaseComplete && (
-                  <CheckCircle2 className="h-3 w-3 text-green-500" />
+                  <CheckCircle2 className="h-3 w-3 text-tertiary" />
                 )}
                 {phaseActive && (
                   <Loader2 className="h-3 w-3 text-primary animate-spin" />
@@ -138,7 +138,7 @@ export function AgentPipelineProgress({
       {/* Current Status */}
       {isGenerating && statusText && (
         <div className="border-t border-primary/10 pt-4 animate-in fade-in slide-in-from-top-2" role="status" aria-live="polite" aria-atomic="true">
-          <div className="text-[10px] font-mono text-primary uppercase mb-2 flex items-center gap-2">
+          <div className="label-xs text-primary mb-2 flex items-center gap-2">
             <span className="h-2 w-2 bg-primary rounded-full animate-pulse" />
             Current Activity
           </div>
@@ -153,16 +153,16 @@ export function AgentPipelineProgress({
         <div className="border-t border-destructive/20 pt-4 animate-in fade-in slide-in-from-top-2">
           <div className="flex items-center gap-2 text-destructive">
             <AlertCircle className="h-4 w-4" />
-            <span className="text-[10px] font-mono uppercase">Error</span>
+            <span className="label-xs">Error</span>
           </div>
-          <p className="text-xs text-destructive/80 font-mono mt-2">
+          <p className="text-xs text-destructive font-mono mt-2">
             {error}
           </p>
           {onRetry && (
             <button
               onClick={onRetry}
               aria-label="Dismiss error and retry"
-              className="mt-4 px-4 py-2 bg-destructive/10 border border-destructive/20 rounded-none font-mono text-[10px] uppercase hover:bg-destructive/20 transition-colors"
+              className="label-xs mt-4 px-4 py-2 bg-destructive/10 border border-destructive/20 rounded-none hover:bg-destructive/20 transition-colors"
             >
               Dismiss & Retry
             </button>
@@ -173,10 +173,10 @@ export function AgentPipelineProgress({
       {/* Idle State */}
       {!isGenerating && !error && completedAgents.length === 0 && (
         <div className="border-t border-primary/10 pt-4 text-center">
-          <div className="h-8 w-8 rounded-full border-2 border-primary/20 flex items-center justify-center mx-auto mb-2">
+          <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center border border-primary/25">
             <Circle className="h-4 w-4 text-primary/20" />
           </div>
-          <p className="text-[10px] font-mono text-muted-foreground uppercase">
+          <p className="label-xs text-muted-foreground">
             Configure and submit to start
           </p>
         </div>

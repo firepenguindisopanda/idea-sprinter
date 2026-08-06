@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Download, Trash2, Loader2, Calendar, Package } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AlertTriangle, ArrowLeft, Compass, Download, Trash2, Loader2, Calendar, Package } from "lucide-react";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +25,9 @@ import type { Project } from "@/types";
 import {
   displayLabels,
   displayOutputs,
+  exportOutputs,
+  formatRole,
+  projectReview,
   projectSummaryBadge,
   supportsInlineEditing,
 } from "@/lib/project-artifacts";
@@ -64,7 +69,7 @@ export default function ProjectDetailPage() {
 
     setIsDownloading(true);
     try {
-      await downloadProjectPdf(project.description || project.title, displayOutputs(project.artifacts));
+      await downloadProjectPdf(project.description || project.title, exportOutputs(project.artifacts));
       
       toast.success("PDF Downloaded!", {
         description: "Your project specification has been downloaded.",
@@ -144,7 +149,7 @@ export default function ProjectDetailPage() {
         <div className="container mx-auto p-6 max-w-7xl">
           <div className="flex flex-col items-center justify-center py-32 space-y-4">
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
-            <span className="font-mono text-[10px] uppercase animate-pulse">Loading project...</span>
+            <span className="label-xs animate-pulse">Loading project...</span>
           </div>
         </div>
       </ProtectedRoute>
@@ -160,6 +165,7 @@ export default function ProjectDetailPage() {
   const sectionCountLabel = projectSummaryBadge(project.artifacts);
   const labels = displayLabels(project.artifacts);
   const canEdit = supportsInlineEditing(project.artifacts);
+  const review = projectReview(project.artifacts);
 
   return (
     <ProtectedRoute>
@@ -170,7 +176,7 @@ export default function ProjectDetailPage() {
               variant="ghost"
               size="sm"
               onClick={() => router.push("/dashboard")}
-              className="font-mono text-[10px] uppercase tracking-widest pl-0 hover:bg-transparent hover:text-primary transition-colors"
+              className="label-xs pl-0 hover:bg-transparent hover:text-primary transition-colors"
             >
               <ArrowLeft className="mr-2 h-3 w-3" />
               Back to Dashboard
@@ -178,22 +184,22 @@ export default function ProjectDetailPage() {
             
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono text-primary/60 uppercase tracking-widest">Project Specification</span>
+                <span className="label-xs text-primary/80">Project Specification</span>
                 <div className="h-px w-8 bg-primary/20" />
-                <span className="text-[10px] font-mono text-primary/60 uppercase tracking-widest">ID: {project.id.toString().padStart(4, '0')}</span>
+                <span className="label-xs text-primary/80">ID: {project.id.toString().padStart(4, '0')}</span>
               </div>
-              <h1 className="text-4xl font-mono font-bold uppercase tracking-tighter line-clamp-2 leading-tight">
+              <h1 className="text-4xl font-bold tracking-[-0.03em] line-clamp-2 leading-tight">
                 {project.title}
               </h1>
               {project.description && (
-                <p className="text-sm text-muted-foreground font-sans italic max-w-2xl">&quot;{project.description}&quot;</p>
+                <p className="text-sm text-muted-foreground font-sans max-w-2xl">&quot;{project.description}&quot;</p>
               )}
-              <div className="flex items-center gap-4 text-[10px] font-mono text-muted-foreground uppercase pt-2">
+              <div className="label-xs flex items-center gap-4 text-muted-foreground pt-2">
                 <div className="flex items-center">
                   <Calendar className="mr-1.5 h-3 w-3 text-primary/40" />
                   Timestamp: {formatDate(project.created_at)}
                 </div>
-                <div className="bg-primary/5 border border-primary/10 px-2 py-0.5 text-primary/70">
+                <div className="bg-primary/5 px-2 py-0.5 text-primary/80">
                   {sectionCountLabel}
                 </div>
               </div>
@@ -201,19 +207,31 @@ export default function ProjectDetailPage() {
           </div>
 
           <div className="flex gap-3">
+            {/* `/architecture` had no route in from a spec - sessions were
+                URL-param-only and the requirements had to be retyped. */}
             <Button
-              variant="outline"
+              asChild
+              variant="plate"
+              className="label-xs"
+            >
+              <Link href={`/architecture?project_id=${project.id}`}>
+                <Compass className="mr-2 h-3 w-3" />
+                Design Architecture
+              </Link>
+            </Button>
+            <Button
+              variant="plateActive"
               onClick={() => setIsDownloadModalOpen(true)}
-              className="font-mono uppercase text-[10px] tracking-widest rounded-none border-2 border-primary bg-primary/5 hover:bg-primary/10"
+              className="label-xs"
             >
               <Package className="mr-2 h-3 w-3" />
               Download Specs
             </Button>
             <Button
-              variant="outline"
+              variant="plate"
               onClick={handleDownloadPdf}
               disabled={isDownloading}
-              className="font-mono uppercase text-[10px] tracking-widest rounded-none border-2 border-primary/20 bg-background/50 hover:bg-primary/5"
+              className="label-xs"
             >
               {isDownloading ? (
                 <Loader2 className="mr-2 h-3 w-3 animate-spin" />
@@ -225,7 +243,7 @@ export default function ProjectDetailPage() {
             <Button
               variant="outline"
               onClick={() => setIsDeleteDialogOpen(true)}
-              className="font-mono uppercase text-[10px] tracking-widest rounded-none border-2 border-destructive/20 text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
+              className="label-xs rounded-none border-2 border-destructive/20 text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
             >
               <Trash2 className="mr-2 h-3 w-3" />
               Delete Project
@@ -233,11 +251,34 @@ export default function ProjectDetailPage() {
           </div>
         </div>
 
+        {review.contradictions.length > 0 && (
+          <div className="mb-6 border-2 border-warning/30 bg-warning/5 p-4">
+            <div className="label-xs flex items-center gap-2 text-warning dark:text-warning mb-3">
+              <AlertTriangle className="h-3 w-3" />
+              {review.contradictions.length} cross-agent{" "}
+              {review.contradictions.length === 1 ? "contradiction" : "contradictions"}
+            </div>
+            <ul className="space-y-2 text-sm">
+              {review.contradictions.map((c, i) => (
+                <li key={i}>
+                  <span className="label-xs text-muted-foreground mr-2">
+                    {c.severity}
+                    {c.roles && c.roles.length > 0 && ` · ${c.roles.map(formatRole).join(", ")}`}
+                  </span>
+                  <span className="text-muted-foreground">{c.detail}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="grid grid-cols-1">
           <ResultsDisplay
             results={{
               markdown_outputs: displayOutputs(project.artifacts),
-              judge_results: {},
+              // Saved specs now carry their judge verdicts under `_review`;
+              // this was hardcoded empty, so a reviewed spec looked unreviewed.
+              judge_results: review.judgeResults,
             }}
             onSave={undefined}
             onDownloadPdf={handleDownloadPdf}
@@ -254,17 +295,17 @@ export default function ProjectDetailPage() {
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent className="rounded-none border-2 border-primary/20">
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-mono uppercase tracking-tight">Delete this project?</AlertDialogTitle>
-            <AlertDialogDescription className="text-sm font-sans italic">
+            <AlertDialogTitle className="label-lg">Delete this project?</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm font-sans ">
               This will permanently delete &quot;{project.title}&quot; and all its generated specifications. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting} className="rounded-none font-mono uppercase text-[10px] tracking-widest">Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting} className="label-xs rounded-none">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
-              className="rounded-none font-mono uppercase text-[10px] tracking-widest bg-destructive text-white hover:bg-destructive/90"
+              className={cn(buttonVariants({ variant: "destructive" }), "label-xs rounded-none")}
             >
               {isDeleting ? (
                 <>
@@ -285,7 +326,7 @@ export default function ProjectDetailPage() {
         onClose={() => setIsDownloadModalOpen(false)}
         results={{
           markdown_outputs: displayOutputs(project.artifacts),
-          judge_results: {},
+          judge_results: review.judgeResults,
           project_description: project.description || "",
         }}
         projectName={project.title}

@@ -39,7 +39,7 @@ export default function DraftBanner() {
             <div className={`
               p-2 rounded-none border 
               ${isIdeation 
-                ? 'bg-amber-500/10 border-amber-500/30 text-amber-500' 
+                ? 'bg-warning/10 border-warning/30 text-warning' 
                 : 'bg-primary/10 border-primary/30 text-primary'
               }
             `}>
@@ -51,10 +51,10 @@ export default function DraftBanner() {
             </div>
             
             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-              <span className="text-sm font-mono font-bold uppercase tracking-tight">
+              <span className="label-lg text-sm">
                 {isIdeation ? 'Ideation Draft' : 'Generation In Progress'}
               </span>
-              <span className="flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground uppercase">
+              <span className="label-xs flex items-center gap-1.5 text-muted-foreground">
                 <Clock className="h-3 w-3" />
                 {timeAgo}
               </span>
@@ -66,7 +66,7 @@ export default function DraftBanner() {
             <Button
               asChild
               size="sm"
-              className="font-mono text-[10px] uppercase tracking-widest rounded-none h-8 px-4"
+              className="label-xs rounded-none h-8 px-4"
             >
               <Link 
                 href={isIdeation ? '/ideation' : '/generate'} 
@@ -81,7 +81,7 @@ export default function DraftBanner() {
               variant="ghost"
               size="sm"
               onClick={handleDismiss}
-              className="font-mono text-[10px] uppercase tracking-widest rounded-none h-8 px-2 text-muted-foreground hover:text-destructive"
+              className="label-xs rounded-none h-8 px-2 text-muted-foreground hover:text-destructive"
               title="Discard draft"
             >
               <X className="h-4 w-4" />

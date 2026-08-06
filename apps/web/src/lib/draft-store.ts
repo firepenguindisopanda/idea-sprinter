@@ -92,8 +92,7 @@ export const useDraftStore = create<DraftStore>()(
       ideationDraft: null,
       generationDraft: null,
 
-      // ==================== Ideation Draft Actions ====================
-      
+      // Ideation Draft Actions
       setIdeationDraft: (draft) => {
         set((state) => ({
           ideationDraft: {
@@ -150,8 +149,7 @@ export const useDraftStore = create<DraftStore>()(
         set({ ideationDraft: null });
       },
 
-      // ==================== Generation Draft Actions ====================
-      
+      // Generation Draft Actions
       startGeneration: (projectRequest) => {
         const sessionId = generateSessionId();
         
@@ -250,8 +248,7 @@ export const useDraftStore = create<DraftStore>()(
         set({ generationDraft: null });
       },
 
-      // ==================== Utility Actions ====================
-      
+      // Utility Actions
       hasAnyDraft: () => {
         const { ideationDraft, generationDraft } = get();
         return ideationDraft !== null || generationDraft !== null;
@@ -283,8 +280,7 @@ export const useDraftStore = create<DraftStore>()(
   )
 );
 
-// ==================== Selectors ====================
-
+// Selectors
 /**
  * Hook to check if there's an in-progress generation
  */

@@ -103,16 +103,16 @@ export function LivePreview({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {getAgentIcon(activeAgent)}
-          <span className="text-[10px] font-mono text-primary uppercase tracking-widest">
+          <span className="label-xs text-primary">
             Live Preview
           </span>
         </div>
         
         {/* Active Agent Badge */}
         {isGenerating && (
-          <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full">
+          <div className="flex items-center gap-2 border border-primary/25 bg-primary/10 px-2 py-1">
             <span className="h-2 w-2 bg-primary rounded-full animate-pulse" />
-            <span className="text-[10px] font-mono text-primary uppercase">
+            <span className="label-xs text-primary">
               {formatAgentName(activeAgent)}
             </span>
           </div>
@@ -126,7 +126,7 @@ export function LivePreview({
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              "flex items-center gap-2 px-4 py-2 text-[10px] font-mono uppercase transition-all",
+              "label-xs flex items-center gap-2 px-4 py-2 transition-all",
               activeTab === tab.id
                 ? "text-primary border-b-2 border-primary -mb-[2px]"
                 : "text-muted-foreground hover:text-primary/80"
@@ -148,7 +148,7 @@ export function LivePreview({
                 contentRef.current.scrollTop = contentRef.current.scrollHeight;
               }
             }}
-            className="absolute bottom-2 right-2 z-10 px-3 py-1 bg-primary/80 text-white text-[10px] font-mono uppercase rounded-full hover:bg-primary transition-colors"
+            className="label-xs absolute bottom-2 right-2 z-10 rounded-xs bg-primary/85 px-2 py-1 text-primary-foreground transition-colors hover:bg-primary"
           >
             ↓ Scroll to bottom
           </button>
@@ -159,7 +159,7 @@ export function LivePreview({
           ref={contentRef}
           className={cn(
             "flex-1 min-h-64 overflow-y-auto",
-            "bg-primary/5 border border-primary/10 rounded p-4",
+            "bg-primary/5 rounded p-4",
             "scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent"
           )}
         >
@@ -177,7 +177,7 @@ export function LivePreview({
             )
           ) : (
 
-            <div className="text-muted-foreground/50 italic">
+            <div className="text-muted-foreground ">
               {isGenerating ? (
                 <span className="flex items-center gap-2">
                   <span className="h-2 w-2 bg-primary rounded-full animate-bounce" />
@@ -192,7 +192,7 @@ export function LivePreview({
       </div>
 
       {/* Footer Info */}
-      <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground uppercase">
+      <div className="label-xs flex items-center justify-between text-muted-foreground">
         <span>
           Phase {currentPhase > 0 ? currentPhase : '-'}
         </span>
