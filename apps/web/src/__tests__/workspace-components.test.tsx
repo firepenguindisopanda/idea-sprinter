@@ -253,4 +253,67 @@ describe('DocSection', () => {
       );
     });
   });
+
+  it('applies a changed section and closes the box', async () => {
+    const applyRefinement = vi.fn();
+    mockUseWorkspace.mockReturnValue({
+      applyRefinement,
+      undoRefinement: vi.fn(),
+      refinementHistory: [],
+      setError: vi.fn(),
+    });
+    vi.mocked(api.refineSection).mockResolvedValueOnce({
+      section_id: baseSection.id,
+      content: 'The overview, with pricing.',
+      suggestions: [],
+    });
+    render(<DocSection section={baseSection} isRefinementMode={true} />);
+
+    fireEvent.click(screen.getByTitle('Refine section'));
+    fireEvent.change(screen.getByPlaceholderText(/Make this more technical/i), {
+      target: { value: 'Add pricing details' },
+    });
+    fireEvent.click(screen.getByText('Apply'));
+
+    await waitFor(() => {
+      expect(applyRefinement).toHaveBeenCalledWith(
+        expect.objectContaining({ suggestedContent: 'The overview, with pricing.' }),
+      );
+    });
+    expect(screen.queryByPlaceholderText(/Make this more technical/i)).toBeNull();
+  });
+
+  it('reports an unchanged section as not applied and keeps the request', async () => {
+    // The endpoint hands the original back when the model's reply is unusable.
+    // Recorded, it showed a refinement that never happened, with an undo that
+    // restored nothing.
+    const applyRefinement = vi.fn();
+    const setError = vi.fn();
+    mockUseWorkspace.mockReturnValue({
+      applyRefinement,
+      undoRefinement: vi.fn(),
+      refinementHistory: [],
+      setError,
+    });
+    vi.mocked(api.refineSection).mockResolvedValueOnce({
+      section_id: baseSection.id,
+      content: baseSection.content,
+      suggestions: [],
+    });
+    render(<DocSection section={baseSection} isRefinementMode={true} />);
+
+    fireEvent.click(screen.getByTitle('Refine section'));
+    fireEvent.change(screen.getByPlaceholderText(/Make this more technical/i), {
+      target: { value: 'Add pricing details' },
+    });
+    fireEvent.click(screen.getByText('Apply'));
+
+    await waitFor(() => {
+      expect(setError).toHaveBeenCalledWith(expect.stringMatching(/\S/));
+    });
+    expect(applyRefinement).not.toHaveBeenCalled();
+    expect(
+      (screen.getByPlaceholderText(/Make this more technical/i) as HTMLTextAreaElement).value,
+    ).toBe('Add pricing details');
+  });
 });

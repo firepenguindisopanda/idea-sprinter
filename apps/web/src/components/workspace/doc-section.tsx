@@ -5,7 +5,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import type { DocSection as DocSectionType } from "@/types/workspace";
 import { Button } from "@/components/ui/button";
 import { Wand2, Undo2 } from "lucide-react";
-import { api } from "@/lib/api";
+import { refineAndRecord } from "@/lib/refine-section";
 import { Markdown } from "@/components/markdown";
 
 interface DocSectionProps {
@@ -24,29 +24,16 @@ export function DocSection({ section, isRefinementMode }: DocSectionProps) {
     .find((r) => r.sectionId === section.id);
 
   const handleRefine = async () => {
-    if (!refinePrompt.trim()) return;
+    const prompt = refinePrompt.trim();
+    if (!prompt) return;
     setIsRefining(true);
-
-    try {
-      const response = await api.refineSection(
-        section.id,
-        section.content,
-        refinePrompt.trim(),
-      );
-      applyRefinement({
-        sectionId: section.id,
-        prompt: refinePrompt.trim(),
-        originalContent: section.content,
-        suggestedContent: response.content ?? section.content,
-        applied: true,
-      });
-    } catch {
-      setError("Could not reach the server. Check your connection and try again.");
-    }
-
+    const outcome = await refineAndRecord(section, prompt, { applyRefinement, setError });
     setIsRefining(false);
-    setRefinePrompt("");
-    setShowRefine(false);
+    // Kept open with the request on failure, so it can be retried as typed.
+    if (outcome === "applied") {
+      setRefinePrompt("");
+      setShowRefine(false);
+    }
   };
 
   const statusIcon = (() => {

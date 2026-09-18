@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useWorkspaceStore } from "@/lib/workspace-store";
 import { formatRole } from "@/lib/project-artifacts";
+import { findingPrompt, refineAndRecord } from "@/lib/refine-section";
 import { AlertTriangle, ChevronDown, ChevronRight, ShieldCheck, ShieldAlert } from "lucide-react";
 import type { SectionReview } from "@/types/workspace";
 
@@ -32,8 +33,35 @@ function severityClass(severity: string): string {
 
 function ReviewCard({ review }: { review: SectionReview }) {
   const [expanded, setExpanded] = useState(false);
+  const [fixing, setFixing] = useState<string | null>(null);
   const { critic, skeptic, judge } = review;
   const attacks = skeptic?.attackVectors ?? [];
+
+  // The skeptic's findings never block a section (the verdict comes from the
+  // critic alone - its rating varied from call to call on unchanged text), so
+  // acting on them is the user's call. "Fix this" follows the section's own
+  // refine box: available once the document has finished generating, for a
+  // section that finished.
+  const phase = useWorkspaceStore((s) => s.phase);
+  const section = useWorkspaceStore((s) =>
+    s.documentSections.find((d) => d.id === review.sectionId),
+  );
+  const history = useWorkspaceStore((s) => s.refinementHistory);
+  const applyRefinement = useWorkspaceStore((s) => s.applyRefinement);
+  const setError = useWorkspaceStore((s) => s.setError);
+  const undoRefinement = useWorkspaceStore((s) => s.undoRefinement);
+  const canFix = phase === "refinement" && section?.status === "complete" && !!section.content;
+  const sectionHistory = history.filter((r) => r.sectionId === review.sectionId);
+  const latestPrompt = sectionHistory[sectionHistory.length - 1]?.prompt;
+
+  // One fix at a time per section: two in flight would both start from the
+  // same text, and the second would silently discard the first.
+  const fix = async (key: string, prompt: string) => {
+    if (!section) return;
+    setFixing(key);
+    await refineAndRecord(section, prompt, { applyRefinement, setError });
+    setFixing(null);
+  };
   const hasDetail =
     attacks.length > 0 ||
     (critic?.dimensions?.length ?? 0) > 0 ||
@@ -117,30 +145,72 @@ function ReviewCard({ review }: { review: SectionReview }) {
 
           {attacks.length > 0 && (
             <div className="space-y-1.5">
-              <p className="font-medium text-foreground">Attack vectors</p>
-              {attacks.map((a, i) => (
-                <div key={a.id || i} className="space-y-0.5">
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className={`label-xs px-1 py-0.5 border rounded ${severityClass(a.severity)}`}
-                    >
-                      {a.severity}
-                    </span>
-                    <span className="text-muted-foreground">{a.category}</span>
-                    {a.impacted_dimension && (
-                      <span className="text-muted-foreground truncate">
-                        · {a.impacted_dimension}
+              <div className="space-y-0.5">
+                <p className="font-medium text-foreground">Attack vectors</p>
+                <p className="text-muted-foreground">
+                  Suggestions only. They don&apos;t affect approval.
+                </p>
+              </div>
+              {attacks.map((a, i) => {
+                const key = a.id || String(i);
+                const prompt = findingPrompt(a);
+                // Read from the refinement history, so it survives a reload
+                // and goes when the fix is undone. Undo is offered on the
+                // latest fix only: the store undoes a section's most recent
+                // refinement.
+                const applied = sectionHistory.some((r) => r.prompt === prompt);
+                return (
+                  <div key={key} className="space-y-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`label-xs px-1 py-0.5 border rounded ${severityClass(a.severity)}`}
+                      >
+                        {a.severity}
                       </span>
+                      <span className="text-muted-foreground">{a.category}</span>
+                      {a.impacted_dimension && (
+                        <span className="text-muted-foreground truncate">
+                          · {a.impacted_dimension}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-muted-foreground leading-relaxed">{a.description}</p>
+                    {a.suggested_fix && (
+                      <p className="text-muted-foreground leading-relaxed">
+                        Fix: {a.suggested_fix}
+                      </p>
+                    )}
+                    {canFix && (
+                      <div className="flex items-center gap-2 pt-1">
+                        {applied ? (
+                          <>
+                            <span className="label-xs text-tertiary">Applied</span>
+                            {latestPrompt === prompt && (
+                              <button
+                                type="button"
+                                onClick={() => undoRefinement(review.sectionId)}
+                                className="label-xs text-muted-foreground underline-offset-2 transition-colors hover:text-primary hover:underline"
+                              >
+                                Undo
+                              </button>
+                            )}
+                          </>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => fix(key, prompt)}
+                            disabled={fixing !== null}
+                            aria-label={`Fix: ${a.description}`}
+                            className="label-xs rounded-xs border border-border bg-card px-2 py-1 text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary disabled:pointer-events-none disabled:opacity-50"
+                          >
+                            {fixing === key ? "Fixing…" : "Fix this"}
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
-                  <p className="text-muted-foreground leading-relaxed">{a.description}</p>
-                  {a.suggested_fix && (
-                    <p className="text-muted-foreground leading-relaxed">
-                      Fix: {a.suggested_fix}
-                    </p>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
