@@ -165,6 +165,22 @@ describe('Fix this on a skeptic finding', () => {
     expect(fixButton(SECRETS).disabled).toBe(false);
   });
 
+  it("shows the server's reason when the model service fails, not a connection error", async () => {
+    // The backend answers 503 once the provider has failed past its retries.
+    // Before, refine returned the original and this read "came back unchanged";
+    // "Could not reach the server" would be wrong too - the server answered.
+    const busy = 'The model service is busy or unavailable, so the section was not changed. Try again in a minute.';
+    refineSection.mockRejectedValue(Object.assign(new Error(busy), { code: 'api_error', status: 503 }));
+    seed();
+    openCard();
+
+    fireEvent.click(fixButton(SECRETS));
+
+    await waitFor(() => expect(useWorkspaceStore.getState().error).toBe(busy));
+    expect(useWorkspaceStore.getState().errorTone).toBe('error');
+    expect(content()).toBe(ORIGINAL);
+  });
+
   it('runs one fix at a time for a section', async () => {
     // Two in flight would both start from the same text, and the second
     // would discard the first.

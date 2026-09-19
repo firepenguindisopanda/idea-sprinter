@@ -29,8 +29,17 @@ export async function refineAndRecord(
   try {
     const response = await api.refineSection(section.id, section.content, prompt);
     content = response.content ?? section.content;
-  } catch {
-    setError('Could not reach the server. Check your connection and try again.');
+  } catch (err) {
+    // The server answered with a reason (a 503 once the model service has
+    // failed past its retries): show it. Only a request that never got an
+    // answer is a connection problem. Read by `code`, not `instanceof
+    // ApiError`, so it holds wherever the API module is replaced.
+    const answered = (err as { code?: string } | null)?.code === 'api_error';
+    setError(
+      answered && err instanceof Error && err.message
+        ? err.message
+        : 'Could not reach the server. Check your connection and try again.',
+    );
     return 'failed';
   }
 
