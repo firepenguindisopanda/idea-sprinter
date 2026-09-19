@@ -19,6 +19,7 @@ export function useWorkspace() {
     threshold: store.threshold,
     chatMessages: store.chatMessages,
     error: store.error,
+    errorTone: store.errorTone,
 
     // Computed
     canGoPrevious: store.currentQuestionIndex > 0,

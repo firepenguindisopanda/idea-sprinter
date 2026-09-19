@@ -60,7 +60,9 @@ interface WorkspaceActions {
   setThreshold: (threshold: number) => void;
   addChatMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'>) => void;
   setChatMessages: (messages: ChatMessage[]) => void;
-  setError: (error: string | null) => void;
+  // `notice` is for an outcome that is not a failure, such as a refine that
+  // came back unchanged; it is shown in the warning accent, not the error red.
+  setError: (error: string | null, tone?: 'error' | 'notice') => void;
   clearError: () => void;
 }
 
@@ -71,6 +73,7 @@ const initialState: WorkspaceState & {
   threshold: number;
   chatMessages: ChatMessage[];
   error: string | null;
+  errorTone: 'error' | 'notice';
   // The server-side run this workspace is watching, and how far into it the
   // client has read. Persisted, so a reload can re-attach rather than throw
   // away a generation that is still going on the server.
@@ -95,6 +98,7 @@ const initialState: WorkspaceState & {
   threshold: DEFAULT_VAGUENESS_THRESHOLD,
   chatMessages: [],
   error: null,
+  errorTone: 'error',
 };
 
 export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions & {
@@ -104,6 +108,7 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions & {
   lastSeq: number;
   chatMessages: ChatMessage[];
   error: string | null;
+  errorTone: 'error' | 'notice';
 }>()(
   persist(
     (set, get) => ({
@@ -279,14 +284,14 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions & {
 
       setChatMessages: (messages) => set({ chatMessages: messages }),
 
-      setError: (error) => set({ error }),
+      setError: (error, tone = 'error') => set({ error, errorTone: tone }),
 
-      clearError: () => set({ error: null }),
+      clearError: () => set({ error: null, errorTone: 'error' }),
     }),
     {
       name: 'workspace-store',
       partialize: (state) => {
-        const { error: _error, ...persisted } = state;
+        const { error: _error, errorTone: _errorTone, ...persisted } = state;
         return persisted;
       },
       // A persisted 'generating' phase outlives the stream that produced it:

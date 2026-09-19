@@ -309,7 +309,8 @@ describe('DocSection', () => {
     fireEvent.click(screen.getByText('Apply'));
 
     await waitFor(() => {
-      expect(setError).toHaveBeenCalledWith(expect.stringMatching(/\S/));
+      // A notice, not an error: nothing failed.
+      expect(setError).toHaveBeenCalledWith(expect.stringMatching(/\S/), 'notice');
     });
     expect(applyRefinement).not.toHaveBeenCalled();
     expect(

@@ -144,6 +144,8 @@ describe('Fix this on a skeptic finding', () => {
     fireEvent.click(fixButton(SECRETS));
 
     await waitFor(() => expect(useWorkspaceStore.getState().error).toMatch(/\S/));
+    // Not a failure: shown as a notice, not in the error red.
+    expect(useWorkspaceStore.getState().errorTone).toBe('notice');
     expect(screen.queryByText('Applied')).toBeNull();
     expect(useWorkspaceStore.getState().refinementHistory).toHaveLength(0);
     expect(fixButton(SECRETS).disabled).toBe(false);
@@ -157,6 +159,7 @@ describe('Fix this on a skeptic finding', () => {
     fireEvent.click(fixButton(SECRETS));
 
     await waitFor(() => expect(useWorkspaceStore.getState().error).toMatch(/\S/));
+    expect(useWorkspaceStore.getState().errorTone).toBe('error');
     expect(content()).toBe(ORIGINAL);
     expect(screen.queryByText('Applied')).toBeNull();
     expect(fixButton(SECRETS).disabled).toBe(false);

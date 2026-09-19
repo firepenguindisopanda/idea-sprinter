@@ -5,7 +5,7 @@ export type RefineOutcome = 'applied' | 'unchanged' | 'failed';
 
 interface RefineActions {
   applyRefinement: (action: RefinementAction) => void;
-  setError: (error: string | null) => void;
+  setError: (error: string | null, tone?: 'error' | 'notice') => void;
 }
 
 /**
@@ -35,7 +35,7 @@ export async function refineAndRecord(
   }
 
   if (content.trim() === section.content.trim()) {
-    setError('The section came back unchanged. Try again, or reword the request.');
+    setError('The section came back unchanged. Try again, or reword the request.', 'notice');
     return 'unchanged';
   }
 
