@@ -179,6 +179,8 @@ export interface ArchitectureOption {
   assumptions?: string[];
   best_when?: string;
   avoid_when?: string;
+  /** A generic starter served because generation failed - the same for every project. */
+  is_template?: boolean;
 }
 
 export interface ArchitectureScore {

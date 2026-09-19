@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import type { ArchitectureOption } from "@/types";
 import { Markdown } from "@/components/markdown";
 import OptionChallenge from "./option-challenge";
-import { CheckCircle2, Layers, DollarSign, Clock } from "lucide-react";
+import { CheckCircle2, Layers, DollarSign, Clock, Info } from "lucide-react";
 
 interface ArchitectureOptionsProps {
   options: ArchitectureOption[];
@@ -53,6 +53,22 @@ export default function ArchitectureOptions({
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Generation failed and the backend served its hardcoded starters,
+                identical for every project. Without this the card presented
+                them as options written for the user's requirements. */}
+            {option.is_template && (
+              <div
+                role="note"
+                className="accent-note border-warning bg-warning/10 flex items-start gap-2 px-3 py-2 text-sm"
+              >
+                <Info className="h-4 w-4 shrink-0 mt-0.5 text-warning" aria-hidden="true" />
+                <span className="text-foreground">
+                  Generic template, not written for this project: generating options failed, so
+                  a standard starter is shown instead. Generate again for options based on your
+                  requirements.
+                </span>
+              </div>
+            )}
             <p className="text-sm text-muted-foreground">{option.description}</p>
 
             {/* Architecture diagram - the generator emits a ```mermaid block,
