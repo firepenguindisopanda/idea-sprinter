@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Download, FileText, FileJson, File, Loader2 } from "lucide-react";
 import { downloadProjectPdf } from "@/lib/api";
+import { buildSpecMarkdown } from "@/lib/markdown-export";
 import { toast } from "sonner";
 
 export function ExportDropdown() {
@@ -20,18 +21,6 @@ export function ExportDropdown() {
   // The PDF is generated server-side, so unlike the local markdown/JSON writes
   // it can take a moment and can fail.
   const [isExporting, setIsExporting] = useState(false);
-
-  const buildMarkdown = (): string => {
-    const sorted = [...documentSections].sort((a, b) => a.order - b.order);
-    const lines: string[] = [`# ${projectTitle || "Specification Document"}\n`];
-    for (const section of sorted) {
-      if (section.content) {
-        lines.push(`## ${section.title}\n`);
-        lines.push(`${section.content}\n`);
-      }
-    }
-    return lines.join("\n");
-  };
 
   const buildJson = (): string => {
     const sorted = [...documentSections].sort((a, b) => a.order - b.order);
@@ -49,7 +38,7 @@ export function ExportDropdown() {
   const handleExport = async (format: "markdown" | "pdf" | "json") => {
     try {
       if (format === "markdown") {
-        const md = buildMarkdown();
+        const md = buildSpecMarkdown(projectTitle, documentSections);
         const blob = new Blob([md], { type: "text/markdown" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
