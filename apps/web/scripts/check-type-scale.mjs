@@ -10,9 +10,14 @@
  */
 import { readFileSync } from "node:fs";
 import { readdir } from "node:fs/promises";
-import { join, relative } from "node:path";
+import { join, relative, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const SRC = new URL("../src", import.meta.url).pathname;
+// Not `.pathname`: on Windows that is `/C:/...`, which resolves to `C:\C:\...`.
+const SRC = fileURLToPath(new URL("../src", import.meta.url));
+
+/** A path under src/, `/`-separated on every platform. */
+const fromSrc = (file) => relative(SRC, file).split(sep).join("/");
 
 /** The ladder. Anything outside these sets is a violation. */
 const ALLOWED_SIZE = new Set([
@@ -57,7 +62,8 @@ const RULES = [
 ];
 
 /** UI primitives are vendored from shadcn; they get migrated deliberately, not swept. */
-const EXEMPT = [/\/components\/ui\//];
+// Matched against `fromSrc`, so the separator is `/` on Windows too.
+const EXEMPT = [/^components\/ui\//];
 
 async function walk(dir) {
   const out = [];
@@ -69,7 +75,7 @@ async function walk(dir) {
   return out;
 }
 
-const files = (await walk(SRC)).filter((f) => !EXEMPT.some((re) => re.test(f)));
+const files = (await walk(SRC)).filter((f) => !EXEMPT.some((re) => re.test(fromSrc(f))));
 const summaryOnly = process.argv.includes("--summary");
 
 const byRule = new Map(RULES.map((r) => [r.id, []]));
@@ -81,7 +87,7 @@ for (const file of files) {
     for (const m of text.matchAll(rule.re)) {
       const line = text.slice(0, m.index).split("\n").length;
       byRule.get(rule.id).push({
-        file: relative(SRC, file),
+        file: fromSrc(file),
         line,
         match: m[0].length > 60 ? `${m[0].slice(0, 57)}...` : m[0],
         rule,

@@ -14,8 +14,10 @@
 import { readFileSync } from "node:fs";
 import { readdir } from "node:fs/promises";
 import { join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const SRC = new URL("../src", import.meta.url).pathname;
+// Not `.pathname`: on Windows that is `/C:/...`, which resolves to `C:\C:\...`.
+const SRC = fileURLToPath(new URL("../src", import.meta.url));
 
 /** Uppercase JSX names that still render text rather than an icon. */
 const TEXT_COMPONENTS = new Set([
