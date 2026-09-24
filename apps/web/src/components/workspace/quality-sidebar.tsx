@@ -199,7 +199,8 @@ function ReviewCard({ review }: { review: SectionReview }) {
               <div className="space-y-0.5">
                 <p className="font-medium text-foreground">Must-haves</p>
                 <p className="text-muted-foreground">
-                  Checked in code, not by a model. One that blocks sends the section back,
+                  Checked in code, not by a model. The pipeline revises a section up to
+                  twice to fix a blocking one; one still listed kept it from approval,
                   whatever the critic scored.
                 </p>
               </div>
