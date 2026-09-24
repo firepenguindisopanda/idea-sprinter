@@ -103,6 +103,7 @@ function applyEvent(event: WorkspaceStreamEvent): void {
                 issuesCount: event.issues_count ?? 0,
                 recommendedAction: event.recommended_action ?? '',
                 feedback: event.feedback ?? '',
+                mustHaves: event.must_haves ?? [],
               },
             });
           }

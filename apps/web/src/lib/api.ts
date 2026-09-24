@@ -76,6 +76,8 @@ export interface WorkspaceStreamEvent {
   issues_count?: number;
   recommended_action?: string;
   feedback?: string;
+  /** Judge only: the must-haves checked in code, as instructions. */
+  must_haves?: Array<{ code: string; message: string; blocking: boolean }>;
   judge_results?: Record<string, unknown>;
   contradictions?: Array<{
     type: string;

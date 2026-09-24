@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useWorkspaceStore } from "@/lib/workspace-store";
 import { formatRole } from "@/lib/project-artifacts";
-import { findingPrompt, refineAndRecord } from "@/lib/refine-section";
+import { findingPrompt, mustHavePrompt, refineAndRecord } from "@/lib/refine-section";
 import { AlertTriangle, ChevronDown, ChevronRight, ShieldCheck, ShieldAlert } from "lucide-react";
 import type { SectionReview } from "@/types/workspace";
 
@@ -62,8 +62,60 @@ function ReviewCard({ review }: { review: SectionReview }) {
     await refineAndRecord(section, prompt, { applyRefinement, setError });
     setFixing(null);
   };
+  // "Fix this", then "Applied" (and "Undo" on the latest fix), for one finding.
+  // Read from the refinement history, so it survives a reload and goes when
+  // the fix is undone. Undo is offered on the latest fix only: the store undoes
+  // a section's most recent refinement.
+  const fixControls = (key: string, prompt: string, label: string) => {
+    if (!canFix) return null;
+    const applied = sectionHistory.some((r) => r.prompt === prompt);
+    return (
+      <div className="flex items-center gap-2 pt-1">
+        {applied ? (
+          <>
+            <span className="label-xs text-tertiary">Applied</span>
+            {latestPrompt === prompt && (
+              <button
+                type="button"
+                onClick={() => undoRefinement(review.sectionId)}
+                className="label-xs text-muted-foreground underline-offset-2 transition-colors hover:text-primary hover:underline"
+              >
+                Undo
+              </button>
+            )}
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => fix(key, prompt)}
+            disabled={fixing !== null}
+            aria-label={label}
+            className="label-xs rounded-xs border border-border bg-card px-2 py-1 text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary disabled:pointer-events-none disabled:opacity-50"
+          >
+            {fixing === key ? "Fixing…" : "Fix this"}
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  // The must-haves the backend checks in code (§55). A blocking one sends the
+  // section back whatever the critic scored, so a section can carry a critic 8
+  // and a "Not approved" shield - this is what connects the two.
+  const mustHaves = judge?.mustHaves ?? [];
+  const blocking = mustHaves.filter((f) => f.blocking);
+  // The backend leads the retry's feedback with each blocking finding, so the
+  // feedback repeats what the Must-haves list already says; show the rest.
+  const listed = new Set(mustHaves.map((f) => f.message.trim()));
+  const feedback = (judge?.feedback ?? "")
+    .split("\n\n")
+    .filter((paragraph) => !listed.has(paragraph.trim()))
+    .join("\n\n")
+    .trim();
+
   const hasDetail =
     attacks.length > 0 ||
+    mustHaves.length > 0 ||
     (critic?.dimensions?.length ?? 0) > 0 ||
     !!critic?.summary ||
     !!judge?.feedback;
@@ -120,13 +172,18 @@ function ReviewCard({ review }: { review: SectionReview }) {
             {attacks.length} {attacks.length === 1 ? "attack" : "attacks"}
           </span>
         )}
+        {blocking.length > 0 && (
+          <span className={`px-1.5 py-0.5 border rounded ${severityClass("high")}`}>
+            {blocking.length} {blocking.length === 1 ? "must-have" : "must-haves"} failed
+          </span>
+        )}
       </div>
 
       {expanded && (
         <div className="space-y-3 pt-1 text-xs">
-          {judge?.feedback && (
+          {judge && (feedback || mustHaves.length > 0) && (
             <div className="space-y-0.5">
-              <p className="text-muted-foreground leading-relaxed">{judge.feedback}</p>
+              {feedback && <p className="text-muted-foreground leading-relaxed">{feedback}</p>}
               {judge.recommendedAction && (
                 <p className="label-xs text-muted-foreground">
                   Verdict: {judge.recommendedAction}
@@ -134,6 +191,32 @@ function ReviewCard({ review }: { review: SectionReview }) {
                     ` · ${judge.issuesCount} ${judge.issuesCount === 1 ? "issue" : "issues"}`}
                 </p>
               )}
+            </div>
+          )}
+
+          {mustHaves.length > 0 && (
+            <div className="space-y-1.5">
+              <div className="space-y-0.5">
+                <p className="font-medium text-foreground">Must-haves</p>
+                <p className="text-muted-foreground">
+                  Checked in code, not by a model. One that blocks sends the section back,
+                  whatever the critic scored.
+                </p>
+              </div>
+              {mustHaves.map((f, i) => {
+                const key = `must-have-${i}`;
+                return (
+                  <div key={key} className="space-y-0.5">
+                    <span
+                      className={`label-xs px-1 py-0.5 border rounded ${severityClass(f.blocking ? "high" : "low")}`}
+                    >
+                      {f.blocking ? "Blocks approval" : "Report only"}
+                    </span>
+                    <p className="text-muted-foreground leading-relaxed">{f.message}</p>
+                    {fixControls(key, mustHavePrompt(f.message), `Fix: ${f.message}`)}
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -154,11 +237,6 @@ function ReviewCard({ review }: { review: SectionReview }) {
               {attacks.map((a, i) => {
                 const key = a.id || String(i);
                 const prompt = findingPrompt(a);
-                // Read from the refinement history, so it survives a reload
-                // and goes when the fix is undone. Undo is offered on the
-                // latest fix only: the store undoes a section's most recent
-                // refinement.
-                const applied = sectionHistory.some((r) => r.prompt === prompt);
                 return (
                   <div key={key} className="space-y-0.5">
                     <div className="flex items-center gap-1.5">
@@ -180,34 +258,7 @@ function ReviewCard({ review }: { review: SectionReview }) {
                         Fix: {a.suggested_fix}
                       </p>
                     )}
-                    {canFix && (
-                      <div className="flex items-center gap-2 pt-1">
-                        {applied ? (
-                          <>
-                            <span className="label-xs text-tertiary">Applied</span>
-                            {latestPrompt === prompt && (
-                              <button
-                                type="button"
-                                onClick={() => undoRefinement(review.sectionId)}
-                                className="label-xs text-muted-foreground underline-offset-2 transition-colors hover:text-primary hover:underline"
-                              >
-                                Undo
-                              </button>
-                            )}
-                          </>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => fix(key, prompt)}
-                            disabled={fixing !== null}
-                            aria-label={`Fix: ${a.description}`}
-                            className="label-xs rounded-xs border border-border bg-card px-2 py-1 text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary disabled:pointer-events-none disabled:opacity-50"
-                          >
-                            {fixing === key ? "Fixing…" : "Fix this"}
-                          </button>
-                        )}
-                      </div>
-                    )}
+                    {fixControls(key, prompt, `Fix: ${a.description}`)}
                   </div>
                 );
               })}

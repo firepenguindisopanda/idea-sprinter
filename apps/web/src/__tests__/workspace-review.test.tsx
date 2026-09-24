@@ -93,6 +93,25 @@ describe('review events fold into the store', () => {
     expect(review.judge?.approved).toBe(false);
   });
 
+  it('keeps the must-have findings the verdict gated on', async () => {
+    const finding = {
+      code: 'sa_diagram_missing_component',
+      message: 'The architecture diagram leaves out components the text describes: ETL Processor.',
+      blocking: true,
+    };
+    scriptStream([{ ...JUDGE, must_haves: [finding] }, { type: 'pipeline_complete' }]);
+    await runWorkspaceGeneration('dir-a');
+
+    expect(useWorkspaceStore.getState().reviews['sec-solution_architect'].judge?.mustHaves).toEqual([finding]);
+  });
+
+  it('records no must-haves for a verdict from a server that sends none', async () => {
+    scriptStream([JUDGE, { type: 'pipeline_complete' }]);
+    await runWorkspaceGeneration('dir-a');
+
+    expect(useWorkspaceStore.getState().reviews['sec-solution_architect'].judge?.mustHaves).toEqual([]);
+  });
+
   it('keeps a partial review when only some reviewers have reported', async () => {
     // The three arrive as separate events; a section criticised but not yet
     // judged must still render what it has rather than nothing.

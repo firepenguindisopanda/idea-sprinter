@@ -63,6 +63,14 @@ export async function refineAndRecord(
  * suggested fix, and nothing else, so the rest of the section stays as it is.
  * Also the key that marks the finding applied in the refinement history.
  */
+/** A must-have the backend checked in code; its message is already an instruction. */
+export function mustHavePrompt(message: string): string {
+  return [
+    `Fix this required element: ${message}`,
+    'Change only what this needs; keep the rest of the section as it is.',
+  ].join('\n');
+}
+
 export function findingPrompt(finding: AttackVector): string {
   const lines = [`Address this reviewer finding: ${finding.description}`];
   if (finding.suggested_fix) lines.push(`Suggested fix: ${finding.suggested_fix}`);

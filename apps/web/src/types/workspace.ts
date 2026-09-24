@@ -66,6 +66,17 @@ export interface AttackVector {
   suggested_fix?: string;
 }
 
+/**
+ * A must-have the backend checked in code (multi-agent-system HANDOFF §55).
+ * `message` is the instruction the section's retry was given. A blocking
+ * finding fails the verdict whatever the critic scored.
+ */
+export interface MustHaveFinding {
+  code: string;
+  message: string;
+  blocking: boolean;
+}
+
 export interface SectionReview {
   sectionId: string;
   role: string;
@@ -86,6 +97,8 @@ export interface SectionReview {
     issuesCount: number;
     recommendedAction: string;
     feedback: string;
+    /** Absent on reviews saved before the backend sent them. */
+    mustHaves?: MustHaveFinding[];
   };
 }
 
