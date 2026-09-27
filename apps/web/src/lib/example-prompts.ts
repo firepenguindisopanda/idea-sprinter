@@ -5,6 +5,23 @@ export interface ExamplePrompt {
   why: string;
   /** Grouping for the picker. Six is browsable; forty needs filtering. */
   category: string;
+  /** The decision a system-design starter's twist forces. Sent with the idea
+   *  (see `ideaFor`) so the architect decides it rather than guessing at it. */
+  decision?: string;
+}
+
+/**
+ * The idea text a picked example fills in.
+ *
+ * A system-design starter carries the decision its twist forces, worded as the
+ * Architecture Studio words it (`requirementsForSession`). Without it the
+ * architect found that decision in 1 of 5 replays (HANDOFF §63). The generated
+ * design is the reference a learner meets after drafting their own, so the
+ * generator is the place the answer belongs.
+ */
+export function ideaFor(example: ExamplePrompt): string {
+  if (!example.decision) return example.prompt;
+  return `${example.prompt}\n\nThe decision this forces: ${example.decision}`;
 }
 
 /** The hand-written prompts below, each chosen to stress a different part of
@@ -78,6 +95,7 @@ const SYSTEM_DESIGN_PROMPTS: ExamplePrompt[] = SYSTEM_DESIGN_EXAMPLES.map((e) =>
   prompt: `${e.premise} On top of that: ${e.twist}`,
   why: e.tension,
   category: e.category,
+  decision: e.tension,
 }));
 
 /** Everything the picker can offer, curated shapes first. */

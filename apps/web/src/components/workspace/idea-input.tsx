@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import {
   ALL_EXAMPLE_PROMPTS,
   EXAMPLE_CATEGORIES,
+  ideaFor,
 } from "@/lib/example-prompts";
 import type { ClarifyingQuestion, VaguenessScores, VaguenessDimension } from "@/types/workspace";
 import { VaguenessReport } from "./vagueness-report";
@@ -234,7 +235,7 @@ export function IdeaInput() {
               {visibleExamples.map((ex) => (
                 <button
                   key={ex.id}
-                  onClick={() => setIdeaInput(ex.prompt)}
+                  onClick={() => setIdeaInput(ideaFor(ex))}
                   className="stamp-hover group text-left w-full rounded-sm border border-border bg-card/50 p-3 hover:border-primary/40 hover:bg-primary/5"
                 >
                   <div className="flex items-start justify-between gap-2">

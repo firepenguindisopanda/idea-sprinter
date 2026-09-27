@@ -4,6 +4,8 @@ import { IdeaInput } from '@/components/workspace/idea-input';
 import { DocSection } from '@/components/workspace/doc-section';
 import { TopBar } from '@/components/workspace/top-bar';
 import type { DocSection as DocSectionType } from '@/types/workspace';
+import { EXAMPLE_PROMPTS } from '@/lib/example-prompts';
+import { SYSTEM_DESIGN_EXAMPLES, twistHeadline } from '@/lib/system-design-examples';
 
 // TopBar calls useRouter, which throws "invariant expected app router to be
 // mounted" outside a Next app tree. Without this the three TopBar tests failed
@@ -106,6 +108,45 @@ describe('IdeaInput', () => {
       expect(startClarifying).not.toHaveBeenCalled();
       expect(setQuestions).not.toHaveBeenCalled();
     });
+  });
+
+  // The decision a starter's twist forces is the core decision the architect
+  // is asked to make, and it got it right in 1 of 5 replays without it. The
+  // Architecture Studio already sends it; the Workshop only displayed it.
+  it('puts a system-design starter\'s decision in the idea it fills in', () => {
+    const setIdeaInput = vi.fn();
+    mockUseWorkspace.mockReturnValue({
+      ideaInput: '',
+      setIdeaInput,
+      startClarifying: vi.fn(),
+      setQuestions: vi.fn(),
+      phase: 'idea_input',
+    });
+    const bitly = SYSTEM_DESIGN_EXAMPLES.find((e) => e.id === 'bitly-link-health')!;
+    render(<IdeaInput />);
+    fireEvent.click(screen.getByRole('button', { name: /Need inspiration/i }));
+    fireEvent.click(screen.getByText(`${bitly.name} + ${twistHeadline(bitly)}`));
+
+    expect(setIdeaInput).toHaveBeenCalledWith(
+      `${bitly.premise} On top of that: ${bitly.twist}\n\nThe decision this forces: ${bitly.tension}`,
+    );
+  });
+
+  it('fills in a curated shape unchanged', () => {
+    const setIdeaInput = vi.fn();
+    mockUseWorkspace.mockReturnValue({
+      ideaInput: '',
+      setIdeaInput,
+      startClarifying: vi.fn(),
+      setQuestions: vi.fn(),
+      phase: 'idea_input',
+    });
+    const vague = EXAMPLE_PROMPTS.find((e) => e.id === 'vague')!;
+    render(<IdeaInput />);
+    fireEvent.click(screen.getByRole('button', { name: /Need inspiration/i }));
+    fireEvent.click(screen.getByText(vague.title));
+
+    expect(setIdeaInput).toHaveBeenCalledWith(vague.prompt);
   });
 });
 
