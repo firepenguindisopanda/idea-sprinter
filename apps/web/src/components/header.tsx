@@ -69,7 +69,7 @@ export default function Header() {
 
   return (
     <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
-      <div className="flex h-16 items-center px-6 container mx-auto">
+      <div className="flex h-16 items-center px-4 sm:px-6 container mx-auto">
         {/* Mobile hamburger menu */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
@@ -147,16 +147,22 @@ export default function Header() {
           </SheetContent>
         </Sheet>
 
-        <div className="mr-8 flex items-center">
-          <Link href="/" className="mr-8 flex items-center space-x-2">
+        {/* The two mr-8s space the wordmark from the nav links, which only
+            show from md; below it they were 64px of nothing on a 375px
+            phone. Below sm the wordmark alone carries the brand (the logo
+            mark's 32px is what lets it fit whole at 375px). min-w-0 and
+            truncate let it give way on narrower screens instead of widening
+            the page. */}
+        <div className="mr-2 md:mr-8 flex min-w-0 items-center">
+          <Link href="/" className="md:mr-8 flex min-w-0 items-center space-x-2">
             <Image
               src="/favicon.ico"
               alt="Logo"
               width={24}
               height={24}
-              className="h-6 w-6 object-contain"
+              className="hidden sm:block h-6 w-6 shrink-0 object-contain"
             />
-            <span className="label-lg text-lg">
+            <span className="label-lg text-base sm:text-lg truncate">
               specs<span className="text-primary">:</span>before<span className="text-primary">:</span>code
             </span>
           </Link>
