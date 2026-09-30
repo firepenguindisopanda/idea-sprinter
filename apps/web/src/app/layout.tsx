@@ -44,7 +44,11 @@ export default function RootLayout({
 		>
 			<body className="antialiased selection:bg-primary/25 min-h-svh">
 				<Providers>
-					<div className="relative grid grid-rows-[auto_auto_1fr] h-svh overflow-hidden">
+					{/* The explicit minmax(0, 1fr) column matters: an implicit grid
+					    column sizes to the widest min-content of any row, so one wide
+					    row (the header at 375px measured 469) widened <main> and every
+					    page with it, clipped on the right by overflow-hidden. */}
+					<div className="relative grid grid-cols-[minmax(0,1fr)] grid-rows-[auto_auto_1fr] h-svh overflow-hidden">
 						{/* Refactoring UI principle 6: a colour rule across the top of the
 						    layout. The one place in the app that carries pigment at full
 						    strength rather than as a tint, so the drawing has a datum line
