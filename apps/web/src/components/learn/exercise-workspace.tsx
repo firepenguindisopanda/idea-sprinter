@@ -37,11 +37,11 @@ export function ExerciseWorkspace({ exerciseId }: Readonly<{ exerciseId: string 
   const draft = storedDraft ?? (attempt?.last_draft || DRAFT_OUTLINE);
   const length = draft.trim().length;
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (fresh = false) => {
     setBusy("loading");
     setError(null);
     try {
-      const started = await api.startLearningAttempt(exerciseId);
+      const started = await api.startLearningAttempt(exerciseId, fresh);
       setAttempt(started);
       setGrading(started.gradings.at(-1) ?? null);
       setGradingsLeft(started.gradings_left);
@@ -102,7 +102,9 @@ export function ExerciseWorkspace({ exerciseId }: Readonly<{ exerciseId: string 
   const canGrade = !reveal && gradingsLeft > 0 && length >= MIN_DRAFT && length <= MAX_DRAFT && busy === null;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    // grid-cols-1 is minmax(0, 1fr): without it the column takes the widest
+    // table in the reference design, and the app shell's grid follows it.
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <div className="space-y-4 min-w-0">
         <header className="space-y-2">
           <h1 className="text-3xl font-bold tracking-[-0.03em]">{exercise.exercise}</h1>
@@ -145,7 +147,7 @@ export function ExerciseWorkspace({ exerciseId }: Readonly<{ exerciseId: string 
             )
           )}
           {reveal && (
-            <Button variant="outline" onClick={load} disabled={busy !== null}>
+            <Button variant="outline" onClick={() => load(true)} disabled={busy !== null}>
               <RotateCcw className="h-4 w-4" /> Start a new attempt
             </Button>
           )}

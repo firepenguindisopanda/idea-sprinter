@@ -20,8 +20,8 @@ export function RevealView({ reveal }: Readonly<{ reveal: Reveal }>) {
         <p className="mt-1">{reveal.tension}</p>
       </div>
       <Tabs defaultValue="checks">
-        <TabsList>
-          <TabsTrigger value="checks">Your draft, check by check</TabsTrigger>
+        <TabsList className="max-w-full overflow-x-auto justify-start">
+          <TabsTrigger value="checks">Check by check</TabsTrigger>
           <TabsTrigger value="strong">Strong answer</TabsTrigger>
           <TabsTrigger value="reference">Reference design</TabsTrigger>
         </TabsList>
@@ -64,10 +64,10 @@ export function RevealView({ reveal }: Readonly<{ reveal: Reveal }>) {
             </article>
           ))}
         </TabsContent>
-        <TabsContent value="strong" className="pt-2">
+        <TabsContent value="strong" className="min-w-0 overflow-x-auto pt-2">
           <Markdown>{reveal.strong_answer}</Markdown>
         </TabsContent>
-        <TabsContent value="reference" className="pt-2">
+        <TabsContent value="reference" className="min-w-0 overflow-x-auto pt-2">
           <Markdown>{reveal.reference_design}</Markdown>
         </TabsContent>
       </Tabs>

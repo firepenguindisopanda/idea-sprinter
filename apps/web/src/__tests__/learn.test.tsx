@@ -133,7 +133,22 @@ describe('ExerciseWorkspace', () => {
     expect(screen.getByText('PASS-IF-TEXT')).toBeDefined();
     fireEvent.mouseDown(screen.getByRole('tab', { name: 'Reference design' }));
     await waitFor(() => expect(screen.getByText('REFERENCE-DESIGN-TEXT')).toBeDefined());
-    expect(screen.getByRole('button', { name: /Start a new attempt/ })).toBeDefined();
+    mocked.startLearningAttempt.mockResolvedValue({ ...ATTEMPT, attempt_id: 'a2' });
+    fireEvent.click(screen.getByRole('button', { name: /Start a new attempt/ }));
+    await waitFor(() => expect(mocked.startLearningAttempt).toHaveBeenLastCalledWith('bitly-link-health', true));
+    await screen.findByRole('button', { name: /Grade my draft/ });
+    expect(mocked.startLearningAttempt).toHaveBeenNthCalledWith(1, 'bitly-link-health', false);
+  });
+
+  it('shows the answers again when a revealed attempt is reopened', async () => {
+    mocked.startLearningAttempt.mockResolvedValue({
+      ...ATTEMPT, status: 'revealed', gradings: [GRADING], gradings_left: 0, reveal: REVEAL,
+    });
+    render(<ExerciseWorkspace exerciseId="bitly-link-health" />);
+    await screen.findByText(REVEAL.tension);
+    expect((screen.getByLabelText('Your design') as HTMLTextAreaElement).readOnly).toBe(true);
+    expect((screen.getByRole('button', { name: /Grade again/ }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.queryByRole('button', { name: /Reveal answers/ })).toBeNull();
   });
 
   it('keeps the draft and shows the reason when grading fails', async () => {

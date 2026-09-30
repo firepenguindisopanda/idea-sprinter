@@ -667,11 +667,14 @@ class ApiClient {
     return this.request<LearningExercise[]>('/api/learning/exercises');
   }
 
-  /** The open attempt at this exercise, or a new one. */
-  async startLearningAttempt(exerciseId: string): Promise<LearningAttempt> {
+  /**
+   * The open attempt at this exercise; else the last revealed one (so a reload
+   * after revealing still shows the answers) unless `fresh`; else a new one.
+   */
+  async startLearningAttempt(exerciseId: string, fresh = false): Promise<LearningAttempt> {
     return this.request<LearningAttempt>('/api/learning/attempts', {
       method: 'POST',
-      body: JSON.stringify({ exercise_id: exerciseId }),
+      body: JSON.stringify({ exercise_id: exerciseId, fresh }),
     });
   }
 
