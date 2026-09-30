@@ -1,4 +1,5 @@
 import { readSSEStream, streamSSEPost } from './sse';
+import type { Grading, LearningAttempt, LearningExercise, Reveal } from '../types/learning';
 import type { ContestOutcome, OptionChallenge, User, UserPersona, UserPersonaInfo, ProjectRequest, GenerateResponse, Project, ProjectCreate, UsageMetrics, UsageStatsResponse, PRDStartResponse, PRDChatResponse, PRDStatusResponse, PRDDocumentResponse, ArchitectureSession, ArchitectureSessionCreate, ArchitectureSessionSummary, ArchitectureSelectRequest, ArchitectureRefineRequest, ArchitectureComparison, ArchitectureOption, ArchitectureDecisionDraft, ArchitectureDecisionSave, ArchitectureDecisionRecord } from '../types';
 
 interface JudgeReevaluateResponse {
@@ -658,6 +659,37 @@ class ApiClient {
     return this.request<WorkspaceEvaluateResponse>('/api/workspace/evaluate', {
       method: 'POST',
       body: JSON.stringify({ idea }),
+    });
+  }
+
+  // Learning mode
+  async learningExercises(): Promise<LearningExercise[]> {
+    return this.request<LearningExercise[]>('/api/learning/exercises');
+  }
+
+  /** The open attempt at this exercise, or a new one. */
+  async startLearningAttempt(exerciseId: string): Promise<LearningAttempt> {
+    return this.request<LearningAttempt>('/api/learning/attempts', {
+      method: 'POST',
+      body: JSON.stringify({ exercise_id: exerciseId }),
+    });
+  }
+
+  async getLearningAttempt(attemptId: string): Promise<LearningAttempt> {
+    return this.request<LearningAttempt>(`/api/learning/attempts/${attemptId}`);
+  }
+
+  /** One model call; about a minute. */
+  async gradeLearningDraft(attemptId: string, draft: string): Promise<Grading> {
+    return this.request<Grading>(`/api/learning/grade/${attemptId}`, {
+      method: 'POST',
+      body: JSON.stringify({ draft }),
+    });
+  }
+
+  async revealLearningAttempt(attemptId: string): Promise<Reveal> {
+    return this.request<Reveal>(`/api/learning/attempts/${attemptId}/reveal`, {
+      method: 'POST',
     });
   }
 }
