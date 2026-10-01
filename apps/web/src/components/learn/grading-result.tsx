@@ -23,6 +23,14 @@ export function GradingResult({ grading }: Readonly<{ grading: Grading }>) {
           Core decision: {grading.core_passed} of {grading.core_total}
         </p>
       </div>
+      {/* The grader is measured, and lenient: against hand-checked labels it
+          passes roughly one check in eight that it should not, and almost
+          never fails one it should pass. So the caution is about passes. */}
+      <p role="note" className="text-sm text-muted-foreground">
+        These grades are provisional. The automatic grader is sometimes too generous: it can
+        pass a check your draft has not fully earned. A check it marks as missed is usually
+        right. Compare with the answers when you reveal them.
+      </p>
       <ul className="space-y-3">
         {checks.map((check) => (
           <li

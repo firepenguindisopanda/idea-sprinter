@@ -116,6 +116,8 @@ describe('ExerciseWorkspace', () => {
     expect(mocked.gradeLearningDraft).toHaveBeenCalledWith('a1', LONG_DRAFT);
     expect(screen.getByText('This is the decision the twist forces.')).toBeDefined();
     expect(screen.getByText(/4 gradings left/)).toBeDefined();
+    // The grader is known to be too generous at times (HANDOFF §81-§88): say so.
+    expect(screen.getByRole('note').textContent).toMatch(/provisional/i);
     const text = document.body.textContent ?? '';
     for (const answer of ['PASS-IF-TEXT', 'STRONG-ANSWER-TEXT', 'REFERENCE-DESIGN-TEXT', REVEAL.tension]) {
       expect(text).not.toContain(answer);
