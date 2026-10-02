@@ -82,6 +82,9 @@ describe('DirectionSelector', () => {
   });
 
   it('generates from the custom direction and puts it in the brief', async () => {
+    // A stream that stays open, as a live run's does: one that closes without
+    // completing lands on `interrupted`.
+    streamDocument.mockImplementationOnce(() => new Promise(() => {}));
     render(<DirectionSelector />);
     fireEvent.click(screen.getByText(/describe my own/i));
     fireEvent.change(screen.getByPlaceholderText(/single-tenant internal tool/i), {

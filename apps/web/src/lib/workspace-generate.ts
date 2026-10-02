@@ -154,7 +154,12 @@ function applyEvent(event: WorkspaceStreamEvent): void {
             if (event.design.title && !store.projectTitle) store.setProjectTitle(event.design.title);
             // A failed run wrote no document, so there is nothing to refine:
             // `interrupted` is the phase that offers to run it again.
-            store.setPhase(event.design.status === 'failed' ? 'interrupted' : 'refinement');
+            if (event.design.status === 'failed') {
+              store.settleSections();
+              store.setPhase('interrupted');
+            } else {
+              store.setPhase('refinement');
+            }
             break;
           }
           store.setPhase('refinement');
@@ -162,6 +167,42 @@ function applyEvent(event: WorkspaceStreamEvent): void {
         }
       }
   }
+}
+
+/**
+ * The handler for one stream, and what to do when that stream ends.
+ *
+ * A stream outlives what started it. "New project" resets the store while the
+ * old run's events keep arriving, and they rebuilt the old run in the new
+ * project: its sections, its status, its title, the refinement phase. So a
+ * stream knows its run, and once the store follows another run, or none, its
+ * events are dropped.
+ */
+function follower(knownRunId: string | null = null) {
+  let mine = knownRunId;
+  const isMine = () => mine === null || useWorkspaceStore.getState().runId === mine;
+
+  return {
+    onEvent(event: WorkspaceStreamEvent): void {
+      if (event.type === 'run_started' && event.run_id && mine === null) {
+        mine = event.run_id;
+      } else if (!isMine()) {
+        return;
+      }
+      applyEvent(event);
+    },
+    /**
+     * The stream closed. If the run never said it was complete, nothing is
+     * streaming any more: `generating` with nothing attached is the stuck
+     * state, so land on `interrupted`, which can rejoin or regenerate.
+     */
+    ended(): void {
+      const store = useWorkspaceStore.getState();
+      if (store.phase !== 'generating' || !isMine()) return;
+      store.settleSections();
+      store.setPhase('interrupted');
+    },
+  };
 }
 
 function handleStreamFailure(): void {
@@ -193,24 +234,29 @@ export async function runWorkspaceGeneration(directionId: string): Promise<void>
   store.clearDesign();
   const brief = buildBrief();
 
+  const stream = follower();
   try {
     if (designPipelineEnabled()) {
-      await api.streamDesign(directionId, brief, applyEvent);
+      await api.streamDesign(directionId, brief, stream.onEvent);
     } else {
-      await api.streamDocument(directionId, brief, applyEvent);
+      await api.streamDocument(directionId, brief, stream.onEvent);
     }
+    stream.ended();
   } catch {
     handleStreamFailure();
   }
 }
 
 /**
- * Rejoin a generation that is still running on the server.
+ * Rejoin a generation the server still holds.
  *
  * A reload used to end a run: the pipeline was driven by the connection, so
  * closing the tab discarded however many agents had finished. The work is a
- * `Run` now, so this asks whether it is still going and, if so, replays the
- * events missed and follows the rest.
+ * `Run` now, so this asks after it and replays the events missed - following
+ * the rest if it is still going, or just reading its ending if it finished
+ * while the tab was away. A design takes about four minutes, so that second
+ * case is the common one; refusing it left "Generation stopped" over a
+ * document that had in fact been written.
  *
  * Returns whether it re-attached, so the caller can fall back to offering a
  * retry when there is nothing left to rejoin.
@@ -221,12 +267,18 @@ export async function resumeWorkspaceGeneration(): Promise<boolean> {
 
   try {
     const status = await api.getRunStatus(runId);
-    if (status.status !== 'running') return false;
+    // A failed or cancelled run has no ending worth replaying.
+    if (status.status !== 'running' && status.status !== 'complete') return false;
 
     const store = useWorkspaceStore.getState();
     store.clearError();
     store.setPhase('generating');
-    await api.followRun(runId, lastSeq, applyEvent);
+    const stream = follower(runId);
+    try {
+      await api.followRun(runId, lastSeq, stream.onEvent);
+    } finally {
+      stream.ended();
+    }
     return true;
   } catch {
     // A run that is gone, or a server we cannot reach. Either way there is
@@ -244,5 +296,8 @@ export async function cancelWorkspaceGeneration(): Promise<void> {
   } catch {
     // Best effort: the run may already have finished.
   }
-  useWorkspaceStore.getState().setRun(null);
+  // Only if it is still the run being watched: by now the store may have been
+  // reset and another run started, and that one must not be forgotten.
+  const store = useWorkspaceStore.getState();
+  if (store.runId === runId) store.setRun(null);
 }

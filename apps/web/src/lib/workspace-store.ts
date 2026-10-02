@@ -55,6 +55,8 @@ interface WorkspaceActions {
   /** A design run moved on: which call is running, and its round. */
   setDesignStage: (stage: string, round: number) => void;
   addLedgerRound: (round: LedgerRound) => void;
+  /** Nothing is streaming any more: sections left `generating` become `pending`. */
+  settleSections: () => void;
   setDesign: (design: DesignResult | null) => void;
   /** Forget the last design run, before another starts. */
   clearDesign: () => void;
@@ -288,6 +290,15 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions & {
               round,
             ],
           },
+        })),
+
+      // What rehydrating does to a reloaded run, for a run that stopped in
+      // this tab: a section cut off mid-stream is `pending`, not pulsing.
+      settleSections: () =>
+        set((state) => ({
+          documentSections: state.documentSections.map((s) =>
+            s.status === 'generating' ? { ...s, status: 'pending' as const } : s
+          ),
         })),
 
       setDesign: (design) => set({ design }),

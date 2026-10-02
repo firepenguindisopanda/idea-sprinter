@@ -43,19 +43,46 @@ describe('resuming a run after the connection drops', () => {
     // pipeline must not replay - or pay for - the eleven.
     useWorkspaceStore.setState({ runId: 'run-1', lastSeq: 42, phase: 'interrupted' });
     getRunStatus.mockResolvedValue({ run_id: 'run-1', status: 'running', last_seq: 50 });
+    let whileFollowing = '';
+    followRun.mockImplementationOnce(async () => {
+      whileFollowing = useWorkspaceStore.getState().phase;
+    });
 
     expect(await resumeWorkspaceGeneration()).toBe(true);
     expect(followRun).toHaveBeenCalledWith('run-1', 42, expect.any(Function));
-    expect(useWorkspaceStore.getState().phase).toBe('generating');
+    expect(whileFollowing).toBe('generating');
   });
 
-  it('does not re-attach to a run that already finished', async () => {
+  it('reads the ending of a run that finished while the tab was away', async () => {
+    // It used to refuse a finished run, so a reload near the end of a run
+    // showed "Generation stopped" over a document the server had completed.
+    // The events after `lastSeq` are still there to replay.
     useWorkspaceStore.setState({ runId: 'run-1', lastSeq: 3, phase: 'interrupted' });
     getRunStatus.mockResolvedValue({ run_id: 'run-1', status: 'complete', last_seq: 9 });
+    followRun.mockImplementationOnce(async (_run, _seq, onEvent) => {
+      (onEvent as (e: Record<string, unknown>) => void)({ type: 'pipeline_complete', seq: 9 });
+    });
+
+    expect(await resumeWorkspaceGeneration()).toBe(true);
+    expect(followRun).toHaveBeenCalledWith('run-1', 3, expect.any(Function));
+    expect(useWorkspaceStore.getState().phase).toBe('refinement');
+  });
+
+  it('does not re-attach to a run that failed', async () => {
+    useWorkspaceStore.setState({ runId: 'run-1', lastSeq: 3, phase: 'interrupted' });
+    getRunStatus.mockResolvedValue({ run_id: 'run-1', status: 'failed', last_seq: 9 });
 
     expect(await resumeWorkspaceGeneration()).toBe(false);
     expect(followRun).not.toHaveBeenCalled();
     // Stays interrupted so the retry affordance is still offered.
+    expect(useWorkspaceStore.getState().phase).toBe('interrupted');
+  });
+
+  it('lands on interrupted, not stuck generating, when the rejoined stream ends early', async () => {
+    useWorkspaceStore.setState({ runId: 'run-1', lastSeq: 3, phase: 'interrupted' });
+    getRunStatus.mockResolvedValue({ run_id: 'run-1', status: 'running', last_seq: 9 });
+
+    expect(await resumeWorkspaceGeneration()).toBe(true);
     expect(useWorkspaceStore.getState().phase).toBe('interrupted');
   });
 
