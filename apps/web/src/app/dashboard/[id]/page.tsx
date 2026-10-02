@@ -27,10 +27,12 @@ import {
   displayOutputs,
   exportOutputs,
   formatRole,
+  projectDesign,
   projectReview,
   projectSummaryBadge,
   supportsInlineEditing,
 } from "@/lib/project-artifacts";
+import { DesignSummary } from "@/components/workspace/design-status";
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -166,6 +168,7 @@ export default function ProjectDetailPage() {
   const labels = displayLabels(project.artifacts);
   const canEdit = supportsInlineEditing(project.artifacts);
   const review = projectReview(project.artifacts);
+  const design = projectDesign(project.artifacts);
 
   return (
     <ProtectedRoute>
@@ -250,6 +253,14 @@ export default function ProjectDetailPage() {
             </Button>
           </div>
         </div>
+
+        {/* A design carries its status with it: what was checked, and what it
+            still failed. Shown before the document, as in the Workshop. */}
+        {design && (
+          <div className="max-w-2xl">
+            <DesignSummary design={design} />
+          </div>
+        )}
 
         {review.contradictions.length > 0 && (
           <div className="mb-6 border-2 border-warning/30 bg-warning/5 p-4">

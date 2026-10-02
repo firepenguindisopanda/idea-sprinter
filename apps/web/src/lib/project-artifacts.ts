@@ -17,6 +17,7 @@
  */
 
 import type { JudgeResult } from "@/types";
+import type { DesignResult } from "@/types/workspace";
 
 export type ProjectArtifacts = Record<string, unknown>;
 
@@ -143,6 +144,29 @@ export function projectReview(artifacts: ProjectArtifacts | null | undefined): {
           roles?: string[];
         }[])
       : [],
+  };
+}
+
+const DESIGN_STATUSES = new Set<string>(["checked", "ledger_unresolved", "document_unresolved", "failed"]);
+
+/**
+ * The design a saved project carries, or null when it is not one.
+ *
+ * Under the reserved `_design` key: the run's status, its plan and what it
+ * still failed. A blob with no status this knows is treated as no design at
+ * all - the status is never guessed, least of all as "checked".
+ */
+export function projectDesign(artifacts: ProjectArtifacts | null | undefined): DesignResult | null {
+  const raw = artifacts?._design;
+  if (!raw || typeof raw !== "object") return null;
+  const saved = raw as Partial<DesignResult>;
+  if (typeof saved.status !== "string" || !DESIGN_STATUSES.has(saved.status)) return null;
+  return {
+    ...saved,
+    status: saved.status,
+    ledger: saved.ledger ?? null,
+    findings: Array.isArray(saved.findings) ? saved.findings : [],
+    context_ids: Array.isArray(saved.context_ids) ? saved.context_ids : [],
   };
 }
 

@@ -6,7 +6,7 @@ import { IdeaInput } from "@/components/workspace/idea-input";
 import { ClarifyingQuestions } from "@/components/workspace/clarifying-questions";
 import { DirectionSelector } from "@/components/workspace/direction-selector";
 import { ProgressiveDoc } from "@/components/workspace/progressive-doc";
-import { QualitySidebar } from "@/components/workspace/quality-sidebar";
+import { RunReport } from "@/components/workspace/design-status";
 import { WorkspaceChatFeed } from "@/components/workspace/workspace-chat-feed";
 import ProtectedRoute from "@/components/protected-route";
 import { StatusBanner } from "@/components/workspace/status-banner";
@@ -43,10 +43,11 @@ export default function WorkspacePage() {
             {phase === "direction_selection" && <DirectionSelector />}
             {/* Once generation starts this column is otherwise empty, and it is
               where the review belongs: alongside the document it attacks. The
-              panel renders nothing until the first verdict arrives. */}
+              panel renders nothing until the first verdict arrives. A design
+              run reports its checks here instead. */}
             {(phase === "generating" ||
               phase === "interrupted" ||
-              phase === "refinement") && <QualitySidebar />}
+              phase === "refinement") && <RunReport />}
           </div>
 
           {/* Right Column: the specification stream */}

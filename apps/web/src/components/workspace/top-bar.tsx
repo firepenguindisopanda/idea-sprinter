@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { api } from "@/lib/api";
+import { buildBrief } from "@/lib/workspace-generate";
 import { toast } from "sonner";
 
 const GENERIC_HEADINGS = new Set([
@@ -140,7 +141,7 @@ export function TopBar() {
       // The review travels with the spec. Judge verdicts and contradictions
       // were computed during the run and dropped at save, so a saved spec lost
       // every trace of the scrutiny it had been through.
-      const { reviews, contradictions } = useWorkspaceStore.getState();
+      const { reviews, contradictions, design } = useWorkspaceStore.getState();
       const judgeResults: Record<string, unknown> = {};
       for (const review of Object.values(reviews)) {
         if (!review.judge) continue;
@@ -167,6 +168,10 @@ export function TopBar() {
         })),
         judge_results: judgeResults,
         contradictions: contradictions as unknown as Array<Record<string, unknown>>,
+        // A design goes with its status, its plan and what it still failed -
+        // without them a saved design reads like a checked one - and with the
+        // brief it was written from, which its plan is checked against.
+        ...(design ? { design, brief: buildBrief() } : {}),
       });
       setSavedProjectId(saved.id);
       setProjectTitle(saved.title);
