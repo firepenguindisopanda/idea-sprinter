@@ -18,19 +18,23 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
+const cancelRun = vi.fn();
+
 vi.mock('@/lib/api', () => ({
   api: {
     saveWorkspace: (...args: unknown[]) => saveWorkspace(...args),
+    cancelRun: (...args: unknown[]) => cancelRun(...args),
     generateTitle: vi.fn(async () => ({ title: 'Untitled Project' })),
   },
   downloadProjectPdf: vi.fn(),
 }));
 
 import { DesignStatusPanel, DesignSummary, RunReport } from '@/components/workspace/design-status';
+import { ProgressiveDoc } from '@/components/workspace/progressive-doc';
 import { TopBar } from '@/components/workspace/top-bar';
 import ResultsDisplay from '@/components/generator/results-display';
 import { useWorkspaceStore } from '@/lib/workspace-store';
-import { agentRoles, projectDesign, projectSummaryBadge } from '@/lib/project-artifacts';
+import { agentRoles, isDesignDocument, projectDesign, projectSummaryBadge } from '@/lib/project-artifacts';
 import type { DesignResult } from '@/types/workspace';
 
 const LEDGER_FINDING = {
@@ -144,11 +148,13 @@ describe('DesignSummary', () => {
     expect(screen.getByText('Not written')).toBeTruthy();
   });
 
-  it('offers no fix for a finding', () => {
-    // Refining one section can break its agreement with the plan, so a
-    // finding is shown, not acted on, until the checks are trusted.
-    render(<DesignSummary design={design({ status: 'ledger_unresolved', findings: [LEDGER_FINDING] })} />);
-    expect(screen.queryByRole('button', { name: /fix/i })).toBeNull();
+  it('shows what it can of a design saved in a shape it does not expect', () => {
+    // A saved design is the owner's own JSON; one with odd contents must not
+    // take the project page down with it.
+    const odd = design({ tokens: {} as never, seconds: 12 });
+    render(<DesignSummary design={odd} />);
+    expect(screen.getByText('Checked against its plan')).toBeTruthy();
+    expect(screen.queryByText(/model call/)).toBeNull();
   });
 
   it('counts one call and one second in the singular', () => {
@@ -233,6 +239,95 @@ describe('saving a design', () => {
     expect('design' in payload).toBe(false);
     expect(payload.brief).toBe('');
   });
+
+  it('will not save a design that has no status yet', async () => {
+    // Found in review: Save is offered while the document streams, and a
+    // design saved then has no `_design` - so the dashboard showed a
+    // half-written draft as an ordinary, verified specification.
+    useWorkspaceStore.setState({
+      phase: 'generating',
+      designProgress: { stage: 'writer', round: 1, ledgerRounds: [] },
+      design: null,
+    });
+
+    render(<TopBar />);
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+
+    await Promise.resolve();
+    expect(saveWorkspace).not.toHaveBeenCalled();
+  });
+
+  it('will not save one the user kept after it stopped, either', async () => {
+    useWorkspaceStore.setState({
+      phase: 'refinement', // "Keep what I have", after an interrupted run
+      designProgress: { stage: 'writer', round: 1, ledgerRounds: [] },
+      design: null,
+    });
+
+    render(<TopBar />);
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+
+    await Promise.resolve();
+    expect(saveWorkspace).not.toHaveBeenCalled();
+  });
+});
+
+describe('a design in the Workshop', () => {
+  const section = {
+    id: 'sec-design-estimates',
+    title: '2. Estimates',
+    status: 'complete' as const,
+    content: '300 photos/s.',
+    order: 0,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useWorkspaceStore.getState().reset();
+  });
+
+  it('offers no refine on a section of a design', () => {
+    // Found in review: a section could be refined after the run and the
+    // design saved with its original status - "Checked against its plan" over
+    // text no check ever saw. Nothing can re-check a refined section yet, so
+    // for a design the refine box is not offered.
+    useWorkspaceStore.setState({ phase: 'refinement', documentSections: [section], design: design() });
+    render(<ProgressiveDoc />);
+    expect(screen.getByText('2. Estimates')).toBeTruthy();
+    expect(screen.queryByTitle('Refine section')).toBeNull();
+  });
+
+  it('still offers it on a document the old pipeline wrote', () => {
+    useWorkspaceStore.setState({
+      phase: 'refinement',
+      documentSections: [{ ...section, id: 'sec-solution-architect', title: 'Solution Architect' }],
+    });
+    render(<ProgressiveDoc />);
+    expect(screen.getByTitle('Refine section')).toBeTruthy();
+  });
+
+  it('stops the run on the server when a new project is started', async () => {
+    // Found in review: "New project" only reset the store. The run went on,
+    // spending tokens, with nothing in the app able to stop it.
+    useWorkspaceStore.setState({
+      phase: 'generating',
+      runId: 'run-1',
+      projectTitle: 'Photo blur',
+      documentSections: [section],
+      designProgress: { stage: 'writer', round: 1, ledgerRounds: [] },
+    });
+    cancelRun.mockResolvedValue(undefined);
+
+    render(<TopBar />);
+    fireEvent.click(screen.getByRole('button', { name: /new project/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /discard and start new/i }));
+
+    await waitFor(() => expect(cancelRun).toHaveBeenCalledWith('run-1'));
+    const state = useWorkspaceStore.getState();
+    expect(state.phase).toBe('idea_input');
+    expect(state.runId).toBeNull();
+    expect(state.designProgress).toBeNull();
+  });
 });
 
 describe('a saved design on the project page', () => {
@@ -306,5 +401,34 @@ describe('projectDesign', () => {
   it('does not count the design as an agent', () => {
     expect(agentRoles(artifacts)).toEqual([]);
     expect(projectSummaryBadge(artifacts)).toBe('1 Section');
+  });
+
+  it('keeps only what it can show of the findings and the cost', () => {
+    const saved = projectDesign({
+      _design: {
+        status: 'ledger_unresolved',
+        findings: [null, 'text', { code: 'c' }, { ...LEDGER_FINDING, detail: { nested: true } }, LEDGER_FINDING],
+        tokens: { total: 'many' },
+        seconds: 'long',
+      },
+    });
+    expect(saved?.findings).toEqual([LEDGER_FINDING]);
+    expect(saved?.tokens).toBeUndefined();
+    expect(saved?.seconds).toBeUndefined();
+  });
+});
+
+describe('isDesignDocument', () => {
+  it('knows a design by its saved result, or by its sections alone', () => {
+    const sections = [{ id: 'sec-design-estimates', title: '2. Estimates', content: 'x', order: 0 }];
+    expect(isDesignDocument({ _workspace: { sections }, _design: { status: 'checked' } })).toBe(true);
+    // A design saved without its result (before the Workshop refused to):
+    // still no agent's reviewed output, so still not "Verified".
+    expect(isDesignDocument({ _workspace: { sections } })).toBe(true);
+    expect(isDesignDocument({ _workspace: { sections: [{ ...sections[0], id: 'sec-solution-architect' }] } })).toBe(
+      false,
+    );
+    expect(isDesignDocument({ solution_architect: '## Architecture' })).toBe(false);
+    expect(isDesignDocument(null)).toBe(false);
   });
 });

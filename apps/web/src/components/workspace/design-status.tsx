@@ -12,7 +12,9 @@ import type { DesignFinding, DesignProgress, DesignResult, DesignStatus } from "
  * or judge runs on it, so there are no verdicts and no scores to show. What
  * there is instead is checked in code, and the status says exactly which of
  * those checks passed - never "approved". A finding is shown, not fixed:
- * refining one section can break its agreement with the plan.
+ * refining one section can break its agreement with the plan, and nothing can
+ * re-check a refined section yet. For the same reason the Workshop offers no
+ * refine on a design's sections (`ProgressiveDoc`).
  */
 
 // The plan gets its first attempt and two revisions (`LEDGER_REVISIONS`).
@@ -93,7 +95,7 @@ export function DesignSummary({ design }: { design: DesignResult }) {
         </div>
       )}
 
-      {tokens && typeof seconds === "number" && (
+      {typeof tokens?.calls === "number" && typeof tokens.total === "number" && typeof seconds === "number" && (
         <p className="label-xs text-muted-foreground">
           {tokens.calls} {tokens.calls === 1 ? "model call" : "model calls"} ·{" "}
           {tokens.total.toLocaleString("en-US")} tokens · {duration(seconds)}

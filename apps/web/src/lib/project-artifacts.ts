@@ -17,7 +17,7 @@
  */
 
 import type { JudgeResult } from "@/types";
-import type { DesignResult } from "@/types/workspace";
+import type { DesignFinding, DesignResult } from "@/types/workspace";
 
 export type ProjectArtifacts = Record<string, unknown>;
 
@@ -161,13 +161,38 @@ export function projectDesign(artifacts: ProjectArtifacts | null | undefined): D
   if (!raw || typeof raw !== "object") return null;
   const saved = raw as Partial<DesignResult>;
   if (typeof saved.status !== "string" || !DESIGN_STATUSES.has(saved.status)) return null;
+  // The blob is the owner's own JSON and the server checks only its status, so
+  // what is rendered is checked here: a finding that is not four strings, or a
+  // cost that is not numbers, is left out rather than thrown on.
+  const text = (value: unknown): value is string => typeof value === "string";
+  const findings = (Array.isArray(saved.findings) ? saved.findings : []).filter(
+    (f): f is DesignFinding =>
+      !!f && typeof f === "object" && text(f.source) && text(f.code) && text(f.field) && text(f.detail),
+  );
+  const tokens = saved.tokens;
+  const counted =
+    !!tokens && [tokens.input, tokens.output, tokens.total, tokens.calls].every((n) => typeof n === "number");
   return {
     ...saved,
     status: saved.status,
     ledger: saved.ledger ?? null,
-    findings: Array.isArray(saved.findings) ? saved.findings : [],
+    findings,
     context_ids: Array.isArray(saved.context_ids) ? saved.context_ids : [],
+    tokens: counted ? tokens : undefined,
+    seconds: typeof saved.seconds === "number" ? saved.seconds : undefined,
   };
+}
+
+/**
+ * Whether a project's document was written by a design run.
+ *
+ * By its saved result, or by its sections alone: a design saved without its
+ * result is still no agent's reviewed output, and must not be shown as one.
+ */
+export function isDesignDocument(artifacts: ProjectArtifacts | null | undefined): boolean {
+  if (!artifacts) return false;
+  if (artifacts._design && typeof artifacts._design === "object") return true;
+  return workspaceSections(artifacts).some((s) => typeof s?.id === "string" && s.id.startsWith("sec-design-"));
 }
 
 /**

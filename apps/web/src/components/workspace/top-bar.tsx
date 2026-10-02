@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { api } from "@/lib/api";
-import { buildBrief } from "@/lib/workspace-generate";
+import { buildBrief, cancelWorkspaceGeneration } from "@/lib/workspace-generate";
 import { toast } from "sonner";
 
 const GENERIC_HEADINGS = new Set([
@@ -79,6 +79,10 @@ export function TopBar() {
   const hasUnsavedWork = (documentSections?.length ?? 0) > 0 && !savedProjectId;
 
   const startNewProject = () => {
+    // Stop the run first: resetting the store alone left it going on the
+    // server, spending tokens, with nothing in the app able to stop it. It
+    // reads the run id before the reset below clears it.
+    void cancelWorkspaceGeneration();
     reset();
     setConfirmNewOpen(false);
     toast.success("Started a new project");
@@ -135,13 +139,23 @@ export function TopBar() {
       return;
     }
 
+    // A design is saved with its status or not at all. Save is offered while
+    // the document streams, and after "Keep what I have"; a design saved then
+    // would carry no status, and be shown as an ordinary reviewed document.
+    const { reviews, contradictions, design, designProgress } = useWorkspaceStore.getState();
+    if (designProgress && !design) {
+      toast.info("Not finished yet", {
+        description: "A design is saved with its checks. Wait for it to finish, or regenerate it.",
+      });
+      return;
+    }
+
     const title = projectTitle || autoGenerateTitle(ideaInput, completedSections) || "Untitled Specification";
     setIsSaving(true);
     try {
       // The review travels with the spec. Judge verdicts and contradictions
       // were computed during the run and dropped at save, so a saved spec lost
       // every trace of the scrutiny it had been through.
-      const { reviews, contradictions, design } = useWorkspaceStore.getState();
       const judgeResults: Record<string, unknown> = {};
       for (const review of Object.values(reviews)) {
         if (!review.judge) continue;

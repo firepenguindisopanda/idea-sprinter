@@ -11,6 +11,7 @@ import { DocSection } from "./doc-section";
 
 export function ProgressiveDoc() {
   const { documentSections, phase, selectedDirectionId, setPhase } = useWorkspace();
+  const isDesign = useWorkspaceStore((s) => s.design !== null || s.designProgress !== null);
   const [isRetrying, setIsRetrying] = useState(false);
   const [isResuming, setIsResuming] = useState(false);
   const resumeAttempted = useRef(false);
@@ -142,7 +143,10 @@ export function ProgressiveDoc() {
             <DocSection
               key={section.id}
               section={section}
-              isRefinementMode={phase === "refinement"}
+              // Not on a design: its status says what was checked, and a
+              // refined section is text no check saw. Until a refined section
+              // can be re-checked, the status stays true by not offering it.
+              isRefinementMode={phase === "refinement" && !isDesign}
             />
           ))}
         </div>

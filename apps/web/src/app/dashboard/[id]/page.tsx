@@ -27,6 +27,7 @@ import {
   displayOutputs,
   exportOutputs,
   formatRole,
+  isDesignDocument,
   projectDesign,
   projectReview,
   projectSummaryBadge,
@@ -295,7 +296,7 @@ export default function ProjectDetailPage() {
             onDownloadPdf={handleDownloadPdf}
             onArtifactUpdate={canEdit ? handleArtifactUpdate : undefined}
             outputLabels={labels}
-            sectionsVerified={!design}
+            sectionsVerified={!isDesignDocument(project.artifacts)}
             isSaving={false}
             isDownloading={isDownloading}
             hideActions
