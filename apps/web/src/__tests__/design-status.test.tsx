@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 /**
@@ -28,6 +28,7 @@ vi.mock('@/lib/api', () => ({
 
 import { DesignStatusPanel, DesignSummary, RunReport } from '@/components/workspace/design-status';
 import { TopBar } from '@/components/workspace/top-bar';
+import ResultsDisplay from '@/components/generator/results-display';
 import { useWorkspaceStore } from '@/lib/workspace-store';
 import { agentRoles, projectDesign, projectSummaryBadge } from '@/lib/project-artifacts';
 import type { DesignResult } from '@/types/workspace';
@@ -231,6 +232,45 @@ describe('saving a design', () => {
     const payload = saveWorkspace.mock.calls[0][0];
     expect('design' in payload).toBe(false);
     expect(payload.brief).toBe('');
+  });
+});
+
+describe('a saved design on the project page', () => {
+  // Found on the first live run: the results view stamps every section
+  // "Verified", whatever the project is. Under a design's own status - which
+  // may be "Plan unresolved" - that is a claim nobody checked.
+  const results = {
+    markdown_outputs: { 'sec-design-estimates': '300 photos/s at peak.' },
+    judge_results: {},
+  };
+  const labels = { 'sec-design-estimates': '2. Estimates' };
+
+  beforeEach(() => {
+    // The results view watches its headings for a table of contents; jsdom
+    // has no IntersectionObserver.
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('does not stamp a design section as verified', () => {
+    render(<ResultsDisplay results={results} outputLabels={labels} hideActions sectionsVerified={false} />);
+    expect(screen.getAllByText('2. Estimates').length).toBeGreaterThan(0);
+    expect(screen.queryByText('Verified')).toBeNull();
+  });
+
+  it('leaves the old view as it was', () => {
+    render(<ResultsDisplay results={results} outputLabels={labels} hideActions />);
+    expect(screen.getByText('Verified')).toBeTruthy();
   });
 });
 

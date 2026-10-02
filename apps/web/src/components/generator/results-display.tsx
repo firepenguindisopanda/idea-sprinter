@@ -42,6 +42,12 @@ interface ResultsDisplayProps {
   hideActions?: boolean;
   /** Labels for output keys that are not agent roles, e.g. workspace section ids. */
   outputLabels?: Record<string, string>;
+  /**
+   * False drops the "Verified" badge every section otherwise carries. A design
+   * states what was checked in its own status, and no reviewer read its
+   * sections, so the badge would claim more than that.
+   */
+  sectionsVerified?: boolean;
 }
 
 interface Section {
@@ -262,6 +268,7 @@ export default function ResultsDisplay({
   isDownloading = false,
   hideActions = false,
   outputLabels,
+  sectionsVerified = true,
 }: Readonly<ResultsDisplayProps>) {
   const [copiedAgent, setCopiedAgent] = useState<string | null>(null);
   const [editingAgentKey, setEditingAgentKey] = useState<string | null>(null);
@@ -471,9 +478,11 @@ export default function ResultsDisplay({
                                 Quality: {judgeStatus.score}/10
                               </div>
                             )}
-                            <div className="label-xs px-1.5 py-0.5 bg-primary/5 text-primary/80">
-                              Verified
-                            </div>
+                            {sectionsVerified && (
+                              <div className="label-xs px-1.5 py-0.5 bg-primary/5 text-primary/80">
+                                Verified
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
