@@ -5,8 +5,10 @@ import type {
   WorkspacePhase,
   ClarifyingQuestion,
   Contradiction,
+  DesignResult,
   DirectionOption,
   DocSection,
+  LedgerRound,
   RefinementAction,
   SectionReview,
   VaguenessScores,
@@ -50,6 +52,12 @@ interface WorkspaceActions {
     review: Partial<Omit<SectionReview, 'sectionId' | 'role'>>,
   ) => void;
   setContradictions: (contradictions: Contradiction[]) => void;
+  /** A design run moved on: which call is running, and its round. */
+  setDesignStage: (stage: string, round: number) => void;
+  addLedgerRound: (round: LedgerRound) => void;
+  setDesign: (design: DesignResult | null) => void;
+  /** Forget the last design run, before another starts. */
+  clearDesign: () => void;
   setRun: (runId: string | null) => void;
   setLastSeq: (seq: number) => void;
   setProjectTitle: (title: string) => void;
@@ -92,6 +100,8 @@ const initialState: WorkspaceState & {
   savedProjectId: null,
   reviews: {},
   contradictions: [],
+  designProgress: null,
+  design: null,
   runId: null,
   lastSeq: 0,
   vaguenessScores: null,
@@ -252,6 +262,37 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions & {
         })),
 
       setContradictions: (contradictions) => set({ contradictions }),
+
+      // The writer starting - its first round, its revision, or a retry after
+      // a dropped stream - sends the document again from its first section, so
+      // whatever an earlier draft put on the page goes: a section only that
+      // draft had would otherwise stay, under a status it never earned.
+      setDesignStage: (stage, round) =>
+        set((state) => ({
+          designProgress: {
+            ledgerRounds: state.designProgress?.ledgerRounds ?? [],
+            stage,
+            round,
+          },
+          ...(stage === 'writer' ? { documentSections: [], refinementHistory: [] } : {}),
+        })),
+
+      addLedgerRound: (round) =>
+        set((state) => ({
+          designProgress: {
+            stage: state.designProgress?.stage ?? 'ledger',
+            round: state.designProgress?.round ?? round.round,
+            // Replace, not append: a rejoined run replays rounds already seen.
+            ledgerRounds: [
+              ...(state.designProgress?.ledgerRounds ?? []).filter((r) => r.round !== round.round),
+              round,
+            ],
+          },
+        })),
+
+      setDesign: (design) => set({ design }),
+
+      clearDesign: () => set({ design: null, designProgress: null }),
 
       setRun: (runId) => set({ runId, lastSeq: 0 }),
       // Highest-wins: replayed events after a reconnect arrive with sequence

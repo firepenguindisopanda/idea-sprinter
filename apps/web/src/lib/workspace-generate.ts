@@ -2,6 +2,20 @@ import { api, type WorkspaceStreamEvent } from '@/lib/api';
 import { useWorkspaceStore } from '@/lib/workspace-store';
 
 /**
+ * Whether choosing a direction starts a design run (one checked plan, one
+ * writer) instead of the eleven-agent pipeline.
+ *
+ * A flag while both exist: on in development, off in a build unless
+ * NEXT_PUBLIC_DESIGN_PIPELINE=1 is set when it is built. It goes when the old
+ * pipeline does. Read when called, so a test can set it.
+ */
+export function designPipelineEnabled(): boolean {
+  const flag = process.env.NEXT_PUBLIC_DESIGN_PIPELINE;
+  if (flag === undefined) return process.env.NODE_ENV === 'development';
+  return flag === '1';
+}
+
+/**
  * The brief the pipeline generates from: the raw idea, every answered
  * clarifying question, and the direction that was chosen.
  *
@@ -109,6 +123,25 @@ function applyEvent(event: WorkspaceStreamEvent): void {
           }
           break;
         }
+        // A design run only, from here to `error`.
+        case 'stage': {
+          if (event.stage) store.setDesignStage(event.stage, event.round ?? 1);
+          break;
+        }
+        case 'ledger_checked': {
+          store.addLedgerRound({
+            round: event.round ?? 1,
+            passed: event.passed === true,
+            findings: event.findings ?? [],
+          });
+          break;
+        }
+        case 'error': {
+          // Only a design run's errors carry a message written for the reader;
+          // the old pipeline's stay unhandled here, as they were.
+          if (event.stage && event.message) store.setError(event.message);
+          break;
+        }
         case 'pipeline_complete': {
           // Contradictions arrive only here - the consistency check accumulates
           // them across the run and has no per-section event.
@@ -116,6 +149,14 @@ function applyEvent(event: WorkspaceStreamEvent): void {
             store.setContradictions(event.contradictions);
           }
           store.setRun(null);
+          if (event.design) {
+            store.setDesign(event.design);
+            if (event.design.title && !store.projectTitle) store.setProjectTitle(event.design.title);
+            // A failed run wrote no document, so there is nothing to refine:
+            // `interrupted` is the phase that offers to run it again.
+            store.setPhase(event.design.status === 'failed' ? 'interrupted' : 'refinement');
+            break;
+          }
           store.setPhase('refinement');
           break;
         }
@@ -149,10 +190,15 @@ export async function runWorkspaceGeneration(directionId: string): Promise<void>
 
   store.setPhase('generating');
   store.clearError();
+  store.clearDesign();
   const brief = buildBrief();
 
   try {
-    await api.streamDocument(directionId, brief, applyEvent);
+    if (designPipelineEnabled()) {
+      await api.streamDesign(directionId, brief, applyEvent);
+    } else {
+      await api.streamDocument(directionId, brief, applyEvent);
+    }
   } catch {
     handleStreamFailure();
   }

@@ -1,5 +1,6 @@
 import { readSSEStream, streamSSEPost } from './sse';
 import type { Grading, LearningAttempt, LearningExercise, Reveal } from '../types/learning';
+import type { DesignResult } from '../types/workspace';
 import type { ContestOutcome, OptionChallenge, User, UserPersona, UserPersonaInfo, ProjectRequest, GenerateResponse, Project, ProjectCreate, UsageMetrics, UsageStatsResponse, PRDStartResponse, PRDChatResponse, PRDStatusResponse, PRDDocumentResponse, ArchitectureSession, ArchitectureSessionCreate, ArchitectureSessionSummary, ArchitectureSelectRequest, ArchitectureRefineRequest, ArchitectureComparison, ArchitectureOption, ArchitectureDecisionDraft, ArchitectureDecisionSave, ArchitectureDecisionRecord } from '../types';
 
 interface JudgeReevaluateResponse {
@@ -87,6 +88,17 @@ export interface WorkspaceStreamEvent {
     roles?: string[];
     entity_ids?: string[];
   }>;
+  /**
+   * A design run (`/api/workspace/design`) only. `stage` says which call is
+   * running and its `round`; `ledger_checked` carries a plan round's
+   * `findings`; `pipeline_complete` carries `design`; an `error` carries a
+   * `message` for the reader.
+   */
+  stage?: string;
+  round?: number;
+  findings?: Array<{ code: string; field: string; detail: string }>;
+  design?: DesignResult;
+  message?: string;
   /** Announced first on every stream, so a client can re-attach after a drop. */
   run_id?: string;
   /** Monotonic per run. The client keeps the highest it saw and resumes from it. */
@@ -593,6 +605,27 @@ class ApiClient {
   }
 
   /**
+   * Start a design run: one checked plan, then one writer.
+   *
+   * Streams the same section events as `streamDocument`, so the same handler
+   * folds both, and the run is followed and cancelled the same way.
+   */
+  async streamDesign(
+    directionId: string,
+    brief: string,
+    onEvent: (event: WorkspaceStreamEvent) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    await streamSSEPost(
+      `${API_URL}/api/workspace/design`,
+      { direction_id: directionId, brief },
+      onEvent,
+      this.authHeaders(),
+      signal,
+    );
+  }
+
+  /**
    * Re-attach to a generation already running on the server.
    *
    * The work belongs to a `Run`, not to the connection that started it, so a
@@ -648,6 +681,9 @@ class ApiClient {
     // just carries no review scars.
     judge_results?: Record<string, unknown>;
     contradictions?: Array<Record<string, unknown>>;
+    // A design run's result, sent back as it came. The backend refuses one
+    // without a status it knows.
+    design?: DesignResult;
   }): Promise<Project> {
     return this.request<Project>('/api/workspace/save', {
       method: 'POST',

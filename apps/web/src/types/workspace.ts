@@ -119,6 +119,52 @@ export interface RefinementAction {
   applied: boolean;
 }
 
+/**
+ * What a design document passed (multi-agent-system `DesignStatus`).
+ *
+ * Always present on a design: a document whose plan never passed its checks
+ * must not read like one that did.
+ */
+export type DesignStatus = 'checked' | 'ledger_unresolved' | 'document_unresolved' | 'failed';
+
+/** A check a design's plan (the ledger) or its document still fails. */
+export interface DesignFinding {
+  source: 'ledger' | 'document';
+  code: string;
+  field: string;
+  detail: string;
+}
+
+/**
+ * A design run's result: `pipeline_complete.design`.
+ *
+ * Kept in the server's snake_case, unlike the rest of this file, because it is
+ * sent back as it came when the design is saved.
+ */
+export interface DesignResult {
+  status: DesignStatus;
+  title?: string;
+  exercise_id?: string | null;
+  ledger: Record<string, unknown> | null;
+  findings: DesignFinding[];
+  context_ids: string[];
+  tokens?: { input: number; output: number; total: number; calls: number };
+  seconds?: number;
+}
+
+export interface LedgerRound {
+  round: number;
+  passed: boolean;
+  findings: Array<Omit<DesignFinding, 'source'>>;
+}
+
+/** Where a design run is: which call is running, and what the plan's rounds found. */
+export interface DesignProgress {
+  stage: string;
+  round: number;
+  ledgerRounds: LedgerRound[];
+}
+
 export interface WorkspaceState {
   phase: WorkspacePhase;
   currentQuestionIndex: number;
@@ -133,6 +179,10 @@ export interface WorkspaceState {
   /** Section id -> the critic/skeptic/judge review of that section. */
   reviews: Record<string, SectionReview>;
   contradictions: Contradiction[];
+  /** Set while and after a design run; null on the old pipeline. */
+  designProgress: DesignProgress | null;
+  /** The finished design run's result; null until `pipeline_complete`. */
+  design: DesignResult | null;
 }
 
 export type VaguenessDimension =
