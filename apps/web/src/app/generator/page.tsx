@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 
 /**
- * Legacy /generator route - permanently redirects to /generate.
- * Kept so bookmarks and external links continue to work.
+ * Legacy /generator route. It pointed at /generate, which is retired too
+ * (revamp I2); both land in the Workshop.
  */
 export default function GeneratorPage() {
-  redirect("/generate");
+  redirect("/workspace");
 }
