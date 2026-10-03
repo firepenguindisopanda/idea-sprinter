@@ -17,7 +17,7 @@ export function RevealView({ reveal }: Readonly<{ reveal: Reveal }>) {
   const checks = [...reveal.checks].sort((a, b) => Number(Boolean(b.core)) - Number(Boolean(a.core)));
   return (
     <section aria-label="Answers" className="space-y-4">
-      <div className="rounded-md border border-primary/40 p-4">
+      <div className="max-w-4xl rounded-md border border-primary/40 p-4">
         <p className="label-lg text-xs text-muted-foreground">The decision this exercise forces</p>
         <p className="mt-1">{reveal.tension}</p>
       </div>
@@ -28,7 +28,7 @@ export function RevealView({ reveal }: Readonly<{ reveal: Reveal }>) {
           <TabsTrigger value="reference">Reference design</TabsTrigger>
           <TabsTrigger value="generated">Generated design</TabsTrigger>
         </TabsList>
-        <TabsContent value="checks" className="space-y-3 pt-2">
+        <TabsContent value="checks" className="max-w-4xl space-y-3 pt-2">
           {checks.map((check) => (
             <article key={check.id} data-testid={`reveal-${check.id}`} className="rounded-md border p-3 space-y-2">
               <p className="flex items-start gap-2 text-sm font-medium">
@@ -67,10 +67,10 @@ export function RevealView({ reveal }: Readonly<{ reveal: Reveal }>) {
             </article>
           ))}
         </TabsContent>
-        <TabsContent value="strong" className="min-w-0 overflow-x-auto pt-2">
+        <TabsContent value="strong" className="min-w-0 max-w-4xl overflow-x-auto pt-2">
           <Markdown>{reveal.strong_answer}</Markdown>
         </TabsContent>
-        <TabsContent value="reference" className="min-w-0 overflow-x-auto pt-2">
+        <TabsContent value="reference" className="min-w-0 max-w-4xl overflow-x-auto pt-2">
           <Markdown>{reveal.reference_design}</Markdown>
         </TabsContent>
         <TabsContent value="generated" className="min-w-0 pt-2">

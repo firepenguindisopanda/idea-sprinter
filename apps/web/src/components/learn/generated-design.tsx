@@ -103,8 +103,9 @@ export function GeneratedDesign({
   };
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8">
       <section aria-label="Generated design" className="min-w-0 space-y-3">
+        <h2 className="label-xs text-muted-foreground">Generated</h2>
         {phase === "idle" && (
           <div className="space-y-2 rounded-md border p-4">
             <p className="text-sm">
@@ -135,7 +136,11 @@ export function GeneratedDesign({
           </article>
         ))}
       </section>
-      <section aria-label="Reference design" className="min-w-0 overflow-x-auto">
+      <section
+        aria-label="Reference design"
+        className="min-w-0 space-y-3 overflow-x-auto border-t pt-6 lg:border-t-0 lg:border-l lg:pl-8 lg:pt-0"
+      >
+        <h2 className="label-xs text-muted-foreground">Reference</h2>
         <Markdown>{referenceDesign}</Markdown>
       </section>
     </div>
