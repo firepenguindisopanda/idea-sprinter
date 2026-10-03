@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import ProtectedRoute from "@/components/protected-route";
-import ResultsDisplay from "@/components/generator/results-display";
+import ResultsDisplay from "@/components/dashboard/results-display";
 import DownloadModal from "@/components/generator/download-modal";
 import { api, downloadProjectPdf } from "@/lib/api";
 import { toast } from "sonner";

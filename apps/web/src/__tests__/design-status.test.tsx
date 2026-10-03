@@ -32,7 +32,7 @@ vi.mock('@/lib/api', () => ({
 import { DesignStatusPanel, DesignSummary, RunReport } from '@/components/workspace/design-status';
 import { ProgressiveDoc } from '@/components/workspace/progressive-doc';
 import { TopBar } from '@/components/workspace/top-bar';
-import ResultsDisplay from '@/components/generator/results-display';
+import ResultsDisplay from '@/components/dashboard/results-display';
 import { useWorkspaceStore } from '@/lib/workspace-store';
 import { agentRoles, isDesignDocument, projectDesign, projectSummaryBadge } from '@/lib/project-artifacts';
 import type { DesignResult } from '@/types/workspace';
