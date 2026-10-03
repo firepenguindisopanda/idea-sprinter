@@ -297,7 +297,7 @@ export default function ProfileForm() {
                       </SelectContent>
                     </Select>
                     <p className="text-xs font-sans text-muted-foreground font-medium">
-                      Used for code generation and multi-agent tasks.
+                      Your preferred model, where a call lets you choose one.
                     </p>
                   </div>
 

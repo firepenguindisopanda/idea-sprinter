@@ -5,17 +5,17 @@ test.describe('Landing Page', () => {
     await page.goto('/');
     
     // Check for main heading
-    await expect(page.getByRole('heading', { name: /Generate Software Specs/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Vague idea in/i })).toBeVisible();
     
     // Check for CTA button
-    await expect(page.getByRole('link', { name: /Get Started/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /Start a draft/i })).toBeVisible();
   });
 
   test('should navigate to login page', async ({ page }) => {
     await page.goto('/');
     
-    // Click on Get Started button
-    await page.getByRole('link', { name: /Get Started/i }).click();
+    // Click on Start a draft
+    await page.getByRole('link', { name: /Start a draft/i }).click();
     
     // Should navigate to login page
     await expect(page).toHaveURL(/\/auth\/login/);
@@ -30,6 +30,6 @@ test.describe('Login Page', () => {
     await expect(page.getByRole('button', { name: /Sign in with Google/i })).toBeVisible();
     
     // Check for card title
-    await expect(page.getByText(/Welcome Back/i)).toBeVisible();
+    await expect(page.getByText(/Sign in to start drafting/i)).toBeVisible();
   });
 });

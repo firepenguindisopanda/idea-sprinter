@@ -141,7 +141,7 @@ export default function ProjectCard({ project, onDelete, onDownloadPdf }: Projec
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete &quot;{project.title}&quot; and all its generated specifications.
+              This will permanently delete &quot;{project.title}&quot; and everything saved with it.
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
