@@ -410,11 +410,34 @@ class ApiClient {
     return response.blob();
   }
 
-  // Send PRD to pipeline for full SRS generation
-  async sendPrdToPipeline(sessionId: string): Promise<GenerateResponse> {
-    return this.request(`/prd/pipeline/${encodeURIComponent(sessionId)}`, {
-      method: 'POST',
-    });
+  /**
+   * Start a design run from a saved PRD and return its id (revamp F2).
+   *
+   * The run belongs to the server, which drives it whether or not anyone is
+   * watching, so this lets go of the stream once the run is named; the
+   * Workshop follows it from there (`openWorkspaceRun`).
+   */
+  async startPrdDesign(sessionId: string): Promise<string> {
+    const abort = new AbortController();
+    let runId: string | null = null;
+    try {
+      await streamSSEPost<WorkspaceStreamEvent>(
+        `${API_URL}/prd/design/${encodeURIComponent(sessionId)}`,
+        {},
+        (event) => {
+          if (event.type === 'run_started' && event.run_id && !runId) {
+            runId = event.run_id;
+            abort.abort();
+          }
+        },
+        this.authHeaders(),
+        abort.signal,
+      );
+    } catch (e) {
+      if (!runId) throw e;
+    }
+    if (!runId) throw new ApiError('api_error', 'The design run did not start', 0);
+    return runId;
   }
 
   // Re-evaluate judge status for PRD (fixes parse errors from before judge fix)
@@ -669,7 +692,7 @@ class ApiClient {
     await readSSEStream<WorkspaceStreamEvent>(response, onEvent);
   }
 
-  async getRunStatus(runId: string): Promise<{ run_id: string; status: string; last_seq: number }> {
+  async getRunStatus(runId: string): Promise<{ run_id: string; status: string; kind?: string; brief?: string | null; last_seq: number }> {
     return this.request(`/api/workspace/runs/${encodeURIComponent(runId)}`);
   }
 

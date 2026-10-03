@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { TopBar } from "@/components/workspace/top-bar";
 import { IdeaInput } from "@/components/workspace/idea-input";
@@ -10,6 +12,27 @@ import { RunReport } from "@/components/workspace/design-status";
 import { WorkspaceChatFeed } from "@/components/workspace/workspace-chat-feed";
 import ProtectedRoute from "@/components/protected-route";
 import { StatusBanner } from "@/components/workspace/status-banner";
+import { openWorkspaceRun } from "@/lib/workspace-generate";
+
+/**
+ * `?run=<id>`: a design started elsewhere - from a PRD (revamp F2).
+ *
+ * Rendered inside `ProtectedRoute`, so it runs once there is a token to ask
+ * with, and a signed-out visitor keeps the parameter for after signing in.
+ * Read from the location rather than `useSearchParams`, which would need a
+ * Suspense boundary around the page. Dropped once read, so a reload after
+ * saving cannot open the same run as a new, unsaved project.
+ */
+function OpenRunFromUrl() {
+  const router = useRouter();
+  useEffect(() => {
+    const runId = new URLSearchParams(window.location.search).get("run");
+    if (!runId) return;
+    router.replace("/workspace");
+    void openWorkspaceRun(runId);
+  }, [router]);
+  return null;
+}
 
 export default function WorkspacePage() {
   const { phase, error, errorTone, clearError } = useWorkspace();
@@ -21,6 +44,7 @@ export default function WorkspacePage() {
   // the landing CTA already routes signed-out users through login.
   return (
     <ProtectedRoute>
+      <OpenRunFromUrl />
       <div className="h-screen flex flex-col overflow-hidden">
         <TopBar />
 

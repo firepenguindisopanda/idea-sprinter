@@ -55,4 +55,29 @@ describe('PRD API client', () => {
     expect(doc.generated_prd).toContain('# PRD');
     expect(doc.session_id).toBe('sess-1');
   });
+
+  // Revamp F2: the run belongs to the server; the PRD page needs only its id.
+  it('startPrdDesign starts a design run from the PRD and returns its id', async () => {
+    const sse = 'data: {"type":"run_started","run_id":"run-1"}\n\ndata: {"type":"stage","stage":"ledger","seq":1}\n\n';
+    const fetchMock = vi.fn((_url: string, _init?: RequestInit) =>
+      Promise.resolve(new Response(sse, { headers: { 'Content-Type': 'text/event-stream' } })),
+    );
+    global.fetch = fetchMock as unknown as typeof global.fetch;
+
+    await expect(api.startPrdDesign('sess-1')).resolves.toBe('run-1');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toMatch(/\/prd\/design\/sess-1$/);
+    expect(init?.method).toBe('POST');
+  });
+
+  it('startPrdDesign fails when the server refuses', async () => {
+    global.fetch = vi.fn(() =>
+      Promise.resolve(new Response('{"detail":"Generate the PRD before designing from it"}', { status: 409 })),
+    ) as unknown as typeof global.fetch;
+    await expect(api.startPrdDesign('sess-1')).rejects.toThrow();
+  });
+
+  it('has no way to send a PRD to the old pipeline', () => {
+    expect('sendPrdToPipeline' in api).toBe(false);
+  });
 });

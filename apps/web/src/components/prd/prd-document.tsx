@@ -2,12 +2,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Loader2, Check, Copy, Download, Send, Code } from "lucide-react";
+import { FileText, Loader2, Check, Copy, Download, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Markdown } from "@/components/markdown";
 import { api } from "@/lib/api";
-import { useDraftStore } from "@/lib/draft-store";
-import type { ProjectRequest, PRDStatusResponse } from "@/types";
+import type { PRDStatusResponse } from "@/types";
 
 interface PrdDocumentProps {
   sessionId: string | null;
@@ -16,7 +15,6 @@ interface PrdDocumentProps {
 
 export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp }: PrdDocumentProps) {
   const router = useRouter();
-  const { startGeneration } = useDraftStore();
   const containerRef = useRef<HTMLDivElement>(null);
   
   const [prdContent, setPrdContent] = useState<string | null>(null);
@@ -26,16 +24,16 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"markdown">("markdown");
   const [copied, setCopied] = useState(false);
-  const [usedAsProject, setUsedAsProject] = useState(false);
-  const [sentToPipeline, setSentToPipeline] = useState(false);
+  const [designing, setDesigning] = useState(false);
+  const [designError, setDesignError] = useState<string | null>(null);
   const [autoLoaded, setAutoLoaded] = useState(false);
 
   useEffect(() => {
     setPrdContent(null);
     setPrdStatus(null);
     setError(null);
-    setUsedAsProject(false);
-    setSentToPipeline(false);
+    setDesigning(false);
+    setDesignError(null);
     setAutoLoaded(false);
   }, [sessionId]);
 
@@ -145,38 +143,22 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
     }
   };
 
-  const handleUseAsProjectDescription = () => {
-    if (!prdContent || prdContent.includes("PRD not yet generated")) return;
-
-    const projectRequest: ProjectRequest = {
-      description: prdContent,
-      frontend_framework: "",
-    };
-
-    startGeneration(projectRequest);
-    setUsedAsProject(true);
-    
-    setTimeout(() => {
-      router.push("/generate");
-    }, 500);
-  };
-
-  const handleSendToPipeline = () => {
-    if (!sessionId || !prdContent || prdContent.includes("PRD not yet generated")) return;
-
-    // Store the PRD content as the project description in the draft store
-    const projectRequest: ProjectRequest = {
-      description: prdContent,
-      frontend_framework: "",
-    };
-
-    startGeneration(projectRequest);
-    setSentToPipeline(true);
-    
-    // Navigate to the Generate page immediately - user clicks Generate to start the pipeline
-    setTimeout(() => {
-      router.push("/generate");
-    }, 500);
+  // Revamp F2: the PRD becomes the brief of a design run, built on the server
+  // from the saved PRD's sections, and the Workshop follows the run. No judge
+  // gate: its approval never decided anything worth waiting for.
+  const handleDesign = async () => {
+    if (!sessionId) return;
+    setDesigning(true);
+    setDesignError(null);
+    try {
+      const runId = await api.startPrdDesign(sessionId);
+      router.push(`/workspace?run=${encodeURIComponent(runId)}`);
+    } catch (err) {
+      setDesignError(
+        `The design could not start: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      setDesigning(false);
+    }
   };
 
   if (!sessionId) {
@@ -299,41 +281,19 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
             </div>
 
             <button
-              onClick={handleUseAsProjectDescription}
-              disabled={usedAsProject || !prdContent || prdContent.includes("PRD not yet generated")}
-              className="label-xs w-full flex items-center justify-center gap-2 py-2 px-3 border border-primary/10 rounded-none hover:bg-primary/5 transition-colors disabled:opacity-50"
+              onClick={handleDesign}
+              disabled={designing || !prdContent || prdContent.includes("PRD not yet generated")}
+              className="label-xs w-full flex items-center justify-center gap-2 py-2 px-3 bg-primary/10 border border-primary/30 rounded-none hover:bg-primary/20 transition-colors disabled:opacity-50"
+              title="Write a design spec from this PRD in the Workshop"
             >
-              {usedAsProject ? (
-                <>
-                  <Check className="w-3 h-3 text-tertiary" />
-                  Ready
-                </>
-              ) : (
-                <>
-                  <Code className="w-3 h-3" />
-                  Use as Project Description
-                </>
-              )}
+              {designing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+              Design this
             </button>
-
-            <button
-              onClick={handleSendToPipeline}
-              disabled={sentToPipeline || !prdContent || prdContent.includes("PRD not yet generated")}
-              className="label-xs w-full flex items-center justify-center gap-2 py-2 px-3 bg-warning/10 border border-warning/20 rounded-none hover:bg-warning/20 transition-colors disabled:opacity-50"
-              title="Send PRD to SRS pipeline on the Generate page"
-            >
-              {sentToPipeline ? (
-                <>
-                  <Check className="w-3 h-3 text-tertiary" />
-                  Ready to Generate
-                </>
-              ) : (
-                <>
-                  <Send className="w-3 h-3" />
-                  Send to Pipeline
-                </>
-              )}
-            </button>
+            {designError && (
+              <p role="alert" className="text-xs text-destructive">
+                {designError}
+              </p>
+            )}
           </div>
         </div>
       )}

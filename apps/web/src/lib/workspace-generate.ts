@@ -287,6 +287,50 @@ export async function resumeWorkspaceGeneration(): Promise<boolean> {
   }
 }
 
+/**
+ * Open the Workshop on a run started elsewhere - a design from a PRD (revamp
+ * F2, `/workspace?run=<id>`).
+ *
+ * A new project: whatever the workspace held belongs to another run. Its
+ * brief is the one the server wrote the design from, read back from the run,
+ * so the design is saved with it as a Workshop design is with its own. A run
+ * the workspace already follows is left alone - that is a reload, and the
+ * usual rejoin picks it up. Nothing is reset until the run is known to exist:
+ * a bad link must not cost the workspace its unsaved work.
+ */
+let opening: string | null = null;
+
+export async function openWorkspaceRun(runId: string): Promise<void> {
+  // A second call while the first is still asking (React runs effects twice in
+  // development) is a no-op.
+  if (useWorkspaceStore.getState().runId === runId || opening === runId) return;
+  opening = runId;
+  try {
+    let brief: string | null | undefined;
+    try {
+      brief = (await api.getRunStatus(runId)).brief;
+    } catch {
+      useWorkspaceStore
+        .getState()
+        .setError('That design run could not be opened. It may belong to another account, or no longer exist.');
+      return;
+    }
+    const store = useWorkspaceStore.getState();
+    store.reset();
+    store.setRun(runId);
+    store.setIdeaInput(brief ?? '');
+    if (!(await resumeWorkspaceGeneration())) {
+      const s = useWorkspaceStore.getState();
+      if (s.runId === runId && s.phase === 'idea_input') {
+        s.setRun(null);
+        s.setError('That design run could not be opened: it failed or was cancelled.');
+      }
+    }
+  } finally {
+    opening = null;
+  }
+}
+
 /** Stop the run this workspace is watching, if there is one. */
 export async function cancelWorkspaceGeneration(): Promise<void> {
   const { runId } = useWorkspaceStore.getState();
