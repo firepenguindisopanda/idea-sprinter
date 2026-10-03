@@ -7,7 +7,6 @@ import { useAuthStore } from "@/lib/auth-store";
 import { rememberIntendedRoute } from "@/lib/post-login-redirect";
 import { PersonaSelector } from "@/components/persona/persona-selector";
 import { ArrowRight, User } from "lucide-react";
-import DraftBanner from "@/components/landing/draft-banner";
 
 /**
  * The four stages a run actually moves through, in order - the same sequence
@@ -51,8 +50,6 @@ export default function Home() {
 
   return (
     <div className="relative flex flex-col min-h-full">
-      <DraftBanner />
-
       <div className="sheet-frame mx-auto w-full max-w-6xl flex-1 px-4 py-12 sm:px-8 lg:py-20">
         {/* Sheet header - the strip across the top of a drawing. */}
         <div className="flex items-center justify-between gap-4 border-b border-primary/25 pb-3">
