@@ -109,6 +109,7 @@ export default function PrdChat({ initialSessionId, prefill: prefillProp, onPhas
       const newSessionId = startResp.session_id;
       setSessionId(newSessionId);
       setHasStarted(true);
+      onSessionReady?.(newSessionId);
 
       router.replace(`/prd?session_id=${encodeURIComponent(newSessionId)}`);
 

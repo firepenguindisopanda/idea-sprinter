@@ -41,4 +41,17 @@ describe('PrdChat component', () => {
     expect(await screen.findByText(/PRD Agent/i)).toBeInTheDocument();
     expect(screen.getByText(/Thanks - can you clarify the users\?/i)).toBeInTheDocument();
   });
+
+  // Checkpoint F: a typed start never told the page its session, so the PRD
+  // document panel - and its "Design this" - stayed empty after the PRD was written.
+  it('tells the page the new session when started from a typed idea', async () => {
+    const { api } = await import('@/lib/api');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (api.startPrdSession as any).mockResolvedValue({ session_id: 'sess-7', message: 'Hi' });
+    const onSessionReady = vi.fn();
+    render(<PrdChat initialSessionId={null} onSessionReady={onSessionReady} />);
+    fireEvent.change(screen.getByLabelText('prd-input'), { target: { value: 'A makerspace booking app' } });
+    fireEvent.click(screen.getByRole('button', { name: /Start PRD/i }));
+    await waitFor(() => expect(onSessionReady).toHaveBeenCalledWith('sess-7'));
+  });
 });
