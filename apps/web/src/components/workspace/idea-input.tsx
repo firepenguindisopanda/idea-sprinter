@@ -95,7 +95,7 @@ export function IdeaInput() {
       if (scores.thresholdMet) {
         addChatMessage({
           role: "system",
-          content: "Your idea is clear and specific enough to generate a spec. Let's pick a direction.",
+          content: "Your idea is clear and specific enough to write the spec. Let's pick a direction.",
         });
         try {
           // The idea has to travel with the request: an empty payload makes the
@@ -197,7 +197,7 @@ export function IdeaInput() {
               <>Analyzing...</>
             ) : (
               <>
-                Start Crafting
+                Check my idea
                 <ArrowRight className="h-4 w-4" />
               </>
             )}

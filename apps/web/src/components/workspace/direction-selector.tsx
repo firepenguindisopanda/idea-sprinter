@@ -111,7 +111,7 @@ export function DirectionSelector() {
               className="gap-2"
             >
               <ArrowRight className="h-4 w-4" />
-              Generate with this
+              Write the spec
             </Button>
             <Button variant="ghost" onClick={() => setIsDescribing(false)}>
               Cancel

@@ -49,7 +49,7 @@ describe('API Error Handling - No Silent Fallback', () => {
     });
 
     render(<IdeaInput />);
-    fireEvent.click(screen.getByRole('button', { name: /Start Crafting/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Check my idea/i }));
 
     await waitFor(() => {
       expect(setError).toHaveBeenCalledWith(expect.stringContaining('connect'));

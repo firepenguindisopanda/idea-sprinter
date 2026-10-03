@@ -60,13 +60,13 @@ describe('IdeaInput', () => {
     expect(screen.getByPlaceholderText('I want to build a...')).toBeDefined();
   });
 
-  it('disables Start Crafting button when input is empty', () => {
+  it('disables Check my idea button when input is empty', () => {
     render(<IdeaInput />);
-    const button = screen.getByRole('button', { name: /Start Crafting/i });
+    const button = screen.getByRole('button', { name: /Check my idea/i });
     expect(button).toBeDisabled();
   });
 
-  it('enables Start Crafting button when input has text', () => {
+  it('enables Check my idea button when input has text', () => {
     mockUseWorkspace.mockReturnValue({
       ideaInput: 'Build a task manager',
       setIdeaInput: vi.fn(),
@@ -75,7 +75,7 @@ describe('IdeaInput', () => {
       phase: 'idea_input',
     });
     render(<IdeaInput />);
-    const button = screen.getByRole('button', { name: /Start Crafting/i });
+    const button = screen.getByRole('button', { name: /Check my idea/i });
     expect(button).toBeEnabled();
   });
 
@@ -97,7 +97,7 @@ describe('IdeaInput', () => {
       setError,
     });
     render(<IdeaInput />);
-    fireEvent.click(screen.getByRole('button', { name: /Start Crafting/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Check my idea/i }));
 
     await waitFor(() => {
       // Asserts an error was surfaced, not its wording. These tests exist to

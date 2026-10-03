@@ -90,7 +90,7 @@ describe('DirectionSelector', () => {
     fireEvent.change(screen.getByPlaceholderText(/single-tenant internal tool/i), {
       target: { value: 'Offline-first, one user, no accounts.' },
     });
-    fireEvent.click(screen.getByText('Generate with this'));
+    fireEvent.click(screen.getByText('Write the spec'));
 
     await waitFor(() => expect(streamDocument).toHaveBeenCalled());
     // The id is incidental; what steers generation is the brief.
@@ -101,7 +101,7 @@ describe('DirectionSelector', () => {
   it('will not generate from an empty custom direction', () => {
     render(<DirectionSelector />);
     fireEvent.click(screen.getByText(/describe my own/i));
-    const button = screen.getByText('Generate with this').closest('button');
+    const button = screen.getByText('Write the spec').closest('button');
     expect(button).toBeDisabled();
   });
 
@@ -111,7 +111,7 @@ describe('DirectionSelector', () => {
     fireEvent.change(screen.getByPlaceholderText(/single-tenant internal tool/i), {
       target: { value: 'Something else entirely.' },
     });
-    fireEvent.click(screen.getByText('Generate with this'));
+    fireEvent.click(screen.getByText('Write the spec'));
 
     const { directions } = useWorkspaceStore.getState();
     expect(directions.map((d) => d.id)).toEqual(['d1', 'd2', 'custom']);
