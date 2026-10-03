@@ -15,7 +15,7 @@ vi.mock('@/lib/api', () => ({
   api: {
     evaluateVagueness: vi.fn(() => Promise.reject(new Error('Backend unreachable'))),
     getDirections: vi.fn(() => Promise.reject(new Error('Backend unreachable'))),
-    streamDocument: vi.fn(() => Promise.reject(new Error('Backend unreachable'))),
+    streamDesign: vi.fn(() => Promise.reject(new Error('Backend unreachable'))),
     refineSection: vi.fn(() => Promise.reject(new Error('Backend unreachable'))),
   },
 }));

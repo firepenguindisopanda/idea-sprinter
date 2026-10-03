@@ -609,26 +609,11 @@ class ApiClient {
     return this._token ? { Authorization: `Bearer ${this._token}` } : {};
   }
 
-  async streamDocument(
-    directionId: string,
-    brief: string,
-    onEvent: (event: WorkspaceStreamEvent) => void,
-    signal?: AbortSignal,
-  ): Promise<void> {
-    await streamSSEPost(
-      `${API_URL}/api/workspace/generate`,
-      { direction_id: directionId, brief },
-      onEvent,
-      this.authHeaders(),
-      signal,
-    );
-  }
-
   /**
    * Start a design run: one checked plan, then one writer.
    *
-   * Streams the same section events as `streamDocument`, so the same handler
-   * folds both, and the run is followed and cancelled the same way.
+   * Streams section events, plus the run's stages and its result; it is
+   * followed, resumed and cancelled through the run routes.
    */
   async streamDesign(
     directionId: string,

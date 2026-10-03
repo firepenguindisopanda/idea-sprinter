@@ -12,10 +12,10 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 // Typed with a rest parameter so the assertions below can index into
 // `mock.calls`; `vi.fn(async () => {})` infers a zero-arity tuple.
-const streamDocument = vi.fn(async (..._args: unknown[]) => {});
+const streamDesign = vi.fn(async (..._args: unknown[]) => {});
 
 vi.mock('@/lib/api', () => ({
-  api: { streamDocument: (...args: unknown[]) => streamDocument(...args) },
+  api: { streamDesign: (...args: unknown[]) => streamDesign(...args) },
 }));
 
 import { DirectionSelector } from '@/components/workspace/direction-selector';
@@ -61,15 +61,15 @@ describe('DirectionSelector', () => {
   beforeEach(() => {
     useWorkspaceStore.getState().reset();
     useWorkspaceStore.getState().setDirections(DIRECTIONS);
-    streamDocument.mockClear();
+    streamDesign.mockClear();
   });
 
   it('generates from a listed direction', async () => {
     render(<DirectionSelector />);
     fireEvent.click(screen.getByText('Lean MVP'));
 
-    await waitFor(() => expect(streamDocument).toHaveBeenCalled());
-    expect(streamDocument.mock.calls[0][0]).toBe('d1');
+    await waitFor(() => expect(streamDesign).toHaveBeenCalled());
+    expect(streamDesign.mock.calls[0][0]).toBe('d1');
     expect(useWorkspaceStore.getState().selectedDirectionId).toBe('d1');
   });
 
@@ -84,7 +84,7 @@ describe('DirectionSelector', () => {
   it('generates from the custom direction and puts it in the brief', async () => {
     // A stream that stays open, as a live run's does: one that closes without
     // completing lands on `interrupted`.
-    streamDocument.mockImplementationOnce(() => new Promise(() => {}));
+    streamDesign.mockImplementationOnce(() => new Promise(() => {}));
     render(<DirectionSelector />);
     fireEvent.click(screen.getByText(/describe my own/i));
     fireEvent.change(screen.getByPlaceholderText(/single-tenant internal tool/i), {
@@ -92,9 +92,9 @@ describe('DirectionSelector', () => {
     });
     fireEvent.click(screen.getByText('Write the spec'));
 
-    await waitFor(() => expect(streamDocument).toHaveBeenCalled());
+    await waitFor(() => expect(streamDesign).toHaveBeenCalled());
     // The id is incidental; what steers generation is the brief.
-    expect(streamDocument.mock.calls[0][1]).toContain('Offline-first, one user, no accounts.');
+    expect(streamDesign.mock.calls[0][1]).toContain('Offline-first, one user, no accounts.');
     expect(useWorkspaceStore.getState().phase).toBe('generating');
   });
 

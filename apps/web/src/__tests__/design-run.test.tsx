@@ -1,17 +1,16 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
 /**
  * The Workshop on the design pipeline (multi-agent-system HANDOFF §92-§93).
  *
- * Behind NEXT_PUBLIC_DESIGN_PIPELINE, choosing a direction starts a design run
- * - one checked plan, one writer - instead of the eleven-agent pipeline. It
- * speaks the same section events, plus `stage`, `ledger_checked` and a `design`
- * payload whose status must reach the reader.
+ * Choosing a direction starts a design run - one checked plan, one writer.
+ * Since revamp I2 it is the only path: the flag that chose between it and the
+ * eleven-agent pipeline is gone. It speaks the section events, plus `stage`,
+ * `ledger_checked` and a `design` payload whose status must reach the reader.
  */
 
 const streamDesign = vi.fn();
-const streamDocument = vi.fn();
 const getRunStatus = vi.fn();
 const followRun = vi.fn();
 const cancelRun = vi.fn();
@@ -19,7 +18,6 @@ const cancelRun = vi.fn();
 vi.mock('@/lib/api', () => ({
   api: {
     streamDesign: (...args: unknown[]) => streamDesign(...args),
-    streamDocument: (...args: unknown[]) => streamDocument(...args),
     getRunStatus: (...args: unknown[]) => getRunStatus(...args),
     followRun: (...args: unknown[]) => followRun(...args),
     cancelRun: (...args: unknown[]) => cancelRun(...args),
@@ -28,7 +26,6 @@ vi.mock('@/lib/api', () => ({
 
 import {
   cancelWorkspaceGeneration,
-  designPipelineEnabled,
   resumeWorkspaceGeneration,
   runWorkspaceGeneration,
 } from '@/lib/workspace-generate';
@@ -37,13 +34,12 @@ import { ProgressiveDoc } from '@/components/workspace/progressive-doc';
 
 type Event = Record<string, unknown>;
 
-/** Drive whichever stream is called with a scripted list of events. */
+/** Drive the design stream with a scripted list of events. */
 function script(events: Event[]) {
   const play = async (_dir: string, _brief: string, onEvent: (e: Event) => void) => {
     events.forEach((event, i) => onEvent({ ...event, seq: i + 1 }));
   };
   streamDesign.mockImplementation(play);
-  streamDocument.mockImplementation(play);
 }
 
 const section = (id: string, title: string, order: number, content: string): Event[] => [
@@ -82,35 +78,16 @@ describe('the Workshop on the design pipeline', () => {
     vi.clearAllMocks();
     useWorkspaceStore.getState().reset();
     useWorkspaceStore.setState({ ideaInput: 'A photo sharing service that blurs faces.' });
-    vi.stubEnv('NEXT_PUBLIC_DESIGN_PIPELINE', '1');
-  });
-
-  afterEach(() => {
-    vi.unstubAllEnvs();
   });
 
   it('starts a design run for the chosen direction, with the brief', async () => {
     script(RUN);
     await runWorkspaceGeneration('dir-a');
 
-    expect(streamDocument).not.toHaveBeenCalled();
     expect(streamDesign).toHaveBeenCalledTimes(1);
     const [directionId, brief] = streamDesign.mock.calls[0];
     expect(directionId).toBe('dir-a');
     expect(brief).toContain('A photo sharing service that blurs faces.');
-  });
-
-  it('runs the old pipeline when the flag is off', async () => {
-    vi.stubEnv('NEXT_PUBLIC_DESIGN_PIPELINE', '');
-    script([{ type: 'pipeline_complete' }]);
-    await runWorkspaceGeneration('dir-a');
-
-    expect(streamDesign).not.toHaveBeenCalled();
-    expect(streamDocument).toHaveBeenCalledTimes(1);
-    const state = useWorkspaceStore.getState();
-    expect(state.design).toBeNull();
-    expect(state.designProgress).toBeNull();
-    expect(state.phase).toBe('refinement');
   });
 
   it('folds the run into sections, its progress and its result', async () => {
@@ -389,24 +366,5 @@ describe('the Workshop on the design pipeline', () => {
     expect(screen.getByText('2. Estimates')).toBeTruthy();
     expect(screen.getByText(/Blur faces before sharing\./)).toBeTruthy();
     expect(screen.getByText(/300 photos\/s at peak\./)).toBeTruthy();
-  });
-});
-
-describe('the design pipeline flag', () => {
-  afterEach(() => {
-    vi.unstubAllEnvs();
-  });
-
-  it.each([
-    ['1', 'production', true],
-    ['0', 'development', false],
-    ['', 'development', false],
-    [undefined, 'development', true],
-    [undefined, 'production', false],
-    [undefined, 'test', false],
-  ])('set to %s under %s is %s', (flag, mode, expected) => {
-    vi.stubEnv('NEXT_PUBLIC_DESIGN_PIPELINE', flag as unknown as string);
-    vi.stubEnv('NODE_ENV', mode);
-    expect(designPipelineEnabled()).toBe(expected);
   });
 });

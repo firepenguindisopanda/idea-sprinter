@@ -1,19 +1,6 @@
 import { api, type WorkspaceStreamEvent } from '@/lib/api';
 import { useWorkspaceStore } from '@/lib/workspace-store';
 
-/**
- * Whether choosing a direction starts a design run (one checked plan, one
- * writer) instead of the eleven-agent pipeline.
- *
- * A flag while both exist: on in development, off in a build unless
- * NEXT_PUBLIC_DESIGN_PIPELINE=1 is set when it is built. It goes when the old
- * pipeline does. Read when called, so a test can set it.
- */
-export function designPipelineEnabled(): boolean {
-  const flag = process.env.NEXT_PUBLIC_DESIGN_PIPELINE;
-  if (flag === undefined) return process.env.NODE_ENV === 'development';
-  return flag === '1';
-}
 
 /**
  * The brief the pipeline generates from: the raw idea, every answered
@@ -236,11 +223,9 @@ export async function runWorkspaceGeneration(directionId: string): Promise<void>
 
   const stream = follower();
   try {
-    if (designPipelineEnabled()) {
-      await api.streamDesign(directionId, brief, stream.onEvent);
-    } else {
-      await api.streamDocument(directionId, brief, stream.onEvent);
-    }
+    // A design run - one checked plan, one writer - is the only kind since
+    // revamp I2; the flag that chose the eleven-agent pipeline is gone.
+    await api.streamDesign(directionId, brief, stream.onEvent);
     stream.ended();
   } catch {
     handleStreamFailure();

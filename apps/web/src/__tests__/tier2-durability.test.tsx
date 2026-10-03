@@ -8,14 +8,14 @@ import { render, screen, waitFor } from '@testing-library/react';
 
 const getRunStatus = vi.fn();
 const followRun = vi.fn(async (..._args: unknown[]) => {});
-const streamDocument = vi.fn(async (..._args: unknown[]) => {});
+const streamDesign = vi.fn(async (..._args: unknown[]) => {});
 const cancelRun = vi.fn(async (..._args: unknown[]) => {});
 
 vi.mock('@/lib/api', () => ({
   api: {
     getRunStatus: (...args: unknown[]) => getRunStatus(...args),
     followRun: (...args: unknown[]) => followRun(...args),
-    streamDocument: (...args: unknown[]) => streamDocument(...args),
+    streamDesign: (...args: unknown[]) => streamDesign(...args),
     cancelRun: (...args: unknown[]) => cancelRun(...args),
     setToken: vi.fn(),
     getCurrentUser: vi.fn(),

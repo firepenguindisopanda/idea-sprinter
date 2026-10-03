@@ -10,11 +10,11 @@ import { render, screen, fireEvent } from '@testing-library/react';
  * stream -> store -> sidebar, and the saved-spec reader on the other end.
  */
 
-const streamDocument = vi.fn();
+const streamDesign = vi.fn();
 
 vi.mock('@/lib/api', () => ({
   api: {
-    streamDocument: (...args: unknown[]) => streamDocument(...args),
+    streamDesign: (...args: unknown[]) => streamDesign(...args),
   },
 }));
 
@@ -25,7 +25,7 @@ import { projectReview } from '@/lib/project-artifacts';
 
 /** Drive the stream callback with a scripted list of events. */
 function scriptStream(events: Array<Record<string, unknown>>) {
-  streamDocument.mockImplementation(
+  streamDesign.mockImplementation(
     async (_dir: string, _brief: string, onEvent: (e: Record<string, unknown>) => void) => {
       for (const event of events) onEvent(event);
     },
@@ -78,7 +78,7 @@ const JUDGE = {
 describe('review events fold into the store', () => {
   beforeEach(() => {
     useWorkspaceStore.getState().reset();
-    streamDocument.mockReset();
+    streamDesign.mockReset();
   });
 
   it('merges critic, skeptic and judge into one review per section', async () => {

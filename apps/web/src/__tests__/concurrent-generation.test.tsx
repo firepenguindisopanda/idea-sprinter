@@ -13,12 +13,12 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
  */
 
 const getDirections = vi.fn();
-const streamDocument = vi.fn(async (..._args: unknown[]) => {});
+const streamDesign = vi.fn(async (..._args: unknown[]) => {});
 
 vi.mock('@/lib/api', () => ({
   api: {
     getDirections: (...args: unknown[]) => getDirections(...args),
-    streamDocument: (...args: unknown[]) => streamDocument(...args),
+    streamDesign: (...args: unknown[]) => streamDesign(...args),
   },
   ApiError: class ApiError extends Error {},
 }));
@@ -84,7 +84,7 @@ describe('a second generation cannot start over a live one', () => {
 
     await runWorkspaceGeneration('d2');
 
-    expect(streamDocument).not.toHaveBeenCalled();
+    expect(streamDesign).not.toHaveBeenCalled();
   });
 
   it('allows a retry once the run is gone', async () => {
@@ -93,7 +93,7 @@ describe('a second generation cannot start over a live one', () => {
 
     await runWorkspaceGeneration('d2');
 
-    expect(streamDocument).toHaveBeenCalledTimes(1);
+    expect(streamDesign).toHaveBeenCalledTimes(1);
   });
 });
 
