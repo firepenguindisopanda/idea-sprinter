@@ -144,9 +144,21 @@ export default function OptionChallenge({ sessionId, optionId, assumptions }: Re
               {challenge.counterpoint_reading.map((c) => (
                 <details key={c.book} className="text-xs border border-primary/10 p-2">
                   <summary className="label-xs cursor-pointer text-primary/80">
-                    {c.book.replace(/-/g, " ")}
+                    {c.book}
                   </summary>
                   <p className="mt-2 text-muted-foreground whitespace-pre-wrap">{c.excerpt}</p>
+                  {/* From the corpus's book rules (revamp I): the source, and
+                      its licence, are a link away. */}
+                  {c.url && (
+                    <a
+                      href={c.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-block text-primary underline underline-offset-2"
+                    >
+                      Source
+                    </a>
+                  )}
                 </details>
               ))}
             </div>

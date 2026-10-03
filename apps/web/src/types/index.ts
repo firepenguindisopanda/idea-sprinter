@@ -276,7 +276,8 @@ export interface OptionChallenge {
   summary: string;
   attack_vectors: AttackVector[];
   assumptions_to_verify: string[];
-  counterpoint_reading: Array<{ book: string; excerpt: string }>;
+  /** Book rules from the corpus that bear on the option, by title and source URL. */
+  counterpoint_reading: Array<{ book: string; excerpt: string; url?: string }>;
 }
 
 export interface ArchitectureComparison {
