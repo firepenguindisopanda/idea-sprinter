@@ -59,7 +59,7 @@ export function closeUnbalancedFence(content: string): string {
 /** The whole document as one markdown file, sections in order. */
 export function buildSpecMarkdown(title: string, sections: ExportSection[]): string {
   const sorted = [...sections].sort((a, b) => a.order - b.order);
-  const lines: string[] = [`# ${title || "Specification Document"}\n`];
+  const lines: string[] = [`# ${title || "Design spec"}\n`];
   for (const section of sorted) {
     if (section.content) {
       lines.push(`## ${section.title}\n`);

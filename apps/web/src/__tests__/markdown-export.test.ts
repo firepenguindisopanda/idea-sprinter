@@ -88,6 +88,6 @@ describe("buildSpecMarkdown", () => {
   });
 
   it("falls back to a default title", () => {
-    expect(buildSpecMarkdown("", [])).toBe("# Specification Document\n");
+    expect(buildSpecMarkdown("", [])).toBe("# Design spec\n");
   });
 });

@@ -281,7 +281,8 @@ class ApiClient {
     await this.request(`/projects/${id}`, { method: 'DELETE' });
   }
 
-  async downloadPdf(projectDescription: string, markdownOutputs: Record<string, string>): Promise<Blob> {
+  // `title` heads the PDF's title page: what the document is (wording row 33).
+  async downloadPdf(projectDescription: string, markdownOutputs: Record<string, string>, title?: string): Promise<Blob> {
     const headers = new Headers();
     headers.set('Content-Type', 'application/json');
 
@@ -296,7 +297,8 @@ class ApiClient {
         headers,
         body: JSON.stringify({
           project_description: projectDescription,
-          markdown_outputs: markdownOutputs
+          markdown_outputs: markdownOutputs,
+          ...(title ? { title } : {}),
         })
       });
     } catch {
@@ -784,13 +786,14 @@ export const api = new ApiClient();
 // Utility function to trigger PDF download in browser
 export async function downloadProjectPdf(
   projectDescription: string,
-  markdownOutputs: Record<string, string>
+  markdownOutputs: Record<string, string>,
+  title?: string,
 ): Promise<void> {
-  const blob = await api.downloadPdf(projectDescription, markdownOutputs);
+  const blob = await api.downloadPdf(projectDescription, markdownOutputs, title);
   const url = globalThis.URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `project_spec_${Date.now()}.pdf`;
+  a.download = `design_spec_${Date.now()}.pdf`;
   document.body.appendChild(a);
   a.click();
   a.remove();

@@ -25,7 +25,7 @@ export function ExportDropdown() {
   const buildJson = (): string => {
     const sorted = [...documentSections].sort((a, b) => a.order - b.order);
     const data = {
-      title: projectTitle || "Specification Document",
+      title: projectTitle || "Design spec",
       sections: sorted.map((s) => ({
         title: s.title,
         content: s.content,
@@ -43,7 +43,7 @@ export function ExportDropdown() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `${projectTitle || "specification"}.md`;
+        a.download = `${projectTitle || "design-spec"}.md`;
         a.click();
         URL.revokeObjectURL(url);
       } else if (format === "json") {
@@ -52,7 +52,7 @@ export function ExportDropdown() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `${projectTitle || "specification"}.json`;
+        a.download = `${projectTitle || "design-spec"}.json`;
         a.click();
         URL.revokeObjectURL(url);
       } else if (format === "pdf") {
@@ -67,12 +67,12 @@ export function ExportDropdown() {
           if (section.content.trim()) outputs[section.title] = section.content;
         }
         if (Object.keys(outputs).length === 0) {
-          toast.info("Nothing to export", { description: "Generate document sections first." });
+          toast.info("Nothing to export", { description: "Write the spec first." });
           setOpen(false);
           return;
         }
         setIsExporting(true);
-        await downloadProjectPdf(projectTitle || "Specification Document", outputs);
+        await downloadProjectPdf(projectTitle || "Design spec", outputs, "Design spec");
       }
       toast.success("Exported", { description: `Downloaded as ${format.toUpperCase()}` });
       setOpen(false);
