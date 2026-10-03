@@ -1,7 +1,7 @@
 import { readSSEStream, streamSSEPost } from './sse';
 import type { Grading, LearningAttempt, LearningExercise, Reveal } from '../types/learning';
 import type { DesignResult } from '../types/workspace';
-import type { ContestOutcome, OptionChallenge, User, UserPersona, UserPersonaInfo, ProjectRequest, GenerateResponse, Project, ProjectCreate, UsageMetrics, UsageStatsResponse, PRDStartResponse, PRDChatResponse, PRDStatusResponse, PRDDocumentResponse, ArchitectureSession, ArchitectureSessionCreate, ArchitectureSessionSummary, ArchitectureSelectRequest, ArchitectureRefineRequest, ArchitectureComparison, ArchitectureOption, ArchitectureDecisionDraft, ArchitectureDecisionSave, ArchitectureDecisionRecord } from '../types';
+import type { ContestOutcome, OptionChallenge, User, UserPersona, UserPersonaInfo, Project, ProjectCreate, UsageMetrics, UsageStatsResponse, PRDStartResponse, PRDChatResponse, PRDStatusResponse, PRDDocumentResponse, ArchitectureSession, ArchitectureSessionCreate, ArchitectureSessionSummary, ArchitectureSelectRequest, ArchitectureRefineRequest, ArchitectureComparison, ArchitectureOption, ArchitectureDecisionDraft, ArchitectureDecisionSave, ArchitectureDecisionRecord } from '../types';
 
 interface JudgeReevaluateResponse {
   session_id: string;
@@ -241,13 +241,6 @@ class ApiClient {
   }
 
   // Projects
-  async generateProject(data: ProjectRequest): Promise<GenerateResponse> {
-    return this.request('/api/generate', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
   async generateTitle(description: string): Promise<{ title: string }> {
     return this.request('/api/generate-title', {
       method: 'POST',
@@ -798,81 +791,4 @@ export async function downloadProjectPdf(
   a.click();
   a.remove();
   globalThis.URL.revokeObjectURL(url);
-}
-
-// Download types for markdown downloads
-export type DownloadType = 'prd' | 'srs' | 'architecture' | 'api' | 'qa' | 'handbook' | 'full_package';
-
-export async function downloadMarkdown(
-  type: DownloadType,
-  projectDescription: string,
-  projectName: string,
-  content: string,
-  version: string = '1.0.0'
-): Promise<Blob> {
-  const headers = new Headers();
-  headers.set('Content-Type', 'application/json');
-
-  if (api.token) {
-    headers.set('Authorization', `Bearer ${api.token}`);
-  }
-
-  let endpoint: string;
-  let body: Record<string, unknown>;
-
-  if (type === 'full_package') {
-    endpoint = '/api/download/markdown/package';
-    body = {
-      project_description: projectDescription,
-      project_name: projectName,
-      markdown_outputs: {},
-      version,
-    };
-  } else if (type === 'handbook') {
-    endpoint = '/api/download/markdown/handbook';
-    body = {
-      project_description: projectDescription,
-      project_name: projectName,
-      version,
-    };
-  } else {
-    const endpointMap: Record<Exclude<DownloadType, 'full_package' | 'handbook'>, string> = {
-      prd: '/api/download/markdown/prd',
-      srs: '/api/download/markdown/srs',
-      architecture: '/api/download/markdown/architecture',
-      api: '/api/download/markdown/api',
-      qa: '/api/download/markdown/qa',
-    };
-    endpoint = endpointMap[type];
-    body = {
-      project_description: projectDescription,
-      project_name: projectName,
-      content,
-      version,
-      document_type: type,
-    };
-  }
-
-  let response: Response;
-  try {
-    response = await fetch(`${API_URL}${endpoint}`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body),
-    });
-  } catch {
-    throw new ApiError('network_error', 'Unable to connect to the server. Please check your connection.', 0);
-  }
-
-  if (!response.ok) {
-    if (response.status === 401 || response.status === 403) {
-      if (api.onAuthError) {
-        api.onAuthError();
-      }
-      throw new ApiError('auth_error', 'Session expired. Please log in again.', response.status);
-    }
-    throw new ApiError('api_error', `Failed to download ${type}`, response.status);
-  }
-
-  return response.blob();
 }

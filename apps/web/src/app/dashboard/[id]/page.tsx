@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { AlertTriangle, ArrowLeft, Compass, Download, Trash2, Loader2, Calendar, Package } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Compass, Download, Trash2, Loader2, Calendar } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import ProtectedRoute from "@/components/protected-route";
 import ResultsDisplay from "@/components/dashboard/results-display";
-import DownloadModal from "@/components/generator/download-modal";
 import { api, downloadProjectPdf } from "@/lib/api";
 import { toast } from "sonner";
 import type { Project } from "@/types";
@@ -45,7 +44,6 @@ export default function ProjectDetailPage() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
 
   useEffect(() => {
     loadProject();
@@ -224,14 +222,6 @@ export default function ProjectDetailPage() {
               </Link>
             </Button>
             <Button
-              variant="plateActive"
-              onClick={() => setIsDownloadModalOpen(true)}
-              className="label-xs"
-            >
-              <Package className="mr-2 h-3 w-3" />
-              Download Specs
-            </Button>
-            <Button
               variant="plate"
               onClick={handleDownloadPdf}
               disabled={isDownloading}
@@ -333,17 +323,6 @@ export default function ProjectDetailPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Download Modal for Markdown Specs */}
-      <DownloadModal
-        isOpen={isDownloadModalOpen}
-        onClose={() => setIsDownloadModalOpen(false)}
-        results={{
-          markdown_outputs: displayOutputs(project.artifacts),
-          judge_results: review.judgeResults,
-          project_description: project.description || "",
-        }}
-        projectName={project.title}
-      />
     </ProtectedRoute>
   );
 }
