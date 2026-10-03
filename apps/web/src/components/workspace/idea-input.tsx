@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import type { Route } from "next";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
-import { Sparkles, ArrowRight, CheckCircle2, ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
+import { Sparkles, ArrowRight, CheckCircle2, ChevronDown, ChevronUp, Lightbulb, GraduationCap } from "lucide-react";
 import { api } from "@/lib/api";
 import {
   ALL_EXAMPLE_PROMPTS,
@@ -12,6 +14,12 @@ import {
 } from "@/lib/example-prompts";
 import type { ClarifyingQuestion, VaguenessScores, VaguenessDimension } from "@/types/workspace";
 import { VaguenessReport } from "./vagueness-report";
+
+/** The learning exercise a picker starter is, if any: `sd-<id>` for one of the exercises listed. */
+function exerciseFor(exampleId: string, exercises: ReadonlySet<string>): string | null {
+  const id = exampleId.startsWith("sd-") ? exampleId.slice(3) : "";
+  return id && exercises.has(id) ? id : null;
+}
 
 export function IdeaInput() {
   const {
@@ -31,6 +39,24 @@ export function IdeaInput() {
   const [showExamples, setShowExamples] = useState(false);
   const [exampleQuery, setExampleQuery] = useState("");
   const [exampleCategory, setExampleCategory] = useState<string>("All");
+  // The starters that are learning exercises open the exercise (revamp E2). If
+  // the list cannot be had - signed out, or the call failed - every starter
+  // behaves as it always did.
+  const [exercises, setExercises] = useState<ReadonlySet<string>>(new Set());
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      try {
+        const listed = await api.learningExercises();
+        if (live) setExercises(new Set(listed.map((e) => e.id)));
+      } catch {
+        // as before: no starter is an exercise
+      }
+    })();
+    return () => {
+      live = false;
+    };
+  }, []);
 
   // Six examples fit in a list; thirty-seven need filtering, so the panel gained
   // a search box and category chips rather than growing into a wall of cards.
@@ -232,7 +258,33 @@ export function IdeaInput() {
               </p>
             ) : (
             <div className="grid max-h-[22rem] gap-2 overflow-y-auto pr-1">
-              {visibleExamples.map((ex) => (
+              {visibleExamples.map((ex) => {
+                const exercise = exerciseFor(ex.id, exercises);
+                if (exercise) {
+                  // Learner first: an exercise is drafted before any design is
+                  // generated, and the decision it forces is half its answer.
+                  return (
+                    <Link
+                      key={ex.id}
+                      href={`/learn/${exercise}` as Route}
+                      className="stamp-hover group block text-left w-full rounded-sm border border-border bg-card/50 p-3 hover:border-primary/40 hover:bg-primary/5"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <span className="text-xs font-bold text-foreground">{ex.title}</span>
+                          <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5 leading-relaxed">
+                            {ex.prompt}
+                          </p>
+                          <p className="text-xs text-primary mt-1">
+                            A learning exercise: draft it first, then compare a generated design with the reference.
+                          </p>
+                        </div>
+                        <GraduationCap className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40 group-hover:text-primary transition-colors mt-1" />
+                      </div>
+                    </Link>
+                  );
+                }
+                return (
                 <button
                   key={ex.id}
                   onClick={() => setIdeaInput(ideaFor(ex))}
@@ -249,7 +301,8 @@ export function IdeaInput() {
                     <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40 group-hover:text-primary transition-colors mt-1" />
                   </div>
                 </button>
-              ))}
+                );
+              })}
             </div>
             )}
           </div>

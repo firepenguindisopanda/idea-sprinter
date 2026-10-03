@@ -126,23 +126,19 @@ export function DesignSummary({ design }: { design: DesignResult }) {
   );
 }
 
-function Progress({ progress, running }: { progress: DesignProgress; running: boolean }) {
-  const writing = progress.stage === "writer";
-  const grading = progress.stage === "grade";
-  const label = grading
-    ? "Grading against the exercise's answer key"
-    : writing
-      ? progress.round > 1
-        ? "Revising the design"
-        : "Writing the design"
-      : "Planning the design";
+/** What a design run is doing, from its last `stage` event. Shared with learning mode. */
+export function designStageLabel(stage: string, round: number): string {
+  if (stage === "grade") return "Grading against the exercise's answer key";
+  if (stage === "writer") return round > 1 ? "Revising the design" : "Writing the design";
+  return `Planning the design · round ${round} of ${PLAN_ROUNDS}`;
+}
 
+function Progress({ progress, running }: { progress: DesignProgress; running: boolean }) {
   return (
     <div className="space-y-3">
       <div className="label-xs flex items-center gap-2 text-primary">
         {running && <span className="pulse-rule inline-block h-2 w-2 bg-primary" />}
-        {label}
-        {!writing && !grading && ` · round ${progress.round} of ${PLAN_ROUNDS}`}
+        {designStageLabel(progress.stage, progress.round)}
       </div>
 
       {progress.ledgerRounds.length > 0 && (

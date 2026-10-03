@@ -626,6 +626,27 @@ class ApiClient {
   }
 
   /**
+   * Generate a design for a revealed learning attempt's exercise (revamp E1).
+   *
+   * The same run and events as `streamDesign`, written from the exercise's
+   * own brief and graded against its key. The server refuses (409) before the
+   * attempt is revealed.
+   */
+  async streamLearningDesign(
+    attemptId: string,
+    onEvent: (event: WorkspaceStreamEvent) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    await streamSSEPost(
+      `${API_URL}/api/learning/design/${encodeURIComponent(attemptId)}`,
+      {},
+      onEvent,
+      this.authHeaders(),
+      signal,
+    );
+  }
+
+  /**
    * Re-attach to a generation already running on the server.
    *
    * The work belongs to a `Run`, not to the connection that started it, so a

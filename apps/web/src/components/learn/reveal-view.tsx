@@ -5,11 +5,13 @@ import type { Reveal } from "@/types/learning";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Markdown } from "@/components/markdown";
+import { GeneratedDesign } from "./generated-design";
 
 /**
  * The answers, after the learner asked for them: the decision the exercise
  * forces, every check with what passes it and how the latest draft was judged,
- * the key's strong answer, and the full reference design.
+ * the key's strong answer, the full reference design - and, on request, a
+ * generated design beside it to critique.
  */
 export function RevealView({ reveal }: Readonly<{ reveal: Reveal }>) {
   const checks = [...reveal.checks].sort((a, b) => Number(Boolean(b.core)) - Number(Boolean(a.core)));
@@ -24,6 +26,7 @@ export function RevealView({ reveal }: Readonly<{ reveal: Reveal }>) {
           <TabsTrigger value="checks">Check by check</TabsTrigger>
           <TabsTrigger value="strong">Strong answer</TabsTrigger>
           <TabsTrigger value="reference">Reference design</TabsTrigger>
+          <TabsTrigger value="generated">Generated design</TabsTrigger>
         </TabsList>
         <TabsContent value="checks" className="space-y-3 pt-2">
           {checks.map((check) => (
@@ -69,6 +72,9 @@ export function RevealView({ reveal }: Readonly<{ reveal: Reveal }>) {
         </TabsContent>
         <TabsContent value="reference" className="min-w-0 overflow-x-auto pt-2">
           <Markdown>{reveal.reference_design}</Markdown>
+        </TabsContent>
+        <TabsContent value="generated" className="min-w-0 pt-2">
+          <GeneratedDesign attemptId={reveal.attempt_id} referenceDesign={reveal.reference_design} />
         </TabsContent>
       </Tabs>
     </section>
