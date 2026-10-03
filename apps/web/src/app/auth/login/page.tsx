@@ -24,12 +24,12 @@ export default function LoginPage() {
     <div className="flex min-h-full items-center justify-center p-4">
       <Card className="reticle w-full max-w-md rounded-none border border-primary/25 bg-card/80 backdrop-blur-md">
         <CardHeader className="border-b border-primary/15 pb-6 text-center">
-          <span className="label-xs mb-4 block text-primary">Workshop Studio</span>
+          <span className="label-xs mb-4 block text-primary">specs before code</span>
           <CardTitle className="text-2xl font-bold tracking-tight">
             Sign in to start drafting
           </CardTitle>
           <CardDescription className="mt-2 text-sm leading-relaxed">
-            Your drafts, saved specifications and architecture comparisons are
+            Your drafts, saved design specs and architecture comparisons are
             tied to your account.
           </CardDescription>
         </CardHeader>

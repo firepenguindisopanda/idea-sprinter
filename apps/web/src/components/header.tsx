@@ -45,7 +45,7 @@ export default function Header() {
     ...(user ? [
       { to: "/workspace" as Route, label: "Workshop" },
       { to: "/prd" as Route, label: "PRD" },
-      { to: "/learn" as Route, label: "Learn" },
+      { to: "/learn" as Route, label: "Practise" },
       { to: "/architecture" as Route, label: "Architecture" },
       { to: "/dashboard" as Route, label: "Dashboard" },
     ] : [])

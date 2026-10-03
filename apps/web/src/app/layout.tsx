@@ -20,7 +20,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
 	title: "specs before code",
-	description: "AI-powered multi-agent system for generating software specifications before you code.",
+	description: "Practise system design, then write a design spec - checked in code - before you write the code.",
 	icons: {
 		icon: "/favicon.ico",
 	},

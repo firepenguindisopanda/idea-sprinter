@@ -29,20 +29,20 @@ const STAGES = [
   {
     n: "03",
     name: "Direction",
-    detail: "Pick which version of the system to build. The choice is recorded and every agent works to it.",
+    detail: "Pick which version of the system to build. The choice goes into the brief the plan is written from.",
   },
   {
     n: "04",
     name: "Spec",
-    detail: "Twelve agents draft in parallel, a judge reviews each section, and contradictions surface as they appear.",
+    detail: "One plan of the numbers and decisions, checked in code and revised until it holds; then one writer turns it into the design spec, which is checked against the plan.",
   },
 ];
 
 /** What the title block on a drawing states: subject, method, output. */
 const TITLE_BLOCK = [
   { field: "Subject", value: "One sentence describing what you want built" },
-  { field: "Method", value: "Clarify, choose a direction, then 12 agents draft" },
-  { field: "Output", value: "PRD, data model, API surface, QA and DevOps plans" },
+  { field: "Method", value: "Clarify, choose a direction, then a checked plan and one writer" },
+  { field: "Output", value: "A design spec: requirements, estimates, the core decision and its cost, architecture, APIs, data, failure modes and tests" },
 ];
 
 export default function Home() {
@@ -56,7 +56,7 @@ export default function Home() {
       <div className="sheet-frame mx-auto w-full max-w-6xl flex-1 px-4 py-12 sm:px-8 lg:py-20">
         {/* Sheet header - the strip across the top of a drawing. */}
         <div className="flex items-center justify-between gap-4 border-b border-primary/25 pb-3">
-          <span className="label-xs text-primary">Workshop Studio</span>
+          <span className="label-xs text-primary">specs before code</span>
           <span className="label-xs text-muted-foreground">Rev 2.0.0</span>
         </div>
 
@@ -65,13 +65,13 @@ export default function Home() {
             <h1 className="text-5xl font-bold leading-[1.05] tracking-[-0.045em] sm:text-6xl">
               Vague idea in.
               <br />
-              <span className="text-primary">Drafted spec</span> out.
+              <span className="text-primary">Checked design spec</span> out.
             </h1>
 
             <p className="max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
               Describe what you want to build. The workshop tells you where the
               description is too vague to act on, asks only about those parts,
-              then drafts the specification you would otherwise write by hand.
+              then writes a design spec from a plan whose numbers and decisions are checked in code.
             </p>
 
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">

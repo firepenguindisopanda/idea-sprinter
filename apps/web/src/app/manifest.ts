@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
 	return {
 		name: "specs before code",
 		short_name: "specs before code",
-		description: "AI-powered multi-agent system for generating software specifications before you code.",
+		description: "Practise system design, then write a design spec - checked in code - before you write the code.",
 		start_url: "/",
 		display: "standalone",
 		background_color: "#ffffff",
