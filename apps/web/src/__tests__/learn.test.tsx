@@ -62,7 +62,8 @@ const GRADING: Grading = {
   checks: [
     { id: 'B1', core: false, check: 'Is the redirect independent of checking?', passed: true },
     { id: 'B2', core: true, check: 'Does it decide on storage from both rates?', passed: false,
-      hint: 'This is the decision the twist forces.' },
+      hint: 'This is the decision the twist forces.',
+      read: [{ title: 'SQL or NoSQL', url: 'https://github.com/donnemartin/system-design-primer#sql-or-nosql' }] },
   ],
 };
 
@@ -117,6 +118,11 @@ describe('ExerciseWorkspace', () => {
     await screen.findByText(/of 2 checks/);
     expect(mocked.gradeLearningDraft).toHaveBeenCalledWith('a1', LONG_DRAFT);
     expect(screen.getByText('This is the decision the twist forces.')).toBeDefined();
+    // Something to read before the next draft (revamp E3): a link, in a new tab.
+    const reading = screen.getByRole('link', { name: 'SQL or NoSQL' });
+    expect(reading.getAttribute('href')).toBe('https://github.com/donnemartin/system-design-primer#sql-or-nosql');
+    expect(reading.getAttribute('target')).toBe('_blank');
+    expect(reading.getAttribute('rel')).toContain('noopener');
     expect(screen.getByText(/4 gradings left/)).toBeDefined();
     // The grader is known to be too generous at times (HANDOFF §81-§88): say so.
     expect(screen.getByRole('note').textContent).toMatch(/provisional/i);

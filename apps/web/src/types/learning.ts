@@ -22,6 +22,8 @@ export interface GradedCheck {
   not_applicable?: boolean;
   /** Only on a missed check: why it matters, never how to pass it. */
   hint?: string;
+  /** Only on a missed check: reading on its topics, by title and link (revamp E3). */
+  read?: Array<{ title: string; url: string }>;
 }
 
 export interface Grading {

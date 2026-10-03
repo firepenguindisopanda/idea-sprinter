@@ -1,14 +1,15 @@
 "use client";
 
-import { CheckCircle2, CircleDashed, Lightbulb } from "lucide-react";
+import { BookOpen, CheckCircle2, CircleDashed, Lightbulb } from "lucide-react";
 import type { Grading } from "@/types/learning";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 /**
  * One grading as the learner sees it before revealing: which checks passed,
- * and for each missed one its question and why it matters - never how to pass
- * it. Core checks, the decision the exercise exists to force, come first.
+ * and for each missed one its question, why it matters and what to read -
+ * never how to pass it. Core checks, the decision the exercise exists to
+ * force, come first.
  */
 export function GradingResult({ grading }: Readonly<{ grading: Grading }>) {
   const checks = [...grading.checks].sort((a, b) => Number(b.core) - Number(a.core));
@@ -59,6 +60,23 @@ export function GradingResult({ grading }: Readonly<{ grading: Grading }>) {
                   <p className="flex gap-1.5 text-sm text-muted-foreground">
                     <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
                     <span>{check.hint}</span>
+                  </p>
+                )}
+                {check.read && check.read.length > 0 && (
+                  <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm text-muted-foreground">
+                    <BookOpen className="h-3.5 w-3.5 shrink-0 self-center" aria-hidden />
+                    <span>Read:</span>
+                    {check.read.map((link) => (
+                      <a
+                        key={link.url}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary underline underline-offset-2"
+                      >
+                        {link.title}
+                      </a>
+                    ))}
                   </p>
                 )}
               </div>
