@@ -172,12 +172,19 @@ export function projectDesign(artifacts: ProjectArtifacts | null | undefined): D
   const tokens = saved.tokens;
   const counted =
     !!tokens && [tokens.input, tokens.output, tokens.total, tokens.calls].every((n) => typeof n === "number");
+  const grade = saved.key_grade;
+  const graded =
+    !!grade &&
+    typeof grade === "object" &&
+    [grade.passed, grade.total, grade.core_passed, grade.core_total].every((n) => typeof n === "number") &&
+    text(grade.model);
   return {
     ...saved,
     status: saved.status,
     ledger: saved.ledger ?? null,
     findings,
     context_ids: Array.isArray(saved.context_ids) ? saved.context_ids : [],
+    key_grade: graded ? { ...grade, provisional: true } : null,
     tokens: counted ? tokens : undefined,
     seconds: typeof saved.seconds === "number" ? saved.seconds : undefined,
   };

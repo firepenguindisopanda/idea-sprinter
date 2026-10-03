@@ -105,6 +105,13 @@ describe('DesignStatusPanel', () => {
     expect(screen.getByText(/Revising the design/)).toBeTruthy();
   });
 
+  it("says a keyed design is being graded against its exercise's key", () => {
+    useWorkspaceStore.getState().setDesignStage('grade', 1);
+    render(<DesignStatusPanel />);
+    expect(screen.getByText(/Grading against the exercise's answer key/)).toBeTruthy();
+    expect(screen.queryByText(/round 1 of/)).toBeNull();
+  });
+
   it('shows the result in place of the progress once the run is done', () => {
     const store = useWorkspaceStore.getState();
     store.setDesignStage('writer', 1);
@@ -155,6 +162,22 @@ describe('DesignSummary', () => {
     render(<DesignSummary design={odd} />);
     expect(screen.getByText('Checked against its plan')).toBeTruthy();
     expect(screen.queryByText(/model call/)).toBeNull();
+  });
+
+  it('shows a key grade as provisional: what it counted, and which model graded it', () => {
+    const grade = { passed: 7, total: 13, core_passed: 2, core_total: 3, provisional: true, model: 'nvidia/nemotron-3-super' };
+    render(<DesignSummary design={design({ exercise_id: 'bitly-link-health', key_grade: grade })} />);
+    expect(screen.getByText(/Answer key · provisional/)).toBeTruthy();
+    expect(screen.getByText(/7 of 13 checks · 2 of 3 core/)).toBeTruthy();
+    expect(screen.getByText(/Graded by nvidia\/nemotron-3-super/)).toBeTruthy();
+    expect(screen.getByText(/decides nothing/)).toBeTruthy();
+    // A grade sits beside the status; it is not the status.
+    expect(screen.getByText('Checked against its plan')).toBeTruthy();
+  });
+
+  it('shows no key grade for a design that has none', () => {
+    render(<DesignSummary design={design({ key_grade: null })} />);
+    expect(screen.queryByText(/Answer key/)).toBeNull();
   });
 
   it('counts one call and one second in the singular', () => {
@@ -415,6 +438,14 @@ describe('projectDesign', () => {
     expect(saved?.findings).toEqual([LEDGER_FINDING]);
     expect(saved?.tokens).toBeUndefined();
     expect(saved?.seconds).toBeUndefined();
+  });
+
+  it('keeps a key grade only when it is counts and a model', () => {
+    const grade = { passed: 7, total: 13, core_passed: 2, core_total: 3, provisional: true, model: 'm' };
+    expect(projectDesign({ _design: { status: 'checked', key_grade: grade } })?.key_grade).toEqual(grade);
+    expect(projectDesign({ _design: { status: 'checked', key_grade: { ...grade, passed: 'most' } } })?.key_grade).toBeNull();
+    expect(projectDesign({ _design: { status: 'checked', key_grade: 'good' } })?.key_grade).toBeNull();
+    expect(projectDesign({ _design: { status: 'checked' } })?.key_grade).toBeNull();
   });
 });
 

@@ -141,6 +141,21 @@ export interface DesignFinding {
  * Kept in the server's snake_case, unlike the rest of this file, because it is
  * sent back as it came when the design is saved.
  */
+/**
+ * A keyed design graded against its exercise's answer key (revamp D3).
+ *
+ * Counts only - which checks passed would say what the key asks - and always
+ * provisional while the grader's model is an open question. It blocks nothing.
+ */
+export interface KeyGrade {
+  passed: number;
+  total: number;
+  core_passed: number;
+  core_total: number;
+  provisional: boolean;
+  model: string;
+}
+
 export interface DesignResult {
   status: DesignStatus;
   title?: string;
@@ -148,6 +163,7 @@ export interface DesignResult {
   ledger: Record<string, unknown> | null;
   findings: DesignFinding[];
   context_ids: string[];
+  key_grade?: KeyGrade | null;
   tokens?: { input: number; output: number; total: number; calls: number };
   seconds?: number;
 }

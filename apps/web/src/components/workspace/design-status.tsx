@@ -3,7 +3,7 @@
 import { AlertTriangle, ShieldCheck } from "lucide-react";
 import { useWorkspaceStore } from "@/lib/workspace-store";
 import { QualitySidebar } from "./quality-sidebar";
-import type { DesignFinding, DesignProgress, DesignResult, DesignStatus } from "@/types/workspace";
+import type { DesignFinding, DesignProgress, DesignResult, DesignStatus, KeyGrade } from "@/types/workspace";
 
 /**
  * What a design run checked, and what it still found.
@@ -70,6 +70,25 @@ function Findings({ findings }: { findings: Array<Omit<DesignFinding, "source"> 
   );
 }
 
+/**
+ * A keyed design's grade against its exercise's answer key. Beside the status,
+ * never in place of it: the grader's model is still an open question, so the
+ * grade is provisional and decides nothing.
+ */
+function KeyGradeNote({ grade }: { grade: KeyGrade }) {
+  return (
+    <div className="space-y-1 rounded-sm border border-border bg-background/50 p-3">
+      <p className="text-xs font-medium text-foreground">Answer key · provisional</p>
+      <p className="text-xs text-muted-foreground">
+        {grade.passed} of {grade.total} checks · {grade.core_passed} of {grade.core_total} core
+      </p>
+      <p className="label-xs leading-relaxed text-muted-foreground">
+        Graded by {grade.model}. The grader&apos;s model is still being chosen, so this grade decides nothing.
+      </p>
+    </div>
+  );
+}
+
 /** A finished design's status and findings. Also shown on the saved project. */
 export function DesignSummary({ design }: { design: DesignResult }) {
   const status = STATUS[design.status];
@@ -95,6 +114,8 @@ export function DesignSummary({ design }: { design: DesignResult }) {
         </div>
       )}
 
+      {design.key_grade && <KeyGradeNote grade={design.key_grade} />}
+
       {typeof tokens?.calls === "number" && typeof tokens.total === "number" && typeof seconds === "number" && (
         <p className="label-xs text-muted-foreground">
           {tokens.calls} {tokens.calls === 1 ? "model call" : "model calls"} ·{" "}
@@ -107,18 +128,21 @@ export function DesignSummary({ design }: { design: DesignResult }) {
 
 function Progress({ progress, running }: { progress: DesignProgress; running: boolean }) {
   const writing = progress.stage === "writer";
-  const label = writing
-    ? progress.round > 1
-      ? "Revising the design"
-      : "Writing the design"
-    : "Planning the design";
+  const grading = progress.stage === "grade";
+  const label = grading
+    ? "Grading against the exercise's answer key"
+    : writing
+      ? progress.round > 1
+        ? "Revising the design"
+        : "Writing the design"
+      : "Planning the design";
 
   return (
     <div className="space-y-3">
       <div className="label-xs flex items-center gap-2 text-primary">
         {running && <span className="pulse-rule inline-block h-2 w-2 bg-primary" />}
         {label}
-        {!writing && ` · round ${progress.round} of ${PLAN_ROUNDS}`}
+        {!writing && !grading && ` · round ${progress.round} of ${PLAN_ROUNDS}`}
       </div>
 
       {progress.ledgerRounds.length > 0 && (
