@@ -153,7 +153,7 @@ export default function DashboardPage() {
       await downloadProjectPdf(project.description || project.title, exportOutputs(project.artifacts));
       
       toast.success("PDF Downloaded!", {
-        description: "Your project specification has been downloaded.",
+        description: "The project has been downloaded.",
       });
     } catch (error) {
       toast.error("Error", {
@@ -170,7 +170,7 @@ export default function DashboardPage() {
             <span className="label-xs text-primary">Dashboard</span>
             <h1 className="text-4xl font-bold tracking-[-0.03em]">Your projects</h1>
             <p className="text-muted-foreground text-sm max-w-xl">
-              Every specification you have saved, and every architecture you have compared.
+              Every design spec you have saved, and every architecture you have compared.
             </p>
           </div>
 
@@ -223,7 +223,7 @@ export default function DashboardPage() {
               {projects.length === 0 ? (
                 <EmptyState
                   title="No projects yet"
-                  description="Saved specifications land here. Start a draft in the workshop to create your first."
+                  description="Saved design specs land here. Start a draft in the Workshop to write your first."
                 />
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">

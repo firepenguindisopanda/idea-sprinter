@@ -38,7 +38,7 @@ function PrdPageContent() {
       <div className="flex items-center justify-between border-b border-primary/20 pb-4 shrink-0">
         <div>
           <h1 className="text-3xl font-bold tracking-[-0.03em]">Product <span className="text-primary">Requirements</span> (PRD)</h1>
-          <p className="text-xs text-muted-foreground mt-1">Draft and refine a PRD with the PRD agent - synthesize to a full document and export or use it to start the SRS generation.</p>
+          <p className="text-xs text-muted-foreground mt-1">Draft a PRD with the PRD agent, export it, or design from it: &quot;Design this&quot; writes a design spec in the Workshop.</p>
         </div>
         <Button variant="outline" asChild className="label-xs">
           <Link href="/architecture">

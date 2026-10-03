@@ -188,22 +188,13 @@ export default function PrdStatus({ sessionId, onSessionReady }: PrdStatusProps)
       )}
 
       {status?.judge_approved !== undefined && status.phase === "complete" && (
-        <div className={`space-y-2 p-3 border ${status.judge_approved ? "border-tertiary/30 bg-tertiary/5" : "border-warning/30 bg-warning/5"}`}>
-          <div className="flex items-center gap-2">
-            {status.judge_approved ? (
-              <CheckCircle2 className="w-4 h-4 text-tertiary" />
-            ) : (
-              <Loader2 className="w-4 h-4 text-warning animate-spin" />
-            )}
-            <span className={`text-xs font-mono uppercase ${status.judge_approved ? "text-tertiary" : "text-warning"}`}>
-              {status.judge_approved ? "Judge Approved" : "Awaiting Approval"}
-            </span>
-          </div>
-          {status.judge_score !== undefined && status.judge_score !== null && (
-            <div className="text-xs text-muted-foreground">
-              Score: {status.judge_score}/10
-            </div>
-          )}
+        // A score, not an approval (wording row 36): the PRD judge can never
+        // approve (HANDOFF §67), and since F1 it gates nothing - "Awaiting
+        // Approval" spun for ever.
+        <div className="space-y-2 p-3 border border-primary/15">
+          <span className="text-xs font-mono uppercase text-muted-foreground">
+            Judge&apos;s score: {status.judge_score ?? "?"}/10
+          </span>
           {status.judge_feedback && !status.judge_approved && (
             <div className="text-xs text-warning mt-2">
               {status.judge_feedback.slice(0, 200)}

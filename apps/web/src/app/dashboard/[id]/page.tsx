@@ -75,7 +75,7 @@ export default function ProjectDetailPage() {
       await downloadProjectPdf(project.description || project.title, exportOutputs(project.artifacts));
       
       toast.success("PDF Downloaded!", {
-        description: "Your project specification has been downloaded.",
+        description: "The project has been downloaded.",
       });
     } catch (error) {
       toast.error("Error", {
@@ -310,7 +310,7 @@ export default function ProjectDetailPage() {
           <AlertDialogHeader>
             <AlertDialogTitle className="label-lg">Delete this project?</AlertDialogTitle>
             <AlertDialogDescription className="text-sm font-sans ">
-              This will permanently delete &quot;{project.title}&quot; and all its generated specifications. This action cannot be undone.
+              This will permanently delete &quot;{project.title}&quot; and everything saved with it. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

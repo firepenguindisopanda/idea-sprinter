@@ -252,7 +252,7 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
           {/* Judge score display */}
           {prdStatus?.phase === "complete" && (
             <div className="label-xs flex items-center justify-between border border-primary/10 p-2">
-              <span className="text-muted-foreground">Judge Score:</span>
+              <span className="text-muted-foreground">Judge&apos;s score:</span>
               <span className={prdStatus?.judge_approved ? "text-tertiary" : "text-warning"}>
                 {prdStatus?.judge_score || "?"}/10
               </span>
