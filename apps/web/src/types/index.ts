@@ -142,7 +142,6 @@ export interface PRDChatResponse {
   missing_requirements: Record<string, boolean>;
   questions: string[];
   generated_prd?: string | null;
-  judge_feedback?: string | null;
 }
 
 export interface PRDStatusResponse {
@@ -152,9 +151,6 @@ export interface PRDStatusResponse {
   collected_info: Record<string, string>;
   missing_sections: string[];
   follow_up_count: number;
-  judge_approved?: boolean | null;
-  judge_score?: number | null;
-  judge_feedback?: string | null;
 }
 
 export interface PRDDocumentResponse {

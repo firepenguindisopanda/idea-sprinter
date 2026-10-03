@@ -58,6 +58,15 @@ describe('"Design this" on the PRD page (revamp F2)', () => {
     expect(screen.queryByRole('button', { name: /Use as Project Description/i })).toBeNull();
   });
 
+  // §130: the PRD judge is removed - it could never approve and gated nothing.
+  it('shows no judge score', async () => {
+    mocked.getPrdStatus.mockResolvedValue({ session_id: 's1', phase: 'complete', judge_approved: false, judge_score: 5 });
+    render(<PrdDocument sessionId="s1" generatedPrd={PRD} />);
+    await screen.findByRole('button', { name: /Design this/ });
+    await waitFor(() => expect(mocked.getPrdStatus).toHaveBeenCalled());
+    expect(screen.queryByText(/Judge/i)).toBeNull();
+  });
+
   it('says why when the design could not start, and stays on the page', async () => {
     mocked.startPrdDesign.mockRejectedValue(new Error('SSE request failed: 409 Conflict'));
     render(<PrdDocument sessionId="s1" generatedPrd={PRD} />);

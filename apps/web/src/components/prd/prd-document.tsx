@@ -6,7 +6,6 @@ import { FileText, Loader2, Check, Copy, Download, Sparkles } from "lucide-react
 import { toast } from "sonner";
 import { Markdown } from "@/components/markdown";
 import { api } from "@/lib/api";
-import type { PRDStatusResponse } from "@/types";
 
 interface PrdDocumentProps {
   sessionId: string | null;
@@ -18,7 +17,6 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
   const containerRef = useRef<HTMLDivElement>(null);
   
   const [prdContent, setPrdContent] = useState<string | null>(null);
-  const [prdStatus, setPrdStatus] = useState<PRDStatusResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +28,6 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
 
   useEffect(() => {
     setPrdContent(null);
-    setPrdStatus(null);
     setError(null);
     setDesigning(false);
     setDesignError(null);
@@ -51,7 +48,6 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
     const fetchStatus = async () => {
       try {
         const status = await api.getPrdStatus(sessionId);
-        setPrdStatus(status);
 
         // Auto-fetch PRD content when status becomes complete
         if (status.phase === "complete" && !prdContent && !loading) {
@@ -248,16 +244,6 @@ export default function PrdDocument({ sessionId, generatedPrd: generatedPrdProp 
           <div className="text-xs">
             <Markdown enableDiagrams className="max-w-none">{prdContent}</Markdown>
           </div>
-
-          {/* Judge score display */}
-          {prdStatus?.phase === "complete" && (
-            <div className="label-xs flex items-center justify-between border border-primary/10 p-2">
-              <span className="text-muted-foreground">Judge&apos;s score:</span>
-              <span className={prdStatus?.judge_approved ? "text-tertiary" : "text-warning"}>
-                {prdStatus?.judge_score || "?"}/10
-              </span>
-            </div>
-          )}
 
           {/* Action buttons - sticky at bottom */}
           <div className="sticky bottom-0 bg-background pt-2 border-t border-primary/10 space-y-2">

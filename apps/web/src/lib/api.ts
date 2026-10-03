@@ -3,14 +3,6 @@ import type { Grading, LearningAttempt, LearningExercise, Reveal } from '../type
 import type { DesignResult } from '../types/workspace';
 import type { ContestOutcome, OptionChallenge, User, UserPersona, UserPersonaInfo, Project, ProjectCreate, UsageMetrics, UsageStatsResponse, PRDStartResponse, PRDChatResponse, PRDStatusResponse, PRDDocumentResponse, ArchitectureSession, ArchitectureSessionCreate, ArchitectureSessionSummary, ArchitectureSelectRequest, ArchitectureRefineRequest, ArchitectureComparison, ArchitectureOption, ArchitectureDecisionDraft, ArchitectureDecisionSave, ArchitectureDecisionRecord } from '../types';
 
-interface JudgeReevaluateResponse {
-  session_id: string;
-  judge_approved: boolean;
-  judge_score: number;
-  judge_feedback: string;
-  reevaluated: boolean;
-}
-
 // Workspace API types
 export interface WorkspaceClarifyResponse {
   questions: Array<{
@@ -433,13 +425,6 @@ class ApiClient {
     }
     if (!runId) throw new ApiError('api_error', 'The design run did not start', 0);
     return runId;
-  }
-
-  // Re-evaluate judge status for PRD (fixes parse errors from before judge fix)
-  async reevaluateJudge(sessionId: string): Promise<JudgeReevaluateResponse> {
-    return this.request(`/prd/judge/${encodeURIComponent(sessionId)}/reevaluate`, {
-      method: 'POST',
-    });
   }
 
   // Architecture Agent endpoints

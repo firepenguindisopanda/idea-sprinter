@@ -186,23 +186,6 @@ export default function PrdStatus({ sessionId, onSessionReady }: PrdStatusProps)
           Follow-ups: {status.follow_up_count}/5
         </div>
       )}
-
-      {status?.judge_approved !== undefined && status.phase === "complete" && (
-        // A score, not an approval (wording row 36): the PRD judge can never
-        // approve (HANDOFF §67), and since F1 it gates nothing - "Awaiting
-        // Approval" spun for ever.
-        <div className="space-y-2 p-3 border border-primary/15">
-          <span className="text-xs font-mono uppercase text-muted-foreground">
-            Judge&apos;s score: {status.judge_score ?? "?"}/10
-          </span>
-          {status.judge_feedback && !status.judge_approved && (
-            <div className="text-xs text-warning mt-2">
-              {status.judge_feedback.slice(0, 200)}
-              {status.judge_feedback.length > 200 && "..."}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
