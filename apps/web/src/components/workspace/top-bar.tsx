@@ -35,7 +35,7 @@ const PHASE_LABELS: Record<string, string> = {
   idea_input: "Draft",
   clarifying_questions: "Discovery",
   direction_selection: "Direction",
-  generating: "Generating",
+  generating: "Writing",
   refinement: "Ready",
 };
 
@@ -135,7 +135,7 @@ export function TopBar() {
   const handleSave = async () => {
     const completedSections = documentSections.filter((s) => s.status === "complete");
     if (completedSections.length === 0) {
-      toast.info("Nothing to save", { description: "Generate document sections first." });
+      toast.info("Nothing to save", { description: "Write the spec first." });
       return;
     }
 
@@ -150,7 +150,7 @@ export function TopBar() {
       return;
     }
 
-    const title = projectTitle || autoGenerateTitle(ideaInput, completedSections) || "Untitled Specification";
+    const title = projectTitle || autoGenerateTitle(ideaInput, completedSections) || "Untitled design spec";
     setIsSaving(true);
     try {
       // The review travels with the spec. Judge verdicts and contradictions
@@ -192,7 +192,7 @@ export function TopBar() {
       toast.success("Saved", { description: `"${saved.title}" saved to your projects.` });
       router.push("/dashboard");
     } catch {
-      toast.error("Save failed", { description: "Could not save the specification. Please try again." });
+      toast.error("Save failed", { description: "Could not save the design spec. Please try again." });
     } finally {
       setIsSaving(false);
     }
@@ -283,7 +283,7 @@ export function TopBar() {
           <AlertDialogHeader>
             <AlertDialogTitle>Start a new project?</AlertDialogTitle>
             <AlertDialogDescription>
-              This document has not been saved. Starting a new project clears it from
+              This design spec has not been saved. Starting a new project clears it from
               the workspace and it will not appear in your dashboard.
             </AlertDialogDescription>
           </AlertDialogHeader>

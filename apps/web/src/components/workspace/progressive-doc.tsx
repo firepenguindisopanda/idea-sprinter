@@ -71,7 +71,7 @@ export function ProgressiveDoc() {
       {phase === "generating" && !isResuming && (
         <div className="label-xs mb-8 flex items-center gap-2 text-primary">
           <span className="pulse-rule inline-block h-2 w-2 bg-primary" />
-          Drafting the specification
+          Writing the design spec
         </div>
       )}
 
@@ -79,14 +79,14 @@ export function ProgressiveDoc() {
         <div className="accent-note mb-8 border-destructive bg-destructive/10 p-4 space-y-3">
           <p className="text-sm text-foreground">
             {sorted.length > 0
-              ? "Generation stopped before the document was finished. What arrived is below."
-              : "Generation stopped before any sections arrived."}
+              ? "The run stopped before the design spec was finished. What arrived is below."
+              : "The run stopped before any sections arrived."}
           </p>
           <div className="flex flex-wrap gap-2">
             {selectedDirectionId && (
               <Button size="sm" onClick={handleRetry} disabled={isRetrying} className="gap-2">
                 <RotateCw className={`h-4 w-4 ${isRetrying ? "animate-spin" : ""}`} />
-                {isRetrying ? "Regenerating..." : "Regenerate"}
+                {isRetrying ? "Writing again..." : "Write it again"}
               </Button>
             )}
             {sorted.length > 0 && (
@@ -111,7 +111,7 @@ export function ProgressiveDoc() {
           <div className="min-w-0">
             <p className="text-sm font-medium">Ready to choose an architecture?</p>
             <p className="text-xs text-muted-foreground">
-              Carries this specification over as the requirements.
+              Carries this design spec over as the requirements.
             </p>
           </div>
           <Button asChild size="sm" variant="outline" className="gap-2 shrink-0">
@@ -129,12 +129,12 @@ export function ProgressiveDoc() {
         <div className="flex h-full min-h-[50vh] flex-col items-center justify-center space-y-4 text-center">
           <span className="label-xs text-muted-foreground">Sheet 1 - empty</span>
           <h1 className="text-2xl font-bold tracking-tight text-muted-foreground">
-            Untitled specification
+            Untitled design spec
           </h1>
           {/* No "on the left" - below 1024px the console stacks above this. */}
           <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
             Answer the clarifying questions, then pick a direction. Sections
-            appear here as each agent finishes one.
+            appear here as the spec is written.
           </p>
         </div>
       ) : (

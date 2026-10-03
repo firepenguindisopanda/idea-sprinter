@@ -174,7 +174,7 @@ describe('TopBar', () => {
       { phase: 'idea_input', label: 'Draft' },
       { phase: 'clarifying_questions', label: 'Discovery' },
       { phase: 'direction_selection', label: 'Direction' },
-      { phase: 'generating', label: 'Generating' },
+      { phase: 'generating', label: 'Writing' },
       { phase: 'refinement', label: 'Ready' },
     ];
 

@@ -267,7 +267,7 @@ describe('the Workshop on the design pipeline', () => {
     expect(state.error).toBe(message);
     expect(state.design?.status).toBe('failed');
     // Not "refinement": there is no document to refine. `interrupted` is the
-    // phase that offers Regenerate.
+    // phase that offers "Write it again".
     expect(state.phase).toBe('interrupted');
     expect(state.runId).toBeNull();
   });

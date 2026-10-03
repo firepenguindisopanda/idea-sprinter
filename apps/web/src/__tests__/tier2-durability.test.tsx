@@ -135,7 +135,7 @@ describe('ProgressiveDoc after an interrupted run', () => {
     render(<ProgressiveDoc />);
 
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /Regenerate/i })).toBeTruthy(),
+      expect(screen.getByRole('button', { name: /Write it again/i })).toBeTruthy(),
     );
     expect(getRunStatus).not.toHaveBeenCalled();
   });
