@@ -103,7 +103,11 @@ export default function ContestableAssumption({ sessionId, optionId, assumption 
           }`}
         >
           <div className="label-xs flex items-center gap-2">
-            {defended ? (
+            {/* Revamp G2: pushback that states no new fact changes nothing,
+                and is not shown as a defence the model argued for. */}
+            {outcome.nothing_new ? (
+              <><ShieldCheck className="h-3 w-3 text-muted-foreground" /><span className="text-muted-foreground">Unchanged - nothing new was stated</span></>
+            ) : defended ? (
               <><ShieldCheck className="h-3 w-3 text-primary" /><span className="text-primary">Recommendation defended</span></>
             ) : (
               <><RefreshCw className="h-3 w-3 text-warning" /><span className="text-warning">Recommendation revised</span></>
@@ -114,6 +118,13 @@ export default function ContestableAssumption({ sessionId, optionId, assumption 
           </div>
 
           <p className="text-foreground/90 leading-relaxed">{outcome.impact}</p>
+
+          {outcome.new_fact && (
+            <p className="text-muted-foreground">
+              <span className="label-xs">New fact: </span>
+              {outcome.new_fact}
+            </p>
+          )}
 
           {outcome.revised_assumption && (
             <p className="text-muted-foreground">

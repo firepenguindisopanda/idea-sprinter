@@ -556,7 +556,9 @@ class ApiClient {
   }
 
   // Refine an architecture option
-  async refineArchitectureOption(sessionId: string, data: ArchitectureRefineRequest): Promise<{ message: string; iteration: number; refined_option: ArchitectureOption }> {
+  // `changed` is false when the feedback stated no new fact: the option comes
+  // back as it was, and the session's chat says why (revamp G2).
+  async refineArchitectureOption(sessionId: string, data: ArchitectureRefineRequest): Promise<{ message: string; changed: boolean; iteration: number; refined_option: ArchitectureOption }> {
     return this.request(`/architecture/sessions/${sessionId}/refine`, {
       method: 'POST',
       body: JSON.stringify(data),

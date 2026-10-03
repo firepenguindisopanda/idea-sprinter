@@ -220,6 +220,10 @@ export interface ContestOutcome {
   revised_assumption?: string | null;
   still_recommended: boolean;
   follow_up_question?: string | null;
+  /** The new fact the correction states, in the user's words; empty if none (revamp G2). */
+  new_fact?: string;
+  /** No new fact was stated, so nothing changed - checked server-side. */
+  nothing_new?: boolean;
   error?: boolean;
 }
 
