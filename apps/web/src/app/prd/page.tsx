@@ -6,9 +6,8 @@ import PrdChat from "@/components/prd/prd-chat";
 import PrdStatus from "@/components/prd/prd-status";
 import PrdDocument from "@/components/prd/prd-document";
 import { useSearchParams } from "next/navigation";
-import { useDraftStore } from "@/lib/draft-store";
 import { Button } from "@/components/ui/button";
-import { FileText, Sparkles, Building2 } from "lucide-react";
+import { Building2 } from "lucide-react";
 import Link from "next/link";
 
 function PrdPageContent() {
@@ -22,8 +21,6 @@ function PrdPageContent() {
   // Store the generated PRD content directly from the chat
   const [generatedPrd, setGeneratedPrd] = useState<string | null>(null);
   
-  const ideationDraft = useDraftStore((state) => state.ideationDraft);
-  const hasIdeationExample = !!ideationDraft?.selectedExample;
 
   const handleSessionReady = (sid: string) => {
     setSessionId(sid);
@@ -47,33 +44,6 @@ function PrdPageContent() {
           </Link>
         </Button>
       </div>
-
-      {hasIdeationExample && !prefill && (
-        <div className="bg-primary/10 border border-primary/25 p-3 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            <Sparkles className="h-4 w-4 text-primary" />
-            <div>
-              <p className="label-xs text-primary">Ideation example available</p>
-              <p className="text-xs text-muted-foreground">Import your selected concept to start building the PRD</p>
-            </div>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              const example = ideationDraft?.selectedExample;
-              if (example) {
-                const encoded = encodeURIComponent(example);
-                window.location.href = `/prd?prefill=${encoded}`;
-              }
-            }}
-            className="label-xs h-7 rounded-none border-primary/40 text-primary hover:bg-primary/10"
-          >
-            <FileText className="h-3 w-3 mr-2" />
-            Import Example
-          </Button>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-[35%_20%_45%] gap-4 flex-1 min-h-0">
         <div className="flex flex-col h-full overflow-hidden border border-border/40 rounded-sm bg-background/50">
