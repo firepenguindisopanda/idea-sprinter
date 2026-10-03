@@ -7,6 +7,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
 import { Sparkles, ArrowRight, CheckCircle2, ChevronDown, ChevronUp, Lightbulb, GraduationCap } from "lucide-react";
 import { api } from "@/lib/api";
+import { serverMessage } from "@/lib/server-message";
 import {
   ALL_EXAMPLE_PROMPTS,
   EXAMPLE_CATEGORIES,
@@ -75,6 +76,8 @@ export function IdeaInput() {
 
   const handleSubmit = async () => {
     if (!ideaInput.trim()) return;
+    // A retry that succeeds must not leave the last failure's message up.
+    setError(null);
     setIsSubmitting(true);
 
     try {
@@ -118,8 +121,10 @@ export function IdeaInput() {
             setIsSubmitting(false);
             return;
           }
-        } catch {
-          // fall through to error
+        } catch (err) {
+          setError(serverMessage(err, "Could not fetch project directions from the server."));
+          setIsSubmitting(false);
+          return;
         }
         setError("Could not fetch project directions from the server.");
         setIsSubmitting(false);
@@ -144,8 +149,8 @@ export function IdeaInput() {
       }
 
       setError("Received empty questions from the server. Please try again.");
-    } catch {
-      setError("Could not reach the server. Check your connection and try again.");
+    } catch (err) {
+      setError(serverMessage(err));
     }
 
     setIsSubmitting(false);

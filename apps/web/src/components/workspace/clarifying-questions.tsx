@@ -5,6 +5,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, SkipForward, CheckCircle2 } from "lucide-react";
 import { api } from "@/lib/api";
+import { serverMessage } from "@/lib/server-message";
 import type { DirectionOption } from "@/types/workspace";
 import { HybridChatInput } from "./hybrid-chat-input";
 
@@ -50,6 +51,7 @@ export function ClarifyingQuestions() {
     // the same render's state, and that is exactly the case being prevented.
     if (isFetchingRef.current) return;
     isFetchingRef.current = true;
+    setError(null);
     setIsFetching(true);
 
     // Keys become prompt labels on the backend, so send the question text and
@@ -74,8 +76,8 @@ export function ClarifyingQuestions() {
         return;
       }
       setError("Received insufficient directions from the server. Please try again.");
-    } catch {
-      setError("Could not reach the server. Check your connection and try again.");
+    } catch (err) {
+      setError(serverMessage(err));
     } finally {
       isFetchingRef.current = false;
       setIsFetching(false);
