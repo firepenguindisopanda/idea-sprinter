@@ -1,10 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// The real redirect throws NEXT_REDIRECT; the mock does the same, so a page
-// that redirects never returns.
-const mockRedirect = vi.fn(() => {
-  throw new Error('NEXT_REDIRECT');
-});
+// Records where a page redirects. The real `redirect` throws to stop
+// rendering; the record is all these tests need.
+const { mockRedirect } = vi.hoisted(() => ({ mockRedirect: vi.fn() }));
 vi.mock('next/navigation', () => ({ redirect: mockRedirect }));
 
 // Revamp I2: the old pipeline's pages are retired. Bookmarks still land
@@ -18,8 +16,8 @@ describe('the retired pages redirect to the Workshop', () => {
     ['/ideation', () => import('@/app/ideation/page')],
     ['/generator', () => import('@/app/generator/page')],
   ])('%s', async (_route, load) => {
-    const page = (await load()).default as () => never;
-    expect(() => page()).toThrow('NEXT_REDIRECT');
+    const page = (await load()).default as () => void;
+    page();
     expect(mockRedirect).toHaveBeenCalledWith('/workspace');
   });
 });
