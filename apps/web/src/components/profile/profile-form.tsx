@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { Save, Key, Activity, User, RotateCcw, Database } from "lucide-react";
+import { Save, Activity, User, RotateCcw, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,8 +34,6 @@ export default function ProfileForm() {
 
   // Form state
   const [formData, setFormData] = useState({
-    nvidiaApiKey: "",
-    langsmithApiKey: "",
     langsmithProject: "specsbeforecode-dev",
     enableTracing: true,
   });
@@ -55,7 +53,6 @@ export default function ProfileForm() {
       const prefs = res.preferences ?? {};
       setFormData((prev) => ({
         ...prev,
-        langsmithApiKey: (prefs.langsmithApiKey as string) || "",
         langsmithProject: (prefs.langsmithProject as string) || "specsbeforecode-dev",
         enableTracing: prefs.enableTracing !== false,
       }));
@@ -92,7 +89,6 @@ export default function ProfileForm() {
 
     try {
       await api.updatePreferences({
-        langsmithApiKey: formData.langsmithApiKey,
         langsmithProject: formData.langsmithProject,
         enableTracing: formData.enableTracing,
       });
@@ -137,12 +133,8 @@ export default function ProfileForm() {
         </div>
       </div>
 
-      <Tabs defaultValue="api-keys" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 h-12 bg-primary/5 rounded-none border-2 border-primary/10 p-1">
-          <TabsTrigger value="api-keys" className="label-xs rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            <Key className="mr-2 h-3.5 w-3.5" />
-            API Keys
-          </TabsTrigger>
+      <Tabs defaultValue="persona" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 h-12 bg-primary/5 rounded-none border-2 border-primary/10 p-1">
           <TabsTrigger value="persona" className="label-xs rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <User className="mr-2 h-3.5 w-3.5" />
             Persona
@@ -152,34 +144,6 @@ export default function ProfileForm() {
             Telemetry
           </TabsTrigger>
         </TabsList>
-
-        {/* API Keys Section */}
-        <TabsContent value="api-keys" className="mt-6">
-          <Card className="rounded-none border-2 border-primary/20 bg-background/50">
-            <CardHeader className="border-b border-primary/10 pb-4">
-              <CardTitle className="label-sm">API Keys</CardTitle>
-              <CardDescription className="font-sans text-xs">
-                Manage your API keys for accessing AI services.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-6">
-              <div className="space-y-3">
-                <Label htmlFor="nvidia-key" className="label-xs text-primary/80">NVIDIA API Key</Label>
-                <Input
-                  id="nvidia-key"
-                  type="password"
-                  placeholder="Enter your NVIDIA API key"
-                  value={formData.nvidiaApiKey}
-                  onChange={(e) => setFormData({ ...formData, nvidiaApiKey: e.target.value })}
-                  className="rounded-none border-primary/20 bg-background font-mono text-sm focus-visible:ring-primary/30 h-10"
-                />
-                <p className="text-xs font-sans text-muted-foreground">
-                  Your personal NVIDIA NIM API key for AI model access.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         {/* Persona Section */}
         <TabsContent value="persona" className="mt-6">
@@ -229,19 +193,6 @@ export default function ProfileForm() {
                   checked={formData.enableTracing}
                   onCheckedChange={(checked) => setFormData({ ...formData, enableTracing: checked })}
                   className="data-[state=checked]:bg-primary"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="langsmith-key" className="label-xs text-primary/80">LangSmith API Key</Label>
-                <Input
-                  id="langsmith-key"
-                  type="password"
-                  placeholder="Enter LangSmith API key"
-                  value={formData.langsmithApiKey}
-                  onChange={(e) => setFormData({ ...formData, langsmithApiKey: e.target.value })}
-                  disabled={!formData.enableTracing}
-                  className="rounded-none border-primary/20 bg-background font-mono text-sm focus-visible:ring-primary/30 h-10"
                 />
               </div>
 

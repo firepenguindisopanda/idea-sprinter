@@ -45,6 +45,22 @@ describe('the profile page', () => {
     expect(getAvailableModels).not.toHaveBeenCalled();
   });
 
+  it('asks for no API key: nothing on the server reads one from here (HANDOFF §174)', async () => {
+    render(<ProfileForm />);
+    await waitFor(() => expect(screen.getByRole('tab', { name: /telemetry/i })).toBeTruthy());
+    expect(screen.queryByRole('tab', { name: /api keys/i })).toBeNull();
+    fireEvent.mouseDown(screen.getByRole('tab', { name: /telemetry/i }));
+    expect(screen.queryByLabelText(/api key/i)).toBeNull();
+  });
+
+  it('saves no key', async () => {
+    render(<ProfileForm />);
+    fireEvent.click(await screen.findByRole('button', { name: /save/i }));
+
+    await waitFor(() => expect(updatePreferences).toHaveBeenCalledTimes(1));
+    expect(Object.keys(updatePreferences.mock.calls[0][0]).filter((k) => k.toLowerCase().includes('key'))).toEqual([]);
+  });
+
   it('saves no model preferences', async () => {
     render(<ProfileForm />);
     fireEvent.click(await screen.findByRole('button', { name: /save/i }));
