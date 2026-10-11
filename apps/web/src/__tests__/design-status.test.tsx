@@ -19,11 +19,13 @@ vi.mock('next/navigation', () => ({
 }));
 
 const cancelRun = vi.fn();
+const streamDesign = vi.fn();
 
 vi.mock('@/lib/api', () => ({
   api: {
     saveWorkspace: (...args: unknown[]) => saveWorkspace(...args),
     cancelRun: (...args: unknown[]) => cancelRun(...args),
+    streamDesign: (...args: unknown[]) => streamDesign(...args),
     generateTitle: vi.fn(async () => ({ title: 'Untitled Project' })),
   },
   downloadProjectPdf: vi.fn(),
@@ -34,6 +36,7 @@ import { ProgressiveDoc } from '@/components/workspace/progressive-doc';
 import { TopBar } from '@/components/workspace/top-bar';
 import ResultsDisplay from '@/components/dashboard/results-display';
 import { useWorkspaceStore } from '@/lib/workspace-store';
+import { runWorkspaceGeneration } from '@/lib/workspace-generate';
 import { agentRoles, isDesignDocument, projectDesign, projectSummaryBadge } from '@/lib/project-artifacts';
 import type { DesignResult } from '@/types/workspace';
 
@@ -241,7 +244,7 @@ describe('saving a design', () => {
     // HANDOFF §99, §168: the server takes the design, its status, its sections
     // and its brief from the run, so a status is bound to the text it was given for.
     const result = design({ status: 'ledger_unresolved', findings: [LEDGER_FINDING] });
-    useWorkspaceStore.setState({ design: result, runId: 'run-42' });
+    useWorkspaceStore.setState({ design: result, designRunId: 'run-42' });
 
     render(<TopBar />);
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
@@ -253,8 +256,30 @@ describe('saving a design', () => {
     expect(payload.title).toBe('Photo blur');
   });
 
+  it('saves a finished run by the id the run started with', async () => {
+    // HANDOFF §171: the run's own events, through the real handler. The store
+    // stops following a run when it completes; Save must still have its id.
+    const result = design({ status: 'checked' });
+    streamDesign.mockImplementation(async (_dir: string, _brief: string, onEvent: (e: object) => void) => {
+      [
+        { type: 'run_started', run_id: 'run-7' },
+        { type: 'stage', stage: 'writer', round: 1 },
+        { type: 'section_start', section_id: 'sec-design-estimates', title: '2. Estimates', order: 0 },
+        { type: 'section_complete', section_id: 'sec-design-estimates', title: '2. Estimates', content: '300 photos/s.' },
+        { type: 'pipeline_complete', design: result },
+      ].forEach((e, i) => onEvent({ ...e, seq: i + 1 }));
+    });
+    await runWorkspaceGeneration('dir-a');
+
+    render(<TopBar />);
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+
+    await waitFor(() => expect(saveWorkspace).toHaveBeenCalledTimes(1));
+    expect(saveWorkspace.mock.calls[0][0].run_id).toBe('run-7');
+  });
+
   it('will not save a design it has no run for', async () => {
-    useWorkspaceStore.setState({ design: design({ status: 'checked' }), runId: null });
+    useWorkspaceStore.setState({ design: design({ status: 'checked' }), designRunId: null });
 
     render(<TopBar />);
     fireEvent.click(screen.getByRole('button', { name: /save/i }));

@@ -135,9 +135,12 @@ function applyEvent(event: WorkspaceStreamEvent): void {
           if (event.contradictions?.length) {
             store.setContradictions(event.contradictions);
           }
+          // The run is over, so nothing follows it; the design keeps the run's
+          // id, which is what Save sends (HANDOFF §168, §171).
+          const finished = store.runId;
           store.setRun(null);
           if (event.design) {
-            store.setDesign(event.design);
+            store.setDesign(event.design, finished);
             if (event.design.title && !store.projectTitle) store.setProjectTitle(event.design.title);
             // A failed run wrote no document, so there is nothing to refine:
             // `interrupted` is the phase that offers to run it again.

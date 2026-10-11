@@ -90,6 +90,21 @@ describe('the Workshop on the design pipeline', () => {
     expect(brief).toContain('A photo sharing service that blurs faces.');
   });
 
+  it('remembers which run wrote the design after the run ends, so it can be saved', async () => {
+    // HANDOFF §171: Save sends the run id (§168), but the store stops following
+    // a run when it completes - the design must keep its run for Save to send.
+    script(RUN);
+    await runWorkspaceGeneration('dir-a');
+
+    const state = useWorkspaceStore.getState();
+    expect(state.runId).toBeNull();
+    expect(state.design).not.toBeNull();
+    expect(state.designRunId).toBe('run-1');
+
+    state.reset();
+    expect(useWorkspaceStore.getState().designRunId).toBeNull();
+  });
+
   it('folds the run into sections, its progress and its result', async () => {
     script(RUN);
     await runWorkspaceGeneration('dir-a');

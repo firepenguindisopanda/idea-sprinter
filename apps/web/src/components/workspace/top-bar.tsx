@@ -142,7 +142,7 @@ export function TopBar() {
     // A design is saved with its status or not at all. Save is offered while
     // the document streams, and after "Keep what I have"; a design saved then
     // would carry no status, and be shown as an ordinary reviewed document.
-    const { reviews, contradictions, design, designProgress, runId } = useWorkspaceStore.getState();
+    const { reviews, contradictions, design, designProgress, designRunId } = useWorkspaceStore.getState();
     if (designProgress && !design) {
       toast.info("Not finished yet", {
         description: "A design is saved with its checks. Wait for it to finish, or regenerate it.",
@@ -151,7 +151,7 @@ export function TopBar() {
     }
     // The server saves a design from its run (HANDOFF §168); without the run
     // there is nothing it can bind the status to.
-    if (design && !runId) {
+    if (design && !designRunId) {
       toast.info("Cannot save this design", {
         description: "It is no longer linked to the run that wrote it. Regenerate it to save it.",
       });
@@ -193,7 +193,7 @@ export function TopBar() {
         // A design is saved by its run: the server takes its status, plan,
         // findings, sections and brief from the run's events, so a saved status
         // is bound to the text it was given for (§99, §168).
-        ...(design && runId ? { run_id: runId } : {}),
+        ...(design && designRunId ? { run_id: designRunId } : {}),
       });
       setSavedProjectId(saved.id);
       setProjectTitle(saved.title);

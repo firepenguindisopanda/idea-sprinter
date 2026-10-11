@@ -57,7 +57,8 @@ interface WorkspaceActions {
   addLedgerRound: (round: LedgerRound) => void;
   /** Nothing is streaming any more: sections left `generating` become `pending`. */
   settleSections: () => void;
-  setDesign: (design: DesignResult | null) => void;
+  /** A design and the run that wrote it, which Save sends (HANDOFF §168, §171). */
+  setDesign: (design: DesignResult | null, runId?: string | null) => void;
   /** Forget the last design run, before another starts. */
   clearDesign: () => void;
   setRun: (runId: string | null) => void;
@@ -104,6 +105,7 @@ const initialState: WorkspaceState & {
   contradictions: [],
   designProgress: null,
   design: null,
+  designRunId: null,
   runId: null,
   lastSeq: 0,
   vaguenessScores: null,
@@ -301,9 +303,9 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions & {
           ),
         })),
 
-      setDesign: (design) => set({ design }),
+      setDesign: (design, runId = null) => set({ design, designRunId: design ? runId : null }),
 
-      clearDesign: () => set({ design: null, designProgress: null }),
+      clearDesign: () => set({ design: null, designRunId: null, designProgress: null }),
 
       setRun: (runId) => set({ runId, lastSeq: 0 }),
       // Highest-wins: replayed events after a reconnect arrive with sequence

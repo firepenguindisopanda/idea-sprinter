@@ -199,6 +199,12 @@ export interface WorkspaceState {
   designProgress: DesignProgress | null;
   /** The finished design run's result; null until `pipeline_complete`. */
   design: DesignResult | null;
+  /**
+   * The run that wrote `design`. Save sends it, and the server takes the design
+   * from that run (HANDOFF §168). Kept apart from `runId`, which is cleared
+   * when the run completes so nothing follows it any more (§171).
+   */
+  designRunId: string | null;
 }
 
 export type VaguenessDimension =
