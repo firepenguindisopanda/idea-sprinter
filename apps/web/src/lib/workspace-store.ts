@@ -4,13 +4,11 @@ import type {
   WorkspaceState,
   WorkspacePhase,
   ClarifyingQuestion,
-  Contradiction,
   DesignResult,
   DirectionOption,
   DocSection,
   LedgerRound,
   RefinementAction,
-  SectionReview,
   VaguenessScores,
   ChatMessage,
 } from '@/types/workspace';
@@ -45,13 +43,6 @@ interface WorkspaceActions {
   appendDocSectionContent: (sectionId: string, delta: string) => void;
   applyRefinement: (action: RefinementAction) => void;
   undoRefinement: (sectionId: string) => void;
-  /** Merge one reviewer's verdict into that section's review. */
-  mergeSectionReview: (
-    sectionId: string,
-    role: string,
-    review: Partial<Omit<SectionReview, 'sectionId' | 'role'>>,
-  ) => void;
-  setContradictions: (contradictions: Contradiction[]) => void;
   /** A design run moved on: which call is running, and its round. */
   setDesignStage: (stage: string, round: number) => void;
   addLedgerRound: (round: LedgerRound) => void;
@@ -101,8 +92,6 @@ const initialState: WorkspaceState & {
   refinementHistory: [],
   projectTitle: '',
   savedProjectId: null,
-  reviews: {},
-  contradictions: [],
   designProgress: null,
   design: null,
   designRunId: null,
@@ -248,24 +237,6 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions & {
           ),
         });
       },
-
-      // Critic, skeptic and judge arrive as three separate events per section
-      // and land in one review object, so a section that has been criticised
-      // but not yet judged still renders what it has.
-      mergeSectionReview: (sectionId, role, review) =>
-        set((state) => ({
-          reviews: {
-            ...state.reviews,
-            [sectionId]: {
-              ...(state.reviews[sectionId] ?? { sectionId, role }),
-              sectionId,
-              role,
-              ...review,
-            },
-          },
-        })),
-
-      setContradictions: (contradictions) => set({ contradictions }),
 
       // The writer starting - its first round, its revision, or a retry after
       // a dropped stream - sends the document again from its first section, so

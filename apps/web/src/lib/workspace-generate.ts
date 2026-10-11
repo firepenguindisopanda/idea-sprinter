@@ -72,44 +72,6 @@ function applyEvent(event: WorkspaceStreamEvent): void {
           });
           break;
         }
-        // The critic/skeptic/judge pass. Every spec should carry its review
-        // scars; the backend ran all three all along and the workspace threw
-        // the results away.
-        case 'review': {
-          const sectionId = event.section_id;
-          if (!sectionId) break;
-          const role = event.role ?? '';
-          if (event.kind === 'critic') {
-            store.mergeSectionReview(sectionId, role, {
-              critic: {
-                score: event.score ?? null,
-                passed: event.passed ?? null,
-                summary: event.summary ?? '',
-                dimensions: event.dimensions ?? [],
-              },
-            });
-          } else if (event.kind === 'skeptic') {
-            store.mergeSectionReview(sectionId, role, {
-              skeptic: {
-                riskLevel: event.risk_level ?? '',
-                summary: event.summary ?? '',
-                attackVectors: event.attack_vectors ?? [],
-              },
-            });
-          } else if (event.kind === 'judge') {
-            store.mergeSectionReview(sectionId, role, {
-              judge: {
-                score: event.score ?? 0,
-                approved: event.approved ?? false,
-                issuesCount: event.issues_count ?? 0,
-                recommendedAction: event.recommended_action ?? '',
-                feedback: event.feedback ?? '',
-                mustHaves: event.must_haves ?? [],
-              },
-            });
-          }
-          break;
-        }
         // A design run only, from here to `error`.
         case 'stage': {
           if (event.stage) store.setDesignStage(event.stage, event.round ?? 1);
@@ -130,11 +92,6 @@ function applyEvent(event: WorkspaceStreamEvent): void {
           break;
         }
         case 'pipeline_complete': {
-          // Contradictions arrive only here - the consistency check accumulates
-          // them across the run and has no per-section event.
-          if (event.contradictions?.length) {
-            store.setContradictions(event.contradictions);
-          }
           // The run is over, so nothing follows it; the design keeps the run's
           // id, which is what Save sends (HANDOFF §168, §171).
           const finished = store.runId;

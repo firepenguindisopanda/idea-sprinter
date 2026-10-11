@@ -199,19 +199,18 @@ describe('RunReport', () => {
     useWorkspaceStore.getState().reset();
   });
 
-  const judge = { score: 6, approved: false, issuesCount: 2, recommendedAction: 'partial', feedback: 'x' };
-
-  it('is the review sidebar for the old pipeline', () => {
-    useWorkspaceStore.getState().mergeSectionReview('sec-a', 'solution_architect', { judge });
-    render(<RunReport />);
-    expect(screen.getByText('Review')).toBeTruthy();
-    expect(screen.getByText(/0\/1 approved/)).toBeTruthy();
+  it('reports nothing for a document that is not a design', () => {
+    // An old pipeline document still in a browser's saved Workshop: its review
+    // sidebar went with the old pipeline (HANDOFF §171).
+    useWorkspaceStore.setState({
+      documentSections: [{ id: 'sec-a', title: 'A', status: 'complete', content: 'x', order: 0 }],
+    });
+    const { container } = render(<RunReport />);
+    expect(container.textContent).toBe('');
   });
 
   it('is the design status for a design run, with no review claims', () => {
     const store = useWorkspaceStore.getState();
-    // Left over from an earlier run on the old pipeline.
-    store.mergeSectionReview('sec-a', 'solution_architect', { judge });
     store.setDesignStage('ledger', 1);
     store.setDesign(design({ status: 'ledger_unresolved', findings: [LEDGER_FINDING] }));
 

@@ -43,74 +43,6 @@ export interface RefinementSuggestion {
   prompt: string;
 }
 
-/**
- * The adversarial review attached to one section.
- *
- * The backend runs a critic, a skeptic and a judge over every agent's output.
- * All three arrive as `review` events distinguished by `kind`, so the fields
- * below are per-kind and only the ones for that kind are populated.
- */
-export interface CriticDimension {
-  name: string;
-  score: number;
-  justification: string;
-  issues?: string[];
-}
-
-export interface AttackVector {
-  id: string;
-  category: string;
-  description: string;
-  severity: string;
-  impacted_dimension?: string;
-  suggested_fix?: string;
-}
-
-/**
- * A must-have the backend checked in code (multi-agent-system HANDOFF §55).
- * `message` is the instruction the section's retry was given. A blocking
- * finding fails the verdict whatever the critic scored.
- */
-export interface MustHaveFinding {
-  code: string;
-  message: string;
-  blocking: boolean;
-}
-
-export interface SectionReview {
-  sectionId: string;
-  role: string;
-  critic?: {
-    score: number | null;
-    passed: boolean | null;
-    summary: string;
-    dimensions: CriticDimension[];
-  };
-  skeptic?: {
-    riskLevel: string;
-    summary: string;
-    attackVectors: AttackVector[];
-  };
-  judge?: {
-    score: number;
-    approved: boolean;
-    issuesCount: number;
-    recommendedAction: string;
-    feedback: string;
-    /** Absent on reviews saved before the backend sent them. */
-    mustHaves?: MustHaveFinding[];
-  };
-}
-
-/** A cross-agent conflict found by the consistency check. */
-export interface Contradiction {
-  type: string;
-  detail: string;
-  severity: string;
-  roles?: string[];
-  entity_ids?: string[];
-}
-
 export interface RefinementAction {
   sectionId: string;
   prompt: string;
@@ -192,9 +124,6 @@ export interface WorkspaceState {
   refinementHistory: RefinementAction[];
   projectTitle: string;
   savedProjectId: number | null;
-  /** Section id -> the critic/skeptic/judge review of that section. */
-  reviews: Record<string, SectionReview>;
-  contradictions: Contradiction[];
   /** Set while and after a design run; null on the old pipeline. */
   designProgress: DesignProgress | null;
   /** The finished design run's result; null until `pipeline_complete`. */

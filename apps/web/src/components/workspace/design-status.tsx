@@ -2,7 +2,6 @@
 
 import { AlertTriangle, ShieldCheck } from "lucide-react";
 import { useWorkspaceStore } from "@/lib/workspace-store";
-import { QualitySidebar } from "./quality-sidebar";
 import type { DesignFinding, DesignProgress, DesignResult, DesignStatus, KeyGrade } from "@/types/workspace";
 
 /**
@@ -178,10 +177,10 @@ export function DesignStatusPanel() {
 
 /**
  * What the run reports beside the document: the design status for a design
- * run, the review sidebar for the old pipeline. Chosen by what the store
- * holds, so a run started before a reload reports the same way after it.
+ * run. A document the old pipeline wrote, still in a browser's saved
+ * Workshop, reports nothing: its review sidebar went with it (HANDOFF §171).
  */
 export function RunReport() {
   const isDesign = useWorkspaceStore((s) => s.design !== null || s.designProgress !== null);
-  return isDesign ? <DesignStatusPanel /> : <QualitySidebar />;
+  return isDesign ? <DesignStatusPanel /> : null;
 }

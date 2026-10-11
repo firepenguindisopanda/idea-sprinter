@@ -142,7 +142,7 @@ export function TopBar() {
     // A design is saved with its status or not at all. Save is offered while
     // the document streams, and after "Keep what I have"; a design saved then
     // would carry no status, and be shown as an ordinary reviewed document.
-    const { reviews, contradictions, design, designProgress, designRunId } = useWorkspaceStore.getState();
+    const { design, designProgress, designRunId } = useWorkspaceStore.getState();
     if (designProgress && !design) {
       toast.info("Not finished yet", {
         description: "A design is saved with its checks. Wait for it to finish, or regenerate it.",
@@ -161,23 +161,6 @@ export function TopBar() {
     const title = projectTitle || autoGenerateTitle(ideaInput, completedSections) || "Untitled design spec";
     setIsSaving(true);
     try {
-      // The review travels with the spec. Judge verdicts and contradictions
-      // were computed during the run and dropped at save, so a saved spec lost
-      // every trace of the scrutiny it had been through.
-      const judgeResults: Record<string, unknown> = {};
-      for (const review of Object.values(reviews)) {
-        if (!review.judge) continue;
-        // Keyed by role, matching `GenerateResponse.judge_results`, which is
-        // what the dashboard's results display already reads.
-        judgeResults[review.role] = {
-          is_approved: review.judge.approved,
-          score: review.judge.score,
-          issues_count: review.judge.issuesCount,
-          recommended_action: review.judge.recommendedAction,
-          feedback: review.judge.feedback,
-        };
-      }
-
       const saved = await api.saveWorkspace({
         title,
         direction_id: selectedDirectionId,
@@ -188,8 +171,6 @@ export function TopBar() {
           content: s.content,
           order: s.order,
         })),
-        judge_results: judgeResults,
-        contradictions: contradictions as unknown as Array<Record<string, unknown>>,
         // A design is saved by its run: the server takes its status, plan,
         // findings, sections and brief from the run's events, so a saved status
         // is bound to the text it was given for (§99, §168).

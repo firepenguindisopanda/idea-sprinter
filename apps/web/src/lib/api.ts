@@ -38,12 +38,8 @@ export interface WorkspaceRefineResponse {
 }
 
 /**
- * One event from `/api/workspace/generate`.
- *
- * `review` events (kind critic/skeptic/judge) carry the adversarial pass the
- * backend has always run; they used to be dropped in the server's event
- * translation, so the workspace showed the document without any of the scrutiny
- * that produced it.
+ * One event from a design run's stream (`/api/workspace/design`, or a run
+ * followed by id). The old pipeline's `review` events went with it (§171).
  */
 export interface WorkspaceStreamEvent {
   type: string;
@@ -51,35 +47,8 @@ export interface WorkspaceStreamEvent {
   title?: string;
   content?: string;
   order?: number;
-  kind?: 'critic' | 'skeptic' | 'judge';
-  role?: string;
-  score?: number | null;
-  passed?: boolean | null;
-  summary?: string;
-  dimensions?: Array<{ name: string; score: number; justification: string; issues?: string[] }>;
-  risk_level?: string;
-  attack_vectors?: Array<{
-    id: string;
-    category: string;
-    description: string;
-    severity: string;
-    impacted_dimension?: string;
-    suggested_fix?: string;
-  }>;
-  approved?: boolean;
-  issues_count?: number;
-  recommended_action?: string;
-  feedback?: string;
-  /** Judge only: the must-haves checked in code, as instructions. */
-  must_haves?: Array<{ code: string; message: string; blocking: boolean }>;
-  judge_results?: Record<string, unknown>;
-  contradictions?: Array<{
-    type: string;
-    detail: string;
-    severity: string;
-    roles?: string[];
-    entity_ids?: string[];
-  }>;
+  /** `ledger_checked`: whether the plan round passed. */
+  passed?: boolean;
   /**
    * A design run (`/api/workspace/design`) only. `stage` says which call is
    * running and its `round`; `ledger_checked` carries a plan round's
