@@ -2,18 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { Save, Key, Cpu, Activity, User, RotateCcw, Database, Loader2, AlertTriangle } from "lucide-react";
+import { Save, Key, Activity, User, RotateCcw, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -29,12 +22,6 @@ import { useAuthStore } from "@/lib/auth-store";
 import { api } from "@/lib/api";
 import { PersonaSelector } from "@/components/persona/persona-selector";
 
-interface AvailableModel {
-  id: string;
-  supports_tools: boolean;
-  supports_structured_output: boolean;
-}
-
 export default function ProfileForm() {
   const { user } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
@@ -44,9 +31,6 @@ export default function ProfileForm() {
     ttl_seconds: number;
   } | null>(null);
   const [cacheLoading, setCacheLoading] = useState(false);
-  const [availableModels, setAvailableModels] = useState<AvailableModel[]>([]);
-  const [modelsLoading, setModelsLoading] = useState(true);
-  const [modelsError, setModelsError] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -54,9 +38,6 @@ export default function ProfileForm() {
     langsmithApiKey: "",
     langsmithProject: "specsbeforecode-dev",
     enableTracing: true,
-    chatModel: "",
-    embeddingModel: "",
-    summaryModel: "",
   });
 
   const fetchCacheHealth = useCallback(async () => {
@@ -77,34 +58,16 @@ export default function ProfileForm() {
         langsmithApiKey: (prefs.langsmithApiKey as string) || "",
         langsmithProject: (prefs.langsmithProject as string) || "specsbeforecode-dev",
         enableTracing: prefs.enableTracing !== false,
-        chatModel: (prefs.chatModel as string) || "",
-        embeddingModel: (prefs.embeddingModel as string) || "",
-        summaryModel: (prefs.summaryModel as string) || "",
       }));
     } catch {
       // Prefs unavailable - use defaults
     }
   }, []);
 
-  const fetchModels = useCallback(async () => {
-    setModelsLoading(true);
-    setModelsError(false);
-    try {
-      const res = await api.getAvailableModels();
-      setAvailableModels(res.models ?? []);
-    } catch {
-      setModelsError(true);
-      setAvailableModels([]);
-    } finally {
-      setModelsLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
     fetchCacheHealth();
     fetchPreferences();
-    fetchModels();
-  }, [fetchCacheHealth, fetchPreferences, fetchModels]);
+  }, [fetchCacheHealth, fetchPreferences]);
 
   const handleRefreshCache = async () => {
     setCacheLoading(true);
@@ -132,9 +95,6 @@ export default function ProfileForm() {
         langsmithApiKey: formData.langsmithApiKey,
         langsmithProject: formData.langsmithProject,
         enableTracing: formData.enableTracing,
-        chatModel: formData.chatModel || null,
-        embeddingModel: formData.embeddingModel || null,
-        summaryModel: formData.summaryModel || null,
       });
 
       toast.success("Settings saved", {
@@ -178,7 +138,7 @@ export default function ProfileForm() {
       </div>
 
       <Tabs defaultValue="api-keys" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 h-12 bg-primary/5 rounded-none border-2 border-primary/10 p-1">
+        <TabsList className="grid w-full grid-cols-3 h-12 bg-primary/5 rounded-none border-2 border-primary/10 p-1">
           <TabsTrigger value="api-keys" className="label-xs rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <Key className="mr-2 h-3.5 w-3.5" />
             API Keys
@@ -186,10 +146,6 @@ export default function ProfileForm() {
           <TabsTrigger value="persona" className="label-xs rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <User className="mr-2 h-3.5 w-3.5" />
             Persona
-          </TabsTrigger>
-          <TabsTrigger value="models" className="label-xs rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            <Cpu className="mr-2 h-3.5 w-3.5" />
-            Models
           </TabsTrigger>
           <TabsTrigger value="observability" className="label-xs rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <Activity className="mr-2 h-3.5 w-3.5" />
@@ -247,101 +203,6 @@ export default function ProfileForm() {
                 You can also change your persona when starting a new PRD session. 
                 Your choice here becomes the default for all new sessions.
               </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Models Section */}
-        <TabsContent value="models" className="mt-6">
-          <Card className="rounded-none border-2 border-primary/20 bg-background/50">
-            <CardHeader className="border-b border-primary/10 pb-4">
-              <CardTitle className="label-sm">Model Configuration</CardTitle>
-              <CardDescription className="font-sans text-xs">
-                Choose which AI models to use for each task. Models are fetched from NVIDIA NIM.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6 pt-6">
-              {modelsLoading ? (
-                <div className="flex items-center gap-3 p-4 bg-primary/5">
-                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                  <span className="label-xs text-muted-foreground">Loading available models...</span>
-                </div>
-              ) : modelsError ? (
-                <div className="accent-note flex items-center gap-3 p-4 border-warning bg-warning/5">
-                  <AlertTriangle className="h-4 w-4 text-warning" />
-                  <span className="label-xs text-warning">Could not fetch models. Using cached list.</span>
-                </div>
-              ) : null}
-
-              {!modelsLoading && (
-                <>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="chat-model" className="label-xs text-primary/80">Chat Model</Label>
-                      <span className="text-xs font-mono text-muted-foreground">{availableModels.length} available</span>
-                    </div>
-                    <Select
-                      value={formData.chatModel || "__default__"}
-                      onValueChange={(value) => setFormData({ ...formData, chatModel: value === "__default__" ? "" : value })}
-                    >
-                      <SelectTrigger id="chat-model" className="rounded-none border-primary/20 bg-background font-mono text-xs h-10">
-                        <SelectValue placeholder="Use backend default" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-none border-primary/20 max-h-60">
-                        <SelectItem value="__default__" className="font-mono text-xs text-muted-foreground">Backend default</SelectItem>
-                        {availableModels.map((model) => (
-                          <SelectItem key={model.id} value={model.id} className="font-mono text-xs">
-                            {model.id}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs font-sans text-muted-foreground font-medium">
-                      Your preferred model, where a call lets you choose one.
-                    </p>
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label htmlFor="summary-model" className="label-xs text-primary/80">Summary Model</Label>
-                    <Select
-                      value={formData.summaryModel || "__default__"}
-                      onValueChange={(value) => setFormData({ ...formData, summaryModel: value === "__default__" ? "" : value })}
-                    >
-                      <SelectTrigger id="summary-model" className="rounded-none border-primary/20 bg-background font-mono text-xs h-10">
-                        <SelectValue placeholder="Use backend default" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-none border-primary/20 max-h-60">
-                        <SelectItem value="__default__" className="font-mono text-xs text-muted-foreground">Backend default</SelectItem>
-                        {availableModels.filter((m) => m.supports_tools !== false).map((model) => (
-                          <SelectItem key={model.id} value={model.id} className="font-mono text-xs">
-                            {model.id}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label htmlFor="embedding-model" className="label-xs text-primary/80">Embedding Model</Label>
-                    <Select
-                      value={formData.embeddingModel || "__default__"}
-                      onValueChange={(value) => setFormData({ ...formData, embeddingModel: value === "__default__" ? "" : value })}
-                    >
-                      <SelectTrigger id="embedding-model" className="rounded-none border-primary/20 bg-background font-mono text-xs h-10">
-                        <SelectValue placeholder="Use backend default" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-none border-primary/20 max-h-60">
-                        <SelectItem value="__default__" className="font-mono text-xs text-muted-foreground">Backend default</SelectItem>
-                        {availableModels.filter((m) => m.id.includes("embed")).map((model) => (
-                          <SelectItem key={model.id} value={model.id} className="font-mono text-xs">
-                            {model.id}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </>
-              )}
             </CardContent>
           </Card>
         </TabsContent>
