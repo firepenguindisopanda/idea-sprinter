@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, SkipForward, CheckCircle2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { serverMessage } from "@/lib/server-message";
+import { useWorkspaceStore } from "@/lib/workspace-store";
 import type { DirectionOption } from "@/types/workspace";
 import { HybridChatInput } from "./hybrid-chat-input";
 
@@ -61,8 +62,12 @@ export function ClarifyingQuestions() {
     for (const q of questions) {
       if (q.answer) answers[q.question] = q.answer;
     }
+    // "New project" while this waits: its reply belongs to the project left behind.
+    const epoch = useWorkspaceStore.getState().epoch;
+    const stale = () => useWorkspaceStore.getState().epoch !== epoch;
     try {
       const response = await api.getDirections(answers);
+      if (stale()) return;
       const dirs: DirectionOption[] = (response.directions ?? []).map(
         (d: { id?: string; title?: string; description?: string; tags?: string[] }) => ({
           id: d.id ?? "",
@@ -77,7 +82,7 @@ export function ClarifyingQuestions() {
       }
       setError("Received insufficient directions from the server. Please try again.");
     } catch (err) {
-      setError(serverMessage(err));
+      if (!stale()) setError(serverMessage(err));
     } finally {
       isFetchingRef.current = false;
       setIsFetching(false);

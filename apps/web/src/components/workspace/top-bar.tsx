@@ -73,7 +73,10 @@ export function TopBar() {
 
   // Once a document exists there was no way back to a blank workspace, and
   // nothing said one was possible - the only route was reloading the page.
-  const canStartNew = phase === "generating" || phase === "refinement";
+  // The same held before a run: a session stuck on its questions or its
+  // directions could not start over (HANDOFF §135, §172). Every phase after the
+  // idea goes in offers it; a reply still on its way is dropped (`epoch`).
+  const canStartNew = phase !== "idea_input" && phase !== "evaluating";
   // Optional-chained: this runs on every render, unlike the effects below
   // which are phase-guarded, and the store may not be fully populated yet.
   const hasUnsavedWork = (documentSections?.length ?? 0) > 0 && !savedProjectId;

@@ -112,10 +112,17 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions & {
   chatMessages: ChatMessage[];
   error: string | null;
   errorTone: 'error' | 'notice';
+  /**
+   * How many times the workspace has been reset. A request made before
+   * "New project" compares it when its reply lands, and drops a reply that
+   * belongs to the project the user left (HANDOFF §172).
+   */
+  epoch: number;
 }>()(
   persist(
     (set, get) => ({
       ...initialState,
+      epoch: 0,
 
       setPhase: (phase) => set({ phase }),
 
@@ -289,7 +296,7 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions & {
 
       setSavedProjectId: (id) => set({ savedProjectId: id }),
 
-      reset: () => set({ ...initialState }),
+      reset: () => set((state) => ({ ...initialState, epoch: state.epoch + 1 })),
 
       setVaguenessScores: (scores) => set({ vaguenessScores: scores }),
 
