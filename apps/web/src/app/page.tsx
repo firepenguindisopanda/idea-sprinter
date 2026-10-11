@@ -100,6 +100,24 @@ export default function Home() {
               )}
             </div>
 
+            {/* Learning is what the project is for (HANDOFF §80, §83); Practise
+                was reachable from the header alone (§174). Through login for
+                a visitor, remembering where they were going, as above. */}
+            <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
+              Learning system design?{" "}
+              <Link
+                href={{ pathname: user ? "/learn" : "/auth/login" }}
+                onClick={() => {
+                  if (!user) rememberIntendedRoute("/learn");
+                }}
+                className="font-medium text-primary underline-offset-4 hover:underline"
+              >
+                Practise on an exercise
+              </Link>
+              : draft a design yourself, get a hint for each check you miss, then compare yours with a
+              reference design.
+            </p>
+
             {user && !showPersonaSelector && (
               <Button
                 variant="ghost"
