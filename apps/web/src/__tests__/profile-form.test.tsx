@@ -11,13 +11,11 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
  */
 
 const updatePreferences = vi.fn();
-const getAvailableModels = vi.fn();
 
 vi.mock('@/lib/api', () => ({
   api: {
     getCacheHealth: vi.fn(async () => ({ status: 'healthy', keys_tracked: 0, ttl_seconds: 300 })),
     getPreferences: vi.fn(async () => ({ preferences: { chatModel: 'some/model' } })),
-    getAvailableModels: (...args: unknown[]) => getAvailableModels(...args),
     updatePreferences: (...args: unknown[]) => updatePreferences(...args),
     invalidateUserCache: vi.fn(async () => ({})),
   },
@@ -34,7 +32,6 @@ import ProfileForm from '@/components/profile/profile-form';
 describe('the profile page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    getAvailableModels.mockResolvedValue({ models: [{ id: 'some/model', supports_tools: true, supports_structured_output: true }] });
     updatePreferences.mockResolvedValue({ preferences: {} });
   });
 
@@ -42,7 +39,6 @@ describe('the profile page', () => {
     render(<ProfileForm />);
     await waitFor(() => expect(screen.getByRole('tab', { name: /telemetry/i })).toBeTruthy());
     expect(screen.queryByRole('tab', { name: /models/i })).toBeNull();
-    expect(getAvailableModels).not.toHaveBeenCalled();
   });
 
   it('asks for no API key: nothing on the server reads one from here (HANDOFF §174)', async () => {

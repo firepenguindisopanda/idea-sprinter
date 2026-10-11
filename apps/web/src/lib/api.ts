@@ -301,11 +301,6 @@ class ApiClient {
     });
   }
 
-  // Models
-  async getAvailableModels(): Promise<{ models: Array<{ id: string; supports_tools: boolean; supports_structured_output: boolean }> }> {
-    return this.request('/api/models/available');
-  }
-
   async invalidateUserCache(): Promise<{ status: string; keys_cleared: number }> {
     return this.request('/api/v1/cache/invalidate', { method: 'POST' });
   }
