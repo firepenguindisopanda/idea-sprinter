@@ -136,6 +136,17 @@ describe('DesignSummary', () => {
     expect(screen.queryByText(/still fail/i)).toBeNull();
   });
 
+  it('says when words were cut to fit the limit, and how many', () => {
+    // HANDOFF §173: the revision does not cut, so code does; the reader is told.
+    render(<DesignSummary design={design({ trimmed_words: 340 })} />);
+    expect(screen.getByText(/Shortened by 340 words to fit the 2,500-word limit/)).toBeTruthy();
+  });
+
+  it('says nothing about cutting when nothing was cut', () => {
+    render(<DesignSummary design={design({ trimmed_words: 0 })} />);
+    expect(screen.queryByText(/Shortened by/)).toBeNull();
+  });
+
   it('shows an unresolved plan as unresolved, with what it still fails', () => {
     render(<DesignSummary design={design({ status: 'ledger_unresolved', findings: [LEDGER_FINDING] })} />);
     expect(screen.getByText('Plan unresolved')).toBeTruthy();
@@ -472,6 +483,12 @@ describe('projectDesign', () => {
     expect(saved?.findings).toEqual([LEDGER_FINDING]);
     expect(saved?.tokens).toBeUndefined();
     expect(saved?.seconds).toBeUndefined();
+  });
+
+  it('keeps how many words were trimmed only when it is a count', () => {
+    expect(projectDesign({ _design: { status: 'checked', findings: [], trimmed_words: 120 } })?.trimmed_words).toBe(120);
+    expect(projectDesign({ _design: { status: 'checked', findings: [], trimmed_words: 'some' } })?.trimmed_words).toBe(0);
+    expect(projectDesign({ _design: { status: 'checked', findings: [] } })?.trimmed_words).toBe(0);
   });
 
   it('keeps a key grade only when it is counts and a model', () => {

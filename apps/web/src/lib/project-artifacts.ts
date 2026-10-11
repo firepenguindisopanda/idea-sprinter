@@ -187,6 +187,7 @@ export function projectDesign(artifacts: ProjectArtifacts | null | undefined): D
     key_grade: graded ? { ...grade, provisional: true } : null,
     tokens: counted ? tokens : undefined,
     seconds: typeof saved.seconds === "number" ? saved.seconds : undefined,
+    trimmed_words: typeof saved.trimmed_words === "number" ? saved.trimmed_words : 0,
   };
 }
 

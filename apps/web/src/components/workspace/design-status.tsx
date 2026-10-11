@@ -115,6 +115,14 @@ export function DesignSummary({ design }: { design: DesignResult }) {
 
       {design.key_grade && <KeyGradeNote grade={design.key_grade} />}
 
+      {typeof design.trimmed_words === "number" && design.trimmed_words > 0 && (
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          Shortened by {design.trimmed_words.toLocaleString("en-US")} words to fit the 2,500-word limit: the
+          last paragraphs of the sections furthest over their length were cut. The core decision and the
+          architecture are never cut.
+        </p>
+      )}
+
       {typeof tokens?.calls === "number" && typeof tokens.total === "number" && typeof seconds === "number" && (
         <p className="label-xs text-muted-foreground">
           {tokens.calls} {tokens.calls === 1 ? "model call" : "model calls"} ·{" "}

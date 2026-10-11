@@ -98,6 +98,8 @@ export interface DesignResult {
   key_grade?: KeyGrade | null;
   tokens?: { input: number; output: number; total: number; calls: number };
   seconds?: number;
+  /** Words cut in code to fit the limit, after the revision left it over (HANDOFF §173). */
+  trimmed_words?: number;
 }
 
 export interface LedgerRound {
