@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { api } from "@/lib/api";
-import { buildBrief, cancelWorkspaceGeneration } from "@/lib/workspace-generate";
+import { cancelWorkspaceGeneration } from "@/lib/workspace-generate";
 import { toast } from "sonner";
 
 const GENERIC_HEADINGS = new Set([
@@ -142,10 +142,18 @@ export function TopBar() {
     // A design is saved with its status or not at all. Save is offered while
     // the document streams, and after "Keep what I have"; a design saved then
     // would carry no status, and be shown as an ordinary reviewed document.
-    const { reviews, contradictions, design, designProgress } = useWorkspaceStore.getState();
+    const { reviews, contradictions, design, designProgress, runId } = useWorkspaceStore.getState();
     if (designProgress && !design) {
       toast.info("Not finished yet", {
         description: "A design is saved with its checks. Wait for it to finish, or regenerate it.",
+      });
+      return;
+    }
+    // The server saves a design from its run (HANDOFF §168); without the run
+    // there is nothing it can bind the status to.
+    if (design && !runId) {
+      toast.info("Cannot save this design", {
+        description: "It is no longer linked to the run that wrote it. Regenerate it to save it.",
       });
       return;
     }
@@ -182,10 +190,10 @@ export function TopBar() {
         })),
         judge_results: judgeResults,
         contradictions: contradictions as unknown as Array<Record<string, unknown>>,
-        // A design goes with its status, its plan and what it still failed -
-        // without them a saved design reads like a checked one - and with the
-        // brief it was written from, which its plan is checked against.
-        ...(design ? { design, brief: buildBrief() } : {}),
+        // A design is saved by its run: the server takes its status, plan,
+        // findings, sections and brief from the run's events, so a saved status
+        // is bound to the text it was given for (§99, §168).
+        ...(design && runId ? { run_id: runId } : {}),
       });
       setSavedProjectId(saved.id);
       setProjectTitle(saved.title);

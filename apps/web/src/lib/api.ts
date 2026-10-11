@@ -692,9 +692,9 @@ class ApiClient {
     // just carries no review scars.
     judge_results?: Record<string, unknown>;
     contradictions?: Array<Record<string, unknown>>;
-    // A design run's result, sent back as it came. The backend refuses one
-    // without a status it knows.
-    design?: DesignResult;
+    // The design run the sections came from. The backend takes the design, its
+    // status, its sections and its brief from the run (HANDOFF §168).
+    run_id?: string;
   }): Promise<Project> {
     return this.request<Project>('/api/workspace/save', {
       method: 'POST',

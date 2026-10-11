@@ -237,20 +237,30 @@ describe('saving a design', () => {
     });
   });
 
-  it('sends the design, with its status, and the brief it was written from', async () => {
+  it('saves a design by its run id, not by what the page holds', async () => {
+    // HANDOFF §99, §168: the server takes the design, its status, its sections
+    // and its brief from the run, so a status is bound to the text it was given for.
     const result = design({ status: 'ledger_unresolved', findings: [LEDGER_FINDING] });
-    useWorkspaceStore.setState({ design: result });
+    useWorkspaceStore.setState({ design: result, runId: 'run-42' });
 
     render(<TopBar />);
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
     await waitFor(() => expect(saveWorkspace).toHaveBeenCalledTimes(1));
     const payload = saveWorkspace.mock.calls[0][0];
-    expect(payload.design).toEqual(result);
-    expect(payload.brief).toContain('A photo sharing service that blurs faces.');
-    expect(payload.sections).toEqual([
-      { id: 'sec-design-estimates', title: '2. Estimates', content: '300 photos/s.', order: 0 },
-    ]);
+    expect(payload.run_id).toBe('run-42');
+    expect('design' in payload).toBe(false);
+    expect(payload.title).toBe('Photo blur');
+  });
+
+  it('will not save a design it has no run for', async () => {
+    useWorkspaceStore.setState({ design: design({ status: 'checked' }), runId: null });
+
+    render(<TopBar />);
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+
+    await Promise.resolve();
+    expect(saveWorkspace).not.toHaveBeenCalled();
   });
 
   it('sends no design for a document the old pipeline wrote', async () => {
